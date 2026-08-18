@@ -15,7 +15,8 @@
     "lint": "next lint",
     "dialect": "node build-dialect.js",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "pmsql": "bun run src/cli/pmsql.ts"
   },
   "overrides": {
     "@libsql/client": "^0.5.3"
@@ -130,5 +131,8 @@
     "tsx": "^4.7.1",
     "typescript": "^5",
     "wrangler": "^4.6.0"
+  },
+  "bin": {
+    "pmsql": "src/cli/pmsql.ts"
   }
 }

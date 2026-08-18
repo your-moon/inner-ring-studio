@@ -28,11 +28,21 @@ export class PostgresProxyQueryable implements QueryableBaseDriver {
     };
   }
 
+  /**
+   * Vault-backed connections send only their vault id; the server resolves the
+   * password. Manual (form) connections send the inline config as a fallback.
+   */
+  protected requestBody(payload: Record<string, unknown>) {
+    return this.conn.vault_id
+      ? { connectionId: this.conn.vault_id, ...payload }
+      : { connection: this.connectionConfig(), ...payload };
+  }
+
   async query(stmt: string): Promise<DatabaseResultSet> {
     const res = await fetch(this.endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ connection: this.connectionConfig(), sql: stmt }),
+      body: JSON.stringify(this.requestBody({ sql: stmt })),
     });
 
     const json = await res.json();
@@ -46,10 +56,7 @@ export class PostgresProxyQueryable implements QueryableBaseDriver {
     const res = await fetch(this.endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        connection: this.connectionConfig(),
-        statements: stmts,
-      }),
+      body: JSON.stringify(this.requestBody({ statements: stmts })),
     });
 
     const json = await res.json();

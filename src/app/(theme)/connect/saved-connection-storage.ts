@@ -58,6 +58,9 @@ export interface SavedConnectionRawLocalStorage {
   host?: string;
   port?: string;
   ssl?: boolean;
+  // When set, this connection is backed by the server-side encrypted vault.
+  // The browser holds no password; queries are proxied by this id.
+  vault_id?: string;
   driver?: SupportedDriver;
   label?: SavedConnectionLabel;
   file_handler?: string;

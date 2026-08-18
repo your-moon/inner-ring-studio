@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Pool, type QueryArrayResult } from "pg";
+import { getConnection } from "@/lib/vault";
 
 // node-postgres needs the Node.js runtime (not edge).
 export const runtime = "nodejs";
@@ -12,6 +13,33 @@ interface ConnConfig {
   user?: string;
   password?: string;
   ssl?: boolean;
+}
+
+/**
+ * Resolve the effective connection config for a request. Preferred path: the
+ * browser sends only a `connectionId`, and we look the record up in the
+ * server-side vault so the password never leaves the server. Fallback: an
+ * inline `connection` object (used by the manual "new connection" form before a
+ * vault entry exists).
+ */
+function resolveConnection(body: {
+  connectionId?: string;
+  connection?: ConnConfig;
+}): ConnConfig {
+  if (body.connectionId) {
+    const c = getConnection(body.connectionId);
+    if (!c) throw new Error(`Unknown connection id: ${body.connectionId}`);
+    return {
+      host: c.host,
+      port: c.port,
+      database: c.database,
+      user: c.user,
+      password: c.password,
+      ssl: c.ssl,
+    };
+  }
+  if (body.connection?.host && body.connection?.port) return body.connection;
+  throw new Error("Missing connectionId or connection host/port");
 }
 
 // ---------------------------------------------------------------------------
@@ -123,14 +151,7 @@ function toResultSet(r: QueryArrayResult) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const conn = body.connection as ConnConfig | undefined;
-
-    if (!conn?.host || !conn?.port) {
-      return NextResponse.json(
-        { error: "Missing connection host/port" },
-        { status: 400 }
-      );
-    }
+    const conn = resolveConnection(body);
     assertConnectable(conn.host);
     const pool = getPool(conn);
 
