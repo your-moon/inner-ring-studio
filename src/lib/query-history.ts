@@ -1,24 +1,43 @@
-// Per-connection SQL query history, stored in localStorage (this device).
+// Per-connection SQL query history with zoxide-style frecency ranking
+// (frequently + recently run queries surface first). Stored in localStorage.
 
 export interface QueryHistoryEntry {
   sql: string;
   at: number;
+  count: number;
 }
 
-const MAX = 100;
+const MAX = 200;
 
 function key(scope: string): string {
   return `pmsql.history:${scope}`;
 }
 
-export function getHistory(scope: string): QueryHistoryEntry[] {
+function read(scope: string): QueryHistoryEntry[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(key(scope));
-    return raw ? (JSON.parse(raw) as QueryHistoryEntry[]) : [];
+    if (!raw) return [];
+    const list = JSON.parse(raw) as QueryHistoryEntry[];
+    // Back-compat with entries saved before `count` existed.
+    return list.map((e) => ({ count: 1, ...e }));
   } catch {
     return [];
   }
+}
+
+// zoxide-like frecency: frequency weighted by how recently it was last used.
+function frecency(e: QueryHistoryEntry, now: number): number {
+  const ageHours = (now - e.at) / 3_600_000;
+  const recency =
+    ageHours < 1 ? 4 : ageHours < 24 ? 2 : ageHours < 24 * 7 ? 1 : 0.5;
+  return e.count * recency;
+}
+
+/** History for a connection, ranked most-run-and-recent first. */
+export function getHistory(scope: string): QueryHistoryEntry[] {
+  const now = Date.now();
+  return read(scope).sort((a, b) => frecency(b, now) - frecency(a, now));
 }
 
 export function addHistory(scope: string, sql: string): void {
@@ -26,9 +45,20 @@ export function addHistory(scope: string, sql: string): void {
   const trimmed = sql.trim();
   if (!trimmed) return;
   try {
-    const list = getHistory(scope).filter((e) => e.sql !== trimmed);
-    list.unshift({ sql: trimmed, at: Date.now() });
-    window.localStorage.setItem(key(scope), JSON.stringify(list.slice(0, MAX)));
+    const list = read(scope);
+    const existing = list.find((e) => e.sql === trimmed);
+    if (existing) {
+      existing.count += 1;
+      existing.at = Date.now();
+    } else {
+      list.push({ sql: trimmed, at: Date.now(), count: 1 });
+    }
+    // Cap by keeping the highest-frecency entries.
+    const now = Date.now();
+    const capped = list
+      .sort((a, b) => frecency(b, now) - frecency(a, now))
+      .slice(0, MAX);
+    window.localStorage.setItem(key(scope), JSON.stringify(capped));
   } catch {
     /* ignore quota errors */
   }

@@ -21,7 +21,8 @@ import {
 } from "@/core/extension-tab";
 import { normalizedPathname, sendAnalyticEvents } from "@/lib/tracking";
 import { cn } from "@/lib/utils";
-import { Binoculars, GearSix, Table } from "@phosphor-icons/react";
+import { Binoculars, GearSix, StackSimple, Table } from "@phosphor-icons/react";
+import ConnectionsSidebar from "./sidebar/connections-sidebar";
 import SavedDocTab from "./sidebar/saved-doc-tab";
 
 export default function DatabaseGui() {
@@ -131,6 +132,12 @@ export default function DatabaseGui() {
 
   const sidebarTabs = useMemo(() => {
     return [
+      {
+        key: "connections",
+        name: "Databases",
+        content: <ConnectionsSidebar />,
+        icon: <StackSimple weight="light" size={24} />,
+      },
       {
         key: "database",
         name: "Schema",
