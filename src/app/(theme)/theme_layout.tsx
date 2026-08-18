@@ -26,6 +26,8 @@ export default function ThemeLayout({
     <>
       <ThemeProvider
         forcedTheme={overrideTheme}
+        defaultTheme="light"
+        enableSystem={false}
         enableColorScheme
         attribute="class"
       >
