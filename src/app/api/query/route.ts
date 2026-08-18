@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
-import { Pool, type QueryArrayResult } from "pg";
+import { Pool, types, type QueryArrayResult } from "pg";
 import { getConnection } from "@/lib/vault";
 import { requireAuth } from "@/lib/auth";
 
 // node-postgres needs the Node.js runtime (not edge).
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Return date/time values as the raw Postgres text (formatted in the session
+// timezone) instead of parsing to a JS Date — a Date serializes to a UTC ISO
+// string, which is why timestamps rendered "always UTC". With the string kept
+// as-is, the value reflects the connection's timezone (see getPool below).
+types.setTypeParser(1082, (v) => v); // date
+types.setTypeParser(1083, (v) => v); // time
+types.setTypeParser(1114, (v) => v); // timestamp
+types.setTypeParser(1184, (v) => v); // timestamptz
+types.setTypeParser(1266, (v) => v); // timetz
 
 interface ConnConfig {
   host: string;
@@ -14,6 +24,7 @@ interface ConnConfig {
   user?: string;
   password?: string;
   ssl?: boolean;
+  timezone?: string;
 }
 
 /**
@@ -37,6 +48,7 @@ function resolveConnection(body: {
       user: c.user,
       password: c.password,
       ssl: c.ssl,
+      timezone: c.timezone,
     };
   }
   if (body.connection?.host && body.connection?.port) return body.connection;
@@ -74,6 +86,14 @@ function getPool(c: ConnConfig): Pool {
     pool.on("error", () => {
       // Swallow idle-client errors so one dead socket doesn't crash the server.
     });
+    // Apply the connection timezone (or the server default PMSQL_TZ) to every
+    // client so timestamps render in local time rather than UTC.
+    const tz = c.timezone ?? process.env.PMSQL_TZ;
+    if (tz) {
+      pool.on("connect", (client) => {
+        client.query(`SET TIME ZONE '${tz.replace(/'/g, "")}'`).catch(() => {});
+      });
+    }
     pools.set(key, pool);
   }
   return pool;

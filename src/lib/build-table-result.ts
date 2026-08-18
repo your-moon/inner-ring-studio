@@ -223,16 +223,21 @@ export function pipeCalculateInitialSize(
 ) {
   for (const header of headers) {
     const dataType = header.metadata.type;
-    let initialSize = 100;
 
+    // Width needed to fully render the column name (label + type badge + sort/
+    // menu affordances). Ensures header names are never truncated on load.
+    const label = (header.display.text ?? header.name ?? "").toString();
+    const nameSize = label.length * 8 + 56;
+
+    // Width needed to comfortably show the data.
+    let contentSize = 100;
     if (dataType === ColumnType.INTEGER || dataType === ColumnType.REAL) {
-      initialSize = 100;
-    } else if (dataType === ColumnType.TEXT) {
-      // Use 100 first rows to determine the good initial size
+      contentSize = 100;
+    } else {
+      // Sample up to 100 rows (covers text, dates, timestamps, etc.)
       let maxSize = 0;
       for (let i = 0; i < Math.min(result.rows.length, 100); i++) {
         const currentCell = result.rows[i];
-
         if (currentCell) {
           maxSize = Math.max(
             (currentCell[header.name ?? ""]?.toString() ?? "").length,
@@ -240,11 +245,13 @@ export function pipeCalculateInitialSize(
           );
         }
       }
-
-      initialSize = Math.max(150, Math.min(500, maxSize * 8));
+      contentSize = maxSize * 8 + 24;
     }
 
-    header.display.initialSize = initialSize;
+    header.display.initialSize = Math.max(
+      100,
+      Math.min(500, Math.max(nameSize, contentSize))
+    );
   }
 }
 

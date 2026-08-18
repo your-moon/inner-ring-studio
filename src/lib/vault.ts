@@ -25,6 +25,7 @@ export interface VaultConnection {
   user?: string;
   password?: string;
   ssl?: boolean;
+  timezone?: string;
   createdAt: number;
 }
 
