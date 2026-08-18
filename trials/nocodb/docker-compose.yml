@@ -1,0 +1,39 @@
+# NocoDB trial: a seeded sample Postgres (your "existing DB") + NocoDB on :8080.
+#   docker compose up -d
+# Then open http://localhost:8080 and connect to the sample DB as an external source
+# (host: sampledb, port: 5432, db: shop, user: shop, pass: shop).
+# The same DB is also exposed on your host at localhost:5434 for psql/DBeaver.
+
+services:
+  sampledb:
+    image: postgres:16
+    container_name: pmsql-sampledb
+    environment:
+      POSTGRES_USER: shop
+      POSTGRES_PASSWORD: shop
+      POSTGRES_DB: shop
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./seed.sql:/docker-entrypoint-initdb.d/seed.sql:ro
+      - sampledb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shop -d shop"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: pmsql-cloudbeaver
+    depends_on:
+      sampledb:
+        condition: service_healthy
+    ports:
+      - "8978:8978"
+    volumes:
+      - cloudbeaver-data:/opt/cloudbeaver/workspace
+
+volumes:
+  sampledb-data:
+  cloudbeaver-data:

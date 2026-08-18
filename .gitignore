@@ -1,0 +1,25 @@
+# deps / build
+node_modules/
+.next/
+out/
+dist/
+.open-next/
+.wrangler/
+
+# study clones (kept locally, not versioned — see docs/study/README.md)
+docs/study/clones/
+
+# local trial data
+trials/**/pgdata/
+trials/**/*.log
+
+# env / secrets / vault
+.env*
+!.env.example
+*.vault
+vault.enc
+.pmsql/
+
+# os / editor
+.DS_Store
+*.local
