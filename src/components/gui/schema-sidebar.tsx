@@ -136,7 +136,9 @@ export default function SchemaView() {
         </div>
       </div>
 
-      <SchemaList search={search} />
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <SchemaList search={search} />
+      </div>
     </div>
   );
 }
