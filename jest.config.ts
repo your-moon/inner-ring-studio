@@ -9,6 +9,16 @@ const createJestConfig = nextJest({
 // Add any custom config to be passed to Jest
 const config: Config = {
   coveragePathIgnorePatterns: ["<rootDir>/.*.tsx$"],
+  // Vendored study clones and the build output are not ours to test/scan.
+  testPathIgnorePatterns: [
+    "<rootDir>/node_modules/",
+    "<rootDir>/docs/study/clones/",
+    "<rootDir>/.next/",
+  ],
+  modulePathIgnorePatterns: [
+    "<rootDir>/docs/study/clones/",
+    "<rootDir>/.next/",
+  ],
   globals: {
     window: {},
   },

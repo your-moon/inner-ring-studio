@@ -125,6 +125,26 @@ perf** (fetch first N, `PMSQL_MAX_ROWS`); table-list bounded scroll; offline des
    1000) to plain editor SELECTs so Postgres uses the index (13s → ~1.6s on the 3M table)
    and reads via a cursor. Only the single-statement editor path is capped.
 
+## Status — security review + tests (2026-08-18)
+
+- **Security review** — passed. `requireAuth()` guards every data/mutating route
+  (query, connections CRUD, db, config, ai/sql); only auth login/logout/me are public
+  by design. No secret/connection logging anywhere. AI SQL uses `execFile` (arg array,
+  no shell) — injection-safe. Read-only is Postgres-enforced (`default_transaction_read_only`).
+  Session cookie is httpOnly + `secure` in prod + `sameSite=lax` (CSRF-mitigated).
+  Two notes: (1) SSRF guard only blocks `169.254.169.254` — acceptable, an authed user
+  connects to their own private-IP DBs; (2) **added login brute-force protection** —
+  in-memory per-IP cap (10 fails / 15 min → 429) in `api/auth/login/route.ts`.
+  ⚠️ Rate-limiting is live only after a redeploy (see Deploy above).
+- **Test suite** — `bun run jest`, 124 tests / 13 suites green. New security-critical
+  suites: `src/lib/vault.test.ts` (encrypt round-trip, wrong/missing passphrase, no
+  password in `listConnections`, update keeps/rotates password), `src/lib/auth.test.ts`
+  (constant-time password check, token forge/tamper/rotation rejection), `src/lib/sql-topn.test.ts`
+  (`wrapForTopN` only rewrites safe single SELECTs), `src/drivers/sqlite/sql-escape.test.ts`
+  (write-back quote-doubling neutralizes injection). `wrapForTopN` extracted from the
+  query route into `src/lib/sql-topn.ts` (pure, testable). `jest.config.ts` now ignores
+  `docs/study/clones/` + `.next/` (were causing haste collisions / obsolete-snapshot noise).
+
 ## Status — still PENDING / nice-to-have
 
 - **Truly-instant large results** — lazy pagination (fetch ~200, load more on scroll) in

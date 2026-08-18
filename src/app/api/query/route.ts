@@ -5,6 +5,7 @@ import { getConnection } from "@/lib/vault";
 import { requireAuth } from "@/lib/auth";
 import { getPool, type PgConnConfig } from "@/lib/pg-pool";
 import { clickhouseQuery } from "@/lib/clickhouse";
+import { wrapForTopN } from "@/lib/sql-topn";
 
 // node-postgres needs the Node.js runtime (not edge).
 export const runtime = "nodejs";
@@ -52,22 +53,6 @@ function resolveConnection(body: {
   }
   if (body.connection?.host && body.connection?.port) return body.connection;
   throw new Error("Missing connectionId or connection host/port");
-}
-
-// Wrap a plain editor SELECT with an outer LIMIT so Postgres uses a bounded
-// top-N sort (fast) instead of sorting the whole table, when the user didn't
-// specify a LIMIT. Conservative: only single, lock-free SELECTs are wrapped.
-function wrapForTopN(sql: string, maxRows: number): string {
-  const trimmed = sql.trim().replace(/;\s*$/, "");
-  if (!/^select\b/i.test(trimmed)) return sql;
-  if (/;/.test(trimmed)) return sql; // multiple statements
-  if (/\b(limit|offset)\b/i.test(trimmed)) return sql;
-  if (/\bfor\s+(update|share|no\s+key\s+update|key\s+share)\b/i.test(trimmed))
-    return sql;
-  if (/\binto\b/i.test(trimmed)) return sql; // SELECT INTO
-  // Append (not wrap) so Postgres can use an index for ORDER BY … LIMIT and
-  // return instantly instead of sorting the whole table.
-  return `${trimmed} LIMIT ${maxRows}`;
 }
 
 // Always refuse the cloud-metadata address. Broader private-range blocking is
