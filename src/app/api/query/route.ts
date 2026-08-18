@@ -54,6 +54,20 @@ function resolveConnection(body: {
   throw new Error("Missing connectionId or connection host/port");
 }
 
+// Wrap a plain editor SELECT with an outer LIMIT so Postgres uses a bounded
+// top-N sort (fast) instead of sorting the whole table, when the user didn't
+// specify a LIMIT. Conservative: only single, lock-free SELECTs are wrapped.
+function wrapForTopN(sql: string, maxRows: number): string {
+  const trimmed = sql.trim().replace(/;\s*$/, "");
+  if (!/^select\b/i.test(trimmed)) return sql;
+  if (/;/.test(trimmed)) return sql; // multiple statements
+  if (/\b(limit|offset)\b/i.test(trimmed)) return sql;
+  if (/\bfor\s+(update|share|no\s+key\s+update|key\s+share)\b/i.test(trimmed))
+    return sql;
+  if (/\binto\b/i.test(trimmed)) return sql; // SELECT INTO
+  return `SELECT * FROM (${trimmed}) AS _pmsql_topn LIMIT ${maxRows}`;
+}
+
 // Always refuse the cloud-metadata address. Broader private-range blocking is
 // gated behind the vault milestone (dev connects to localhost/Docker).
 function assertConnectable(host: string): void {
@@ -191,7 +205,7 @@ export async function POST(req: Request) {
     const client = await pool.connect();
     try {
       const cursor = client.query(
-        new Cursor(body.sql, [], { rowMode: "array" })
+        new Cursor(wrapForTopN(body.sql, maxRows), [], { rowMode: "array" })
       );
       const rows = (await cursor.read(maxRows)) as unknown[][];
       const fields =

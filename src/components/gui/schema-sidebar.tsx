@@ -13,11 +13,32 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "../ui/context-menu";
 import SchemaCreateDialog from "./schema-editor/schema-create";
-import SchemaList from "./schema-sidebar-list";
+import SchemaList, { TableSortMode } from "./schema-sidebar-list";
 
 export default function SchemaView() {
   const [search, setSearch] = useState("");
+  const [sortMode, setSortMode] = useState<TableSortMode>(() => {
+    if (typeof window !== "undefined") {
+      const v = window.localStorage.getItem("pmsql.tableSort");
+      if (v) return v as TableSortMode;
+    }
+    return "name-asc";
+  });
+  const changeSort = (m: TableSortMode) => {
+    setSortMode(m);
+    try {
+      window.localStorage.setItem("pmsql.tableSort", m);
+    } catch {
+      /* ignore */
+    }
+  };
   const { databaseDriver, extensions, name } = useStudioContext();
   const { currentSchemaName } = useSchema();
   const [isCreateSchema, setIsCreateSchema] = useState(false);
@@ -113,7 +134,27 @@ export default function SchemaView() {
           </div>
         )}
         <div className="mb-5 flex items-center justify-between">
-          <h1 className="text-primary text-xl font-medium">Tables</h1>
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
+              <h1 className="text-primary cursor-context-menu text-xl font-medium">
+                Tables
+              </h1>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem onClick={() => changeSort("name-asc")}>
+                Sort by name (A → Z)
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => changeSort("name-desc")}>
+                Sort by name (Z → A)
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => changeSort("size-desc")}>
+                Sort by size (largest first)
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => changeSort("size-asc")}>
+                Sort by size (smallest first)
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
           {activatorButton}
         </div>
 
@@ -137,7 +178,7 @@ export default function SchemaView() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <SchemaList search={search} />
+        <SchemaList search={search} sortMode={sortMode} />
       </div>
     </div>
   );

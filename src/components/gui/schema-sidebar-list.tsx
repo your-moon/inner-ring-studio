@@ -15,6 +15,7 @@ import SchemaCreateDialog from "./schema-editor/schema-create";
 
 interface SchemaListProps {
   search: string;
+  sortMode?: TableSortMode;
 }
 
 function formatTableSize(byteCount?: number) {
@@ -117,8 +118,30 @@ function groupByFtsTable(items: ListViewItem<DatabaseSchemaItem>[]) {
   return items.filter((item) => !excludes.has(item.data.name));
 }
 
-function sortTable(items: ListViewItem<DatabaseSchemaItem>[]) {
-  return items.sort((a, b) => a.name.localeCompare(b.name));
+export type TableSortMode =
+  | "name-asc"
+  | "name-desc"
+  | "size-asc"
+  | "size-desc";
+
+function sortTable(
+  items: ListViewItem<DatabaseSchemaItem>[],
+  mode: TableSortMode = "name-asc"
+) {
+  const size = (x: ListViewItem<DatabaseSchemaItem>) =>
+    x.data?.tableSchema?.stats?.sizeInByte ?? -1;
+  return [...items].sort((a, b) => {
+    switch (mode) {
+      case "name-desc":
+        return b.name.localeCompare(a.name);
+      case "size-asc":
+        return size(a) - size(b);
+      case "size-desc":
+        return size(b) - size(a);
+      default:
+        return a.name.localeCompare(b.name);
+    }
+  });
 }
 
 function flattenSchemaGroup(
@@ -153,7 +176,10 @@ async function downloadExportTable(
   }
 }
 
-export default function SchemaList({ search }: Readonly<SchemaListProps>) {
+export default function SchemaList({
+  search,
+  sortMode = "name-asc",
+}: Readonly<SchemaListProps>) {
   const { databaseDriver, extensions } = useStudioContext();
   const [selected, setSelected] = useState("");
   const { refresh, schema, currentSchemaName } = useSchema();
@@ -294,10 +320,12 @@ export default function SchemaList({ search }: Readonly<SchemaListProps>) {
           children: sortTable(
             groupByFtsTable(
               groupTriggerByTable(prepareListViewItem(tables, maxTableSize))
-            )
+            ),
+            sortMode
           ),
         } as ListViewItem<DatabaseSchemaItem>;
-      })
+      }),
+      sortMode
     );
 
     if (databaseDriver.getFlags().optionalSchema) {
@@ -306,7 +334,7 @@ export default function SchemaList({ search }: Readonly<SchemaListProps>) {
       return flattenSchemaGroup(r);
     }
     return r;
-  }, [schema, currentSchemaName, databaseDriver]);
+  }, [schema, currentSchemaName, databaseDriver, sortMode]);
 
   const filterCallback = useCallback(
     (item: ListViewItem<DatabaseSchemaItem>) => {

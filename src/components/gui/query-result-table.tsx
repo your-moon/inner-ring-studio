@@ -2,6 +2,9 @@ import OptimizeTable, {
   OptimizeTableHeaderWithIndexProps,
 } from "@/components/gui/table-optimized";
 import OptimizeTableState from "@/components/gui/table-optimized/optimize-table-state";
+import RowDetailDialog, {
+  RowDetailField,
+} from "@/components/gui/row-detail-dialog";
 import { useStudioContext } from "@/context/driver-provider";
 import { ColumnSortOption } from "@/drivers/base-driver";
 import { exportDataAsDelimitedText } from "@/lib/export-helper";
@@ -129,6 +132,9 @@ export default function ResultTable({
   visibleColumnIndexList,
 }: ResultTableProps) {
   const [stickyHeaderIndex, setStickHeaderIndex] = useState<number>();
+  const [detailFields, setDetailFields] = useState<RowDetailField[] | null>(
+    null
+  );
 
   const { extensions } = useStudioContext();
 
@@ -408,6 +414,17 @@ export default function ResultTable({
         }
       } else if (e.key === "Enter") {
         state.enterEditMode();
+      } else if (e.code === "Space") {
+        // Row detail: show every column of the focused row (DBeaver-style).
+        const focus = state.getFocus();
+        if (focus) {
+          setDetailFields(
+            state.getHeaders().map((h, i) => ({
+              name: h.name,
+              value: state.getValue(focus.y, i),
+            }))
+          );
+        }
       }
 
       e.preventDefault();
@@ -416,17 +433,23 @@ export default function ResultTable({
   );
 
   return (
-    <OptimizeTable
-      internalState={data}
-      onContextMenu={onCellContextMenu}
-      onHeaderContextMenu={onHeaderContextMenu}
-      stickyHeaderIndex={stickyHeaderIndex}
-      arrangeHeaderIndex={headerIndex}
-      renderAhead={20}
-      renderHeader={renderHeader}
-      rowHeight={35}
-      onKeyDown={onKeyDown}
-      renderCell={tableResultCellRenderer}
-    />
+    <>
+      <OptimizeTable
+        internalState={data}
+        onContextMenu={onCellContextMenu}
+        onHeaderContextMenu={onHeaderContextMenu}
+        stickyHeaderIndex={stickyHeaderIndex}
+        arrangeHeaderIndex={headerIndex}
+        renderAhead={20}
+        renderHeader={renderHeader}
+        rowHeight={35}
+        onKeyDown={onKeyDown}
+        renderCell={tableResultCellRenderer}
+      />
+      <RowDetailDialog
+        fields={detailFields}
+        onClose={() => setDetailFields(null)}
+      />
+    </>
   );
 }
