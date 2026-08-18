@@ -5,7 +5,13 @@ import {
   SidebarMenuLoadingItem,
 } from "@/components/sidebar-menu";
 import { cn } from "@/lib/utils";
-import { CloudArrowUp, Database, List, Plus } from "@phosphor-icons/react";
+import {
+  CloudArrowUp,
+  Database,
+  List,
+  PlugsConnected,
+  Plus,
+} from "@phosphor-icons/react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { PropsWithChildren, useState } from "react";
 import useSWR from "swr";
@@ -152,6 +158,12 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
             />
 
             <SidebarMenuHeader text="Settings" />
+            <SidebarMenuItem
+              text="Connections"
+              icon={PlugsConnected}
+              href="/connections"
+              selected={pathname === "/connections"}
+            />
             <SidebarMenuItem
               text="Vault storage"
               icon={CloudArrowUp}

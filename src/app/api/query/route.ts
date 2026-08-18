@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { Pool, types, type QueryArrayResult } from "pg";
+import { types, type QueryArrayResult } from "pg";
 import { getConnection } from "@/lib/vault";
 import { requireAuth } from "@/lib/auth";
+import { getPool, type PgConnConfig } from "@/lib/pg-pool";
 
 // node-postgres needs the Node.js runtime (not edge).
 export const runtime = "nodejs";
@@ -21,16 +22,6 @@ types.setTypeParser(1266, (v) => v); // timetz
 types.setTypeParser(114, (v) => v); // json
 types.setTypeParser(3802, (v) => v); // jsonb
 
-interface ConnConfig {
-  host: string;
-  port: number;
-  database?: string;
-  user?: string;
-  password?: string;
-  ssl?: boolean;
-  timezone?: string;
-}
-
 /**
  * Resolve the effective connection config for a request. Preferred path: the
  * browser sends only a `connectionId`, and we look the record up in the
@@ -40,8 +31,8 @@ interface ConnConfig {
  */
 function resolveConnection(body: {
   connectionId?: string;
-  connection?: ConnConfig;
-}): ConnConfig {
+  connection?: PgConnConfig;
+}): PgConnConfig {
   if (body.connectionId) {
     const c = getConnection(body.connectionId);
     if (!c) throw new Error(`Unknown connection id: ${body.connectionId}`);
@@ -57,47 +48,6 @@ function resolveConnection(body: {
   }
   if (body.connection?.host && body.connection?.port) return body.connection;
   throw new Error("Missing connectionId or connection host/port");
-}
-
-// ---------------------------------------------------------------------------
-// Keyed pool registry — one live pool per (host,port,db,user). Survives across
-// requests in a running server. The key deliberately scopes by user so two
-// different credentials never share a pool.
-// (Milestone 5 will move credentials into a server-side encrypted vault and key
-//  pools by connection id instead of raw config.)
-// ---------------------------------------------------------------------------
-const pools = new Map<string, Pool>();
-
-function poolKey(c: ConnConfig): string {
-  return `${c.host}:${c.port}:${c.database ?? ""}:${c.user ?? ""}:${c.ssl ? 1 : 0}`;
-}
-
-function getPool(c: ConnConfig): Pool {
-  const key = poolKey(c);
-  let pool = pools.get(key);
-  if (!pool) {
-    // Apply the connection timezone (or server default PMSQL_TZ) at connection
-    // start via server options, so timestamps render in local time rather than
-    // UTC — no separate SET query (avoids a race with the first statement).
-    const tz = (c.timezone ?? process.env.PMSQL_TZ)?.replace(/[^A-Za-z0-9_/+-]/g, "");
-    pool = new Pool({
-      host: c.host,
-      port: c.port,
-      database: c.database,
-      user: c.user,
-      password: c.password,
-      ssl: c.ssl ? { rejectUnauthorized: false } : undefined,
-      options: tz ? `-c timezone=${tz}` : undefined,
-      max: 5,
-      idleTimeoutMillis: 30_000,
-      connectionTimeoutMillis: 10_000,
-    });
-    pool.on("error", () => {
-      // Swallow idle-client errors so one dead socket doesn't crash the server.
-    });
-    pools.set(key, pool);
-  }
-  return pool;
 }
 
 // Always refuse the cloud-metadata address. Broader private-range blocking is
