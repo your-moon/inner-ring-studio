@@ -1,41 +1,75 @@
-# Outerbase Studio
+# Inner Ring Studio
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/outerbase/studio)
+A fast, self-hosted **database workspace** for your own PostgreSQL — a "better
+online DBeaver with Airtable-style UX." Browse and edit data in a modern grid,
+run SQL, and keep your connections in an **encrypted, git-synced vault**. Runs
+**hosted** (web) or **fully offline** (desktop / local).
 
-**Outerbase Studio** is a lightweight, browser-based GUI for managing SQL databases, designed for simplicity and versatility. Initially built for LibSQL and SQLite, it now supports a broad range of databases, including:
-
-**Supported Databases:**
-
-- **SQLite-based Database**
-  - Turso/LibSQL
-  - SQLite (local files)
-  - Cloudflare D1
-  - rqlite
-  - StarbaseDB
-  - Val.town
-- MySQL (beta, limited features)
-- PostgreSQL (beta, limited features)
-
----
-
-Give it a try directly from your browser
-
-[![LibSQL Studio, sqlite online editor](https://github.com/user-attachments/assets/5d92ce58-9ce6-4cd7-9c65-4763d2d3b231)](https://libsqlstudio.com)
-[![Libsql studio playground](https://github.com/user-attachments/assets/dcf7e246-fe72-4351-ab10-ae2d1658087d)](https://libsqlstudio.com/playground/client?template=chinook)
-
-## Desktop App
-
-You can download [Windows and Mac desktop app here](https://github.com/outerbase/studio-desktop/releases/).
-
-Outerbase Studio Desktop is a lightweight Electron wrapper for the Outerbase Studio web version. It enables support for drivers that aren't feasible in a browser environment, such as MySQL and PostgreSQL.
+> A fork of [Outerbase Studio](https://github.com/outerbase/studio) (AGPL-3.0),
+> re-focused on self-hosted PostgreSQL with a CLI, encrypted vault, and
+> app-level auth. See [NOTICE](NOTICE) and [LICENSE](LICENSE).
 
 ## Features
 
-![libsqlstudio-git-preview (7)](https://github.com/user-attachments/assets/1d7a3d90-61e3-4a77-83a5-4bb096bbfb4b)
+- **Connect to your own PostgreSQL** — schema browser, editable data grid,
+  SQL editor with results.
+- **Safe write-back** — inline edits become parameterized `UPDATE … WHERE <pk>`
+  in a transaction; composite PKs supported; no-PK tables read-only; injection-safe.
+- **Read-only mode** per connection — enforced by Postgres
+  (`default_transaction_read_only`), so a protected connection cannot be written to.
+- **Encrypted vault** — connections stored AES-256-GCM encrypted; unlocked by a
+  passphrase. **Git-backed config** syncs it across devices (any git provider), or
+  use a synced folder (Drive/OneDrive/Dropbox). Configure from the CLI or the
+  **Vault storage** settings page.
+- **Connection manager** — live pool status, retry/disconnect, inline active
+  badges + right-click menu in the sidebar.
+- **Folders** for organizing connections; **cross-connection navigator** in the
+  studio sidebar.
+- **Query history** with zoxide-style frecency ranking; SQL editor content
+  persists across reloads.
+- **Ask AI** — generate SQL from natural language via the Claude CLI
+  (`claude -p`), using your Claude subscription (no API key).
+- **App-level login** for hosted deployments; timestamps rendered in local time;
+  jsonb rendered as readable text.
 
-- **Query Editor**: It features a user-friendly query editor equipped with auto-completion and function hint tooltips. It allows you to execute multiple queries simultaneously and view their results efficiently.
-- **Data Editor**: It comes with a powerful data editor, allowing you to stage all your changes and preview them before committing. The data table is highly optimized and lightweight, capable of rendering thousands of rows and columns efficiently.
-- **Schema Editor**: It allows you to quickly create, modify, and remove table columns with just a few clicks without writing any SQL.
-- **Connection Manager**: It includes a flexible connection manager, allowing you to store your connections locally in your browser. You can also store them on a server and share your connections across multiple devices.
+## CLI (`pmsql`)
 
-The features mentioned above are just a few of the many we offer. Give it a try to explore everything we have in store
+```bash
+export PMSQL_PASSPHRASE='…'                 # or you'll be prompted
+pmsql conn add prod --host … --port … --db … --user … [--read-only] [--folder …]
+pmsql conn ls
+pmsql conn set prod --read-only             # edit a connection
+pmsql conn rm prod
+pmsql serve --port 3008                     # launch the web UI
+pmsql config link <git-repo-url>            # store the vault in a git repo
+pmsql sync                                  # pull + push the vault
+pmsql passphrase change                     # rotate the vault passphrase
+```
+
+Run in dev: `bun run src/cli/pmsql.ts <args>` (this repo uses **Bun**).
+
+## Architecture
+
+- **Web (hosted):** browser → Next.js server → `node-postgres` → your DB. The
+  server holds the encrypted vault and the connection pools; the browser never
+  touches the DB (browsers can't open raw TCP to Postgres).
+- **Desktop / local:** the same server runs on your machine (loopback); the DB is
+  reached directly from your machine, nothing leaves it. See
+  [inner-ring-studio-desktop](https://github.com/your-moon/inner-ring-studio-desktop).
+
+Key env: `PMSQL_PASSPHRASE` (vault), `PMSQL_VAULT` (vault path), `PMSQL_TZ`
+(session timezone), `PMSQL_AUTH_PASSWORD` (enables app login when set).
+
+## Develop
+
+```bash
+bun install
+bun run dev            # http://localhost:3008
+bun run build          # production standalone build
+```
+
+## Deploy (hosted)
+
+Build the standalone image (`Dockerfile`) and run behind a reverse proxy with TLS.
+Set `PMSQL_AUTH_PASSWORD` (login), `PMSQL_PASSPHRASE`, `PMSQL_TZ`, and mount the
+vault. The reference deployment runs as a container behind Traefik.

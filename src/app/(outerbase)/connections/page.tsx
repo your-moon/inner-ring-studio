@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback } from "react";
 import useSWR from "swr";
 import NavigationLayout from "../nav-layout";
@@ -115,9 +116,28 @@ export default function ConnectionManagerPage() {
                     <button
                       onClick={() => act(c.id, "disconnect")}
                       disabled={!c.status.connected}
-                      className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-red-500 hover:text-red-500 disabled:opacity-40 dark:border-neutral-700"
+                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-red-500 hover:text-red-500 disabled:opacity-40 dark:border-neutral-700"
                     >
                       Disconnect
+                    </button>
+                    <Link
+                      href={`/connections/${c.id}/edit`}
+                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-blue-500 dark:border-neutral-700"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm(`Delete connection "${c.name}"?`)) return;
+                        await fetch(
+                          `/api/connections?id=${encodeURIComponent(c.id)}`,
+                          { method: "DELETE" }
+                        ).catch(() => {});
+                        mutate();
+                      }}
+                      className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-red-500 hover:text-red-500 dark:border-neutral-700"
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>

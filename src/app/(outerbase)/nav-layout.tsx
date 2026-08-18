@@ -50,6 +50,22 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
     [mutateConns]
   );
 
+  const onDeleteConn = useCallback(
+    async (id: string, name: string) => {
+      if (
+        !window.confirm(
+          `Delete connection "${name}"? This removes it from the vault.`
+        )
+      )
+        return;
+      await fetch(`/api/connections?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }).catch(() => {});
+      mutateConns();
+    },
+    [mutateConns]
+  );
+
   const connFolders = new Map<string, NavConnection[]>();
   for (const c of connData?.connections ?? []) {
     const k = c.folder?.trim() || "";
@@ -109,6 +125,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
                         conn={conn}
                         selected={pathname.includes(conn.id)}
                         onAction={actOnConn}
+                        onDelete={onDeleteConn}
                       />
                     ))}
                   </div>

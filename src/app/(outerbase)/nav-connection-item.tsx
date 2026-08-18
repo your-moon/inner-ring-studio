@@ -9,6 +9,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Database } from "@phosphor-icons/react";
+import Link from "next/link";
 
 export interface NavConnection {
   id: string;
@@ -21,10 +22,12 @@ export default function NavConnectionItem({
   conn,
   selected,
   onAction,
+  onDelete,
 }: {
   conn: NavConnection;
   selected: boolean;
   onAction: (id: string, action: "test" | "disconnect") => void;
+  onDelete: (id: string, name: string) => void;
 }) {
   const connected = !!conn.status?.connected;
   return (
@@ -57,10 +60,19 @@ export default function NavConnectionItem({
         </ContextMenuItem>
         <ContextMenuItem
           disabled={!connected}
-          className="text-red-500 focus:text-red-500"
           onClick={() => onAction(conn.id, "disconnect")}
         >
           Disconnect
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem asChild>
+          <Link href={`/connections/${conn.id}/edit`}>Edit connection</Link>
+        </ContextMenuItem>
+        <ContextMenuItem
+          className="text-red-500 focus:text-red-500"
+          onClick={() => onDelete(conn.id, conn.name)}
+        >
+          Delete connection
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
