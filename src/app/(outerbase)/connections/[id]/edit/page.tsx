@@ -126,11 +126,11 @@ export default function EditConnectionPage() {
             </div>
           </div>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={f.ssl} onChange={(e) => set("ssl", e.target.checked)} />
+            <input type="checkbox" checked={f.ssl} onChange={(e) => set("ssl", e.target.checked)} className="h-4 w-4 accent-blue-600" />
             Use SSL
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={f.readOnly} onChange={(e) => set("readOnly", e.target.checked)} />
+            <input type="checkbox" checked={f.readOnly} onChange={(e) => set("readOnly", e.target.checked)} className="h-4 w-4 accent-blue-600" />
             Read-only (block all writes)
           </label>
 
