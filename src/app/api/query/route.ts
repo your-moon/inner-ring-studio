@@ -203,7 +203,7 @@ export async function POST(req: Request) {
     if (typeof body.sql !== "string") {
       return NextResponse.json({ error: "Missing sql" }, { status: 400 });
     }
-    const maxRows = Math.max(1, Number(process.env.PMSQL_MAX_ROWS) || 5000);
+    const maxRows = Math.max(1, Number(process.env.PMSQL_MAX_ROWS) || 1000);
     const client = await pool.connect();
     try {
       const cursor = client.query(
