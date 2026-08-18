@@ -3,19 +3,23 @@
  * pmsql CLI — configure database connections (stored in an encrypted, syncable
  * vault) and launch the web workspace.
  *
- *   PMSQL_PASSPHRASE=... pmsql conn add sample-shop --host localhost --port 5434 \
- *                          --db shop --user shop --password shop
+ *   pmsql conn add sample-shop --host localhost --port 5434 --db shop --user shop
  *   pmsql conn ls
  *   pmsql conn rm sample-shop
  *   pmsql serve --port 3008
  *
  * The vault lives at ~/.config/pmsql/vault.enc (override with PMSQL_VAULT).
+ * The master passphrase is read from PMSQL_PASSPHRASE, or prompted for
+ * interactively when running in a terminal. Connection passwords are likewise
+ * prompted (hidden) when not passed with --password.
  */
 import { spawn } from "child_process";
 import { parseArgs } from "util";
+import { prompt, isInteractive } from "./prompt";
 import {
   addConnection,
   listConnections,
+  readVault,
   removeConnection,
   vaultPath,
 } from "../lib/vault";
@@ -34,11 +38,52 @@ Usage:
   pmsql serve [--port <p>] [--host <h>]
 
 Environment:
-  PMSQL_PASSPHRASE   master passphrase that encrypts the vault (required for conn/serve)
+  PMSQL_PASSPHRASE   master passphrase that encrypts the vault
+                     (prompted for interactively if unset)
   PMSQL_VAULT        vault file path (default ~/.config/pmsql/vault.enc)
 `;
 
-function cmdConnAdd(args: string[]) {
+/**
+ * Ensure PMSQL_PASSPHRASE is available: use the env var if set, otherwise prompt
+ * (when interactive). Verifies it can decrypt an existing vault so a typo is
+ * caught before we do anything. Sets process.env so spawned children inherit it.
+ */
+async function ensurePassphrase(): Promise<void> {
+  const canVerify = (): boolean => {
+    try {
+      readVault();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  if (process.env.PMSQL_PASSPHRASE) {
+    if (!canVerify()) {
+      die("PMSQL_PASSPHRASE is set but cannot decrypt the existing vault.");
+    }
+    return;
+  }
+
+  if (!isInteractive()) {
+    die(
+      "PMSQL_PASSPHRASE is not set and no terminal is available to prompt. " +
+        "Set the env var, e.g. `export PMSQL_PASSPHRASE=...`."
+    );
+  }
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    process.env.PMSQL_PASSPHRASE = await prompt("Vault passphrase: ", {
+      hidden: true,
+    });
+    if (canVerify()) return;
+    console.error("  wrong passphrase, try again.");
+    delete process.env.PMSQL_PASSPHRASE;
+  }
+  die("Failed to unlock the vault after 3 attempts.");
+}
+
+async function cmdConnAdd(args: string[]) {
   const name = args[0];
   if (!name || name.startsWith("-")) die("conn add requires a <name>");
   const { values } = parseArgs({
@@ -58,6 +103,18 @@ function cmdConnAdd(args: string[]) {
   if (!values.host) die("--host is required");
   if (!values.port) die("--port is required");
 
+  await ensurePassphrase();
+
+  // Prompt (hidden) for the DB password when not supplied on the command line,
+  // so it never lands in shell history.
+  let password = values.password;
+  if (password === undefined && isInteractive()) {
+    password = await prompt(`Password for ${values.user ?? "db"}: `, {
+      hidden: true,
+    });
+    if (password === "") password = undefined;
+  }
+
   const conn = addConnection({
     name,
     driver: "postgres",
@@ -65,7 +122,7 @@ function cmdConnAdd(args: string[]) {
     port: Number(values.port),
     database: values.database ?? values.db,
     user: values.user,
-    password: values.password,
+    password,
     ssl: Boolean(values.ssl),
   });
   console.log(`added connection "${conn.name}" (${conn.id})`);
@@ -73,7 +130,8 @@ function cmdConnAdd(args: string[]) {
   console.log(`  vault: ${vaultPath()}`);
 }
 
-function cmdConnLs() {
+async function cmdConnLs() {
+  await ensurePassphrase();
   const conns = listConnections();
   if (conns.length === 0) {
     console.log("no connections. add one with: pmsql conn add <name> --host ... --port ...");
@@ -86,13 +144,14 @@ function cmdConnLs() {
   }
 }
 
-function cmdConnRm(args: string[]) {
+async function cmdConnRm(args: string[]) {
   const name = args[0];
   if (!name) die("conn rm requires a <name>");
+  await ensurePassphrase();
   console.log(removeConnection(name) ? `removed "${name}"` : `no connection "${name}"`);
 }
 
-function cmdServe(args: string[]) {
+async function cmdServe(args: string[]) {
   const { values } = parseArgs({
     args,
     options: {
@@ -101,9 +160,14 @@ function cmdServe(args: string[]) {
     },
     allowPositionals: false,
   });
+
+  // Unlock the vault up front (prompting if needed) so the launched server
+  // inherits PMSQL_PASSPHRASE and can resolve connections.
+  await ensurePassphrase();
+
   const mode = process.env.NODE_ENV === "production" ? "start" : "dev";
   console.log(`pmsql serve → next ${mode} on http://${values.host}:${values.port}`);
-  console.log(`  vault: ${vaultPath()}`);
+  console.log(`  vault: ${vaultPath()} (unlocked)`);
   const child = spawn(
     "bun",
     ["x", "next", mode, "-p", String(values.port), "-H", String(values.host)],
@@ -112,7 +176,7 @@ function cmdServe(args: string[]) {
   child.on("exit", (code) => process.exit(code ?? 0));
 }
 
-function main() {
+async function main() {
   const [, , cmd, sub, ...rest] = process.argv;
 
   if (!cmd || cmd === "help" || cmd === "--help" || cmd === "-h") {
