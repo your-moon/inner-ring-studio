@@ -16,6 +16,10 @@ types.setTypeParser(1083, (v) => v); // time
 types.setTypeParser(1114, (v) => v); // timestamp
 types.setTypeParser(1184, (v) => v); // timestamptz
 types.setTypeParser(1266, (v) => v); // timetz
+// Keep json/jsonb as their raw text so the grid renders readable JSON instead
+// of "[object Object]" (node-postgres parses these to objects by default).
+types.setTypeParser(114, (v) => v); // json
+types.setTypeParser(3802, (v) => v); // jsonb
 
 interface ConnConfig {
   host: string;

@@ -7,6 +7,7 @@ import { triggerEditorExtensionTab } from "@/extensions/trigger-editor";
 import { ExportFormat, exportTableData } from "@/lib/export-helper";
 import { Icon, Table } from "@phosphor-icons/react";
 import { LucideCog, LucideDatabase, LucideView } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ListView, ListViewItem } from "../listview";
 import { CloudflareIcon } from "../resource-card/icon";
@@ -39,8 +40,6 @@ function prepareListViewItem(
   return schema.map((s) => {
     let icon = Table;
     let iconClassName = "";
-
-    console.log("ss", s);
 
     if (s.type === "trigger") {
       icon = LucideCog;
@@ -159,10 +158,31 @@ export default function SchemaList({ search }: Readonly<SchemaListProps>) {
   const [selected, setSelected] = useState("");
   const { refresh, schema, currentSchemaName } = useSchema();
   const [editSchema, setEditSchema] = useState<string | null>(null);
+  const pathname = usePathname();
 
-  const [collapsed, setCollapsed] = useState(() => {
+  // Persist the expanded/collapsed state of the DB tree per connection so it
+  // survives reloads (DBeaver-like navigator behavior).
+  const collapseKey = `pmsql.schemaCollapsed:${pathname}`;
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem(collapseKey);
+        if (raw) return new Set<string>(JSON.parse(raw) as string[]);
+      } catch {
+        /* ignore */
+      }
+    }
     return new Set<string>();
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(collapseKey, JSON.stringify([...collapsed]));
+    } catch {
+      /* ignore */
+    }
+  }, [collapsed, collapseKey]);
 
   useEffect(() => {
     setSelected("");

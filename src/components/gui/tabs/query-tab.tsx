@@ -1,5 +1,7 @@
 import { PromptSelectedFragment } from "@/components/editor/prompt-plugin";
 import SqlEditor from "@/components/gui/sql-editor";
+import OpacityLoading from "@/components/gui/loading-opacity";
+import { usePathname } from "next/navigation";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -72,8 +74,31 @@ export default function QueryWindow({
 }: QueryWindowProps) {
   const { databaseDriver, docDriver, agentDriver } = useStudioContext();
   const { refresh: refreshSchema, autoCompleteSchema } = useSchema();
-  const [code, setCode] = useState(initialCode ?? "");
+  const pathname = usePathname();
+  // Auto-persist unsaved query text across reloads/exits, scoped per connection
+  // (pathname carries the connection id) and per tab.
+  const persistKey = `pmsql.query:${pathname}:${initialSavedKey ?? initialName}`;
+  const [code, setCode] = useState(() => {
+    if (typeof window !== "undefined" && initialCode === undefined) {
+      const saved = window.localStorage.getItem(persistKey);
+      if (saved !== null) return saved;
+    }
+    return initialCode ?? "";
+  });
+  const [isRunning, setIsRunning] = useState(false);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const id = setTimeout(() => {
+      try {
+        window.localStorage.setItem(persistKey, code);
+      } catch {
+        /* ignore quota errors */
+      }
+    }, 300);
+    return () => clearTimeout(id);
+  }, [code, persistKey]);
 
   const [fontSize, setFontSize] = useState(0.875);
   const [lineNumber, setLineNumber] = useState(0);
@@ -160,10 +185,11 @@ export default function QueryWindow({
     }
 
     if (finalStatements.length > 0) {
-      // Reset the result and make a new query
-      setData(undefined);
+      // Keep the previous result visible while the new query runs; only replace
+      // it once the new result is ready (a loading overlay shows meanwhile).
       setProgress(undefined);
       setQueryTabIndex(0);
+      setIsRunning(true);
 
       for (let i = 0; i < finalStatements.length; i++) {
         const token = tokenizeSql(
@@ -241,7 +267,8 @@ export default function QueryWindow({
             refreshSchema();
           }
         })
-        .catch(console.error);
+        .catch(console.error)
+        .finally(() => setIsRunning(false));
     }
   };
 
@@ -478,6 +505,7 @@ export default function QueryWindow({
       </ResizablePanel>
       <ResizableHandle orientation="horizontal" withHandle />
       <ResizablePanel defaultSize={50} style={{ position: "relative" }}>
+        {isRunning && <OpacityLoading />}
         {windowTab}
       </ResizablePanel>
     </ResizablePanelGroup>
