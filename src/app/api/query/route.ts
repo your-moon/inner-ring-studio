@@ -76,6 +76,10 @@ function getPool(c: ConnConfig): Pool {
   const key = poolKey(c);
   let pool = pools.get(key);
   if (!pool) {
+    // Apply the connection timezone (or server default PMSQL_TZ) at connection
+    // start via server options, so timestamps render in local time rather than
+    // UTC — no separate SET query (avoids a race with the first statement).
+    const tz = (c.timezone ?? process.env.PMSQL_TZ)?.replace(/[^A-Za-z0-9_/+-]/g, "");
     pool = new Pool({
       host: c.host,
       port: c.port,
@@ -83,6 +87,7 @@ function getPool(c: ConnConfig): Pool {
       user: c.user,
       password: c.password,
       ssl: c.ssl ? { rejectUnauthorized: false } : undefined,
+      options: tz ? `-c timezone=${tz}` : undefined,
       max: 5,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,
@@ -90,14 +95,6 @@ function getPool(c: ConnConfig): Pool {
     pool.on("error", () => {
       // Swallow idle-client errors so one dead socket doesn't crash the server.
     });
-    // Apply the connection timezone (or the server default PMSQL_TZ) to every
-    // client so timestamps render in local time rather than UTC.
-    const tz = c.timezone ?? process.env.PMSQL_TZ;
-    if (tz) {
-      pool.on("connect", (client) => {
-        client.query(`SET TIME ZONE '${tz.replace(/'/g, "")}'`).catch(() => {});
-      });
-    }
     pools.set(key, pool);
   }
   return pool;
