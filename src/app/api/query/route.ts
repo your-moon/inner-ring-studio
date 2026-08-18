@@ -65,7 +65,9 @@ function wrapForTopN(sql: string, maxRows: number): string {
   if (/\bfor\s+(update|share|no\s+key\s+update|key\s+share)\b/i.test(trimmed))
     return sql;
   if (/\binto\b/i.test(trimmed)) return sql; // SELECT INTO
-  return `SELECT * FROM (${trimmed}) AS _pmsql_topn LIMIT ${maxRows}`;
+  // Append (not wrap) so Postgres can use an index for ORDER BY … LIMIT and
+  // return instantly instead of sorting the whole table.
+  return `${trimmed} LIMIT ${maxRows}`;
 }
 
 // Always refuse the cloud-metadata address. Broader private-range blocking is
