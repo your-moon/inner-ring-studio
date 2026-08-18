@@ -23,6 +23,7 @@ import {
   removeConnection,
   vaultPath,
 } from "../lib/vault";
+import { commitConfig, linkRepo, status as configStatus, sync } from "../lib/config-repo";
 
 function die(msg: string): never {
   console.error(`error: ${msg}`);
@@ -36,6 +37,9 @@ Usage:
   pmsql conn ls
   pmsql conn rm <name>
   pmsql serve [--port <p>] [--host <h>]
+  pmsql config link <repo-url>   store the encrypted vault in a git repo (multi-device)
+  pmsql config status
+  pmsql sync                     pull + push the vault to the config repo
 
 Environment:
   PMSQL_PASSPHRASE   master passphrase that encrypts the vault
@@ -125,9 +129,11 @@ async function cmdConnAdd(args: string[]) {
     password,
     ssl: Boolean(values.ssl),
   });
+  commitConfig(`pmsql: add connection ${conn.name}`);
   console.log(`added connection "${conn.name}" (${conn.id})`);
   console.log(`  ${conn.user ?? ""}@${conn.host}:${conn.port}/${conn.database ?? ""}`);
   console.log(`  vault: ${vaultPath()}`);
+  console.log(`  run \`pmsql sync\` to publish to the config repo`);
 }
 
 async function cmdConnLs() {
@@ -148,7 +154,30 @@ async function cmdConnRm(args: string[]) {
   const name = args[0];
   if (!name) die("conn rm requires a <name>");
   await ensurePassphrase();
-  console.log(removeConnection(name) ? `removed "${name}"` : `no connection "${name}"`);
+  const removed = removeConnection(name);
+  if (removed) commitConfig(`pmsql: remove connection ${name}`);
+  console.log(removed ? `removed "${name}" (run \`pmsql sync\` to publish)` : `no connection "${name}"`);
+}
+
+function cmdConfig(args: string[]) {
+  const action = args[0];
+  if (action === "link") {
+    const url = args[1];
+    if (!url) die("config link requires a <repo-url>");
+    console.log(linkRepo(url).message);
+    return;
+  }
+  if (action === "status" || action === undefined) {
+    console.log(configStatus());
+    return;
+  }
+  die(`unknown config action "${action}". Try: link | status`);
+}
+
+function cmdSync() {
+  const r = sync();
+  console.log(r.message);
+  if (!r.ok) process.exit(1);
 }
 
 async function cmdServe(args: string[]) {
@@ -191,6 +220,8 @@ async function main() {
     die(`unknown conn subcommand "${sub ?? ""}". Try: add | ls | rm`);
   }
 
+  if (cmd === "config") return cmdConfig([sub, ...rest].filter(Boolean) as string[]);
+  if (cmd === "sync") return cmdSync();
   if (cmd === "serve") return cmdServe([sub, ...rest].filter(Boolean) as string[]);
 
   die(`unknown command "${cmd}". Run \`pmsql help\`.`);
