@@ -30,7 +30,13 @@ export default function LocalConnectionPage() {
   // Connections stored in the server-side encrypted vault (added via the CLI:
   // `pmsql conn add`). Fetched without secrets and opened by their vault id.
   const { data: vaultData } = useSWR<{
-    connections: { id: string; name: string; driver: string; createdAt: number }[];
+    connections: {
+      id: string;
+      name: string;
+      driver: string;
+      createdAt: number;
+      folder?: string;
+    }[];
   }>("/api/connections", (url: string) => fetch(url).then((r) => r.json()));
 
   const baseResources = useMemo(() => {
@@ -58,6 +64,7 @@ export default function LocalConnectionPage() {
         type: conn.driver,
         status: "vault",
         color: "default",
+        folder: conn.folder,
       } as ResourceItemProps;
     });
 

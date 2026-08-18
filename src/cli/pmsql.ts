@@ -21,6 +21,7 @@ import {
   listConnections,
   readVault,
   removeConnection,
+  updateConnection,
   vaultPath,
   writeVault,
 } from "../lib/vault";
@@ -101,6 +102,8 @@ async function cmdConnAdd(args: string[]) {
       user: { type: "string" },
       password: { type: "string" },
       ssl: { type: "boolean", default: false },
+      folder: { type: "string" },
+      timezone: { type: "string" },
     },
     allowPositionals: false,
   });
@@ -129,6 +132,8 @@ async function cmdConnAdd(args: string[]) {
     user: values.user,
     password,
     ssl: Boolean(values.ssl),
+    folder: values.folder,
+    timezone: values.timezone,
   });
   commitConfig(`pmsql: add connection ${conn.name}`);
   console.log(`added connection "${conn.name}" (${conn.id})`);
@@ -195,6 +200,42 @@ async function cmdPassphrase(args: string[]) {
   console.log("passphrase changed. run `pmsql sync` to publish the re-encrypted vault.");
 }
 
+async function cmdConnSet(args: string[]) {
+  const name = args[0];
+  if (!name || name.startsWith("-")) die("conn set requires a <name>");
+  const { values } = parseArgs({
+    args: args.slice(1),
+    options: {
+      folder: { type: "string" },
+      timezone: { type: "string" },
+      host: { type: "string" },
+      port: { type: "string" },
+      db: { type: "string" },
+      database: { type: "string" },
+      user: { type: "string" },
+      ssl: { type: "boolean" },
+    },
+    allowPositionals: false,
+  });
+  await ensurePassphrase();
+  const conn = listConnections().find((c) => c.name === name || c.id === name);
+  if (!conn) die(`no connection "${name}"`);
+
+  const patch: Record<string, unknown> = {};
+  if (values.folder !== undefined) patch.folder = values.folder;
+  if (values.timezone !== undefined) patch.timezone = values.timezone;
+  if (values.host !== undefined) patch.host = values.host;
+  if (values.port !== undefined) patch.port = Number(values.port);
+  if ((values.database ?? values.db) !== undefined)
+    patch.database = values.database ?? values.db;
+  if (values.user !== undefined) patch.user = values.user;
+  if (values.ssl !== undefined) patch.ssl = values.ssl;
+
+  updateConnection(conn.id, patch);
+  commitConfig(`pmsql: update connection ${name}`);
+  console.log(`updated "${name}" (run \`pmsql sync\` to publish)`);
+}
+
 function cmdConfig(args: string[]) {
   const action = args[0];
   if (action === "link") {
@@ -253,7 +294,8 @@ async function main() {
     if (sub === "add") return cmdConnAdd(rest);
     if (sub === "ls" || sub === "list") return cmdConnLs();
     if (sub === "rm" || sub === "remove") return cmdConnRm(rest);
-    die(`unknown conn subcommand "${sub ?? ""}". Try: add | ls | rm`);
+    if (sub === "set" || sub === "edit") return cmdConnSet(rest);
+    die(`unknown conn subcommand "${sub ?? ""}". Try: add | ls | rm | set`);
   }
 
   if (cmd === "config") return cmdConfig([sub, ...rest].filter(Boolean) as string[]);

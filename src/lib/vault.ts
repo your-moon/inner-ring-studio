@@ -26,6 +26,7 @@ export interface VaultConnection {
   password?: string;
   ssl?: boolean;
   timezone?: string;
+  folder?: string;
   createdAt: number;
 }
 
@@ -162,6 +163,8 @@ export function updateConnection(
     "database",
     "user",
     "ssl",
+    "timezone",
+    "folder",
   ] as const) {
     if (patch[key] !== undefined) (conn[key] as unknown) = patch[key];
   }

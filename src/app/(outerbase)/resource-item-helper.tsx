@@ -38,6 +38,7 @@ export interface ResourceItemProps {
   status?: string;
   lastUsed: number;
   color?: string;
+  folder?: string;
 }
 
 export function getResourceItemPropsFromBase(
@@ -126,6 +127,74 @@ export function ResourceItemList({
     ).length;
   }, [boards, search]);
 
+  // Group bases by folder. Bases without a folder go under the empty key and
+  // render ungrouped; named folders render as collapsible sections.
+  const groupedBases = useMemo(() => {
+    const groups = new Map<string, ResourceItemProps[]>();
+    for (const b of sortedBases) {
+      const key = b.folder && b.folder.trim() ? b.folder : "";
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(b);
+    }
+    return groups;
+  }, [sortedBases]);
+
+  const renderBaseCard = (resource: ResourceItemProps) => {
+    const status = `Last updated ${timeSince(resource.lastUsed)} ago`;
+    return (
+      <motion.div
+        key={resource.id}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.5 }}
+        transition={{ duration: 0.3 }}
+        className={
+          (resource.name ?? "").toLowerCase().includes(search.toLowerCase())
+            ? ""
+            : "hidden"
+        }
+      >
+        <ResourceCard
+          key={resource.id}
+          className="w-full"
+          color={resource.color ?? "default"}
+          icon={getDatabaseIcon(resource.type)}
+          href={resource.href}
+          title={resource.name}
+          subtitle={getDatabaseFriendlyName(resource.type)}
+          visual={getDatabaseVisual(resource.type)}
+          status={status}
+        >
+          <DropdownMenuItem
+            onClick={() => {
+              if (onBaseEdit) onBaseEdit(resource);
+            }}
+          >
+            <Pencil size={16} className="mr-2" />
+            Edit base
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="text-red-500 focus:text-red-500"
+            onClick={() => {
+              if (onBaseRemove) onBaseRemove(resource);
+            }}
+          >
+            <Trash size={16} className="mr-2" />
+            Remove base
+          </DropdownMenuItem>
+        </ResourceCard>
+      </motion.div>
+    );
+  };
+
+  const gridClass =
+    "flex grid grid-cols-1 flex-wrap gap-4 min-[700px]:grid-cols-2 min-[900px]:grid-cols-3 min-[1200px]:grid-cols-4 min-[1500px]:grid-cols-5 min-[1800px]:grid-cols-6 min-[2100px]:grid-cols-7";
+
+  const folderNames = [...groupedBases.keys()]
+    .filter((k) => k !== "")
+    .sort((a, b) => a.localeCompare(b));
+
   return (
     <>
       <div className="mb-4 flex gap-2">
@@ -213,7 +282,7 @@ export function ResourceItemList({
         <h2 className="text-base font-bold">Bases</h2>
       )}
 
-      <div className="flex grid grid-cols-1 flex-wrap gap-4 min-[700px]:grid-cols-2 min-[900px]:grid-cols-3 min-[1200px]:grid-cols-4 min-[1500px]:grid-cols-5 min-[1800px]:grid-cols-6 min-[2100px]:grid-cols-7">
+      <div className={gridClass}>
         {loading && (
           <>
             <ResourceCardLoading />
@@ -223,62 +292,28 @@ export function ResourceItemList({
           </>
         )}
 
-        {bases.length > 0 && (
+        {(groupedBases.get("") ?? []).length > 0 && (
           <AnimatePresence initial={false}>
-            {sortedBases.map((resource: ResourceItemProps) => {
-              const status = `Last updated ${timeSince(resource.lastUsed)} ago`;
-
-              return (
-                <motion.div
-                  key={resource.id}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  transition={{ duration: 0.3 }}
-                  className={
-                    (resource.name ?? "")
-                      .toLowerCase()
-                      .includes(search.toLowerCase())
-                      ? ""
-                      : "hidden"
-                  }
-                >
-                  <ResourceCard
-                    key={resource.id}
-                    className="w-full"
-                    color={resource.color ?? "default"}
-                    icon={getDatabaseIcon(resource.type)}
-                    href={resource.href}
-                    title={resource.name}
-                    subtitle={getDatabaseFriendlyName(resource.type)}
-                    visual={getDatabaseVisual(resource.type)}
-                    status={status}
-                  >
-                    <DropdownMenuItem
-                      onClick={() => {
-                        if (onBaseEdit) onBaseEdit(resource);
-                      }}
-                    >
-                      <Pencil size={16} className="mr-2" />
-                      Edit base
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-red-500 focus:text-red-500"
-                      onClick={() => {
-                        if (onBaseRemove) onBaseRemove(resource);
-                      }}
-                    >
-                      <Trash size={16} className="mr-2" />
-                      Remove base
-                    </DropdownMenuItem>
-                  </ResourceCard>
-                </motion.div>
-              );
-            })}
+            {(groupedBases.get("") ?? []).map(renderBaseCard)}
           </AnimatePresence>
         )}
       </div>
+
+      {folderNames.map((folder) => (
+        <details key={folder} open className="mt-4">
+          <summary className="mb-2 cursor-pointer py-1 text-base font-bold select-none">
+            {folder}{" "}
+            <span className="text-sm font-normal text-neutral-500">
+              ({groupedBases.get(folder)?.length ?? 0})
+            </span>
+          </summary>
+          <div className={gridClass}>
+            <AnimatePresence initial={false}>
+              {(groupedBases.get(folder) ?? []).map(renderBaseCard)}
+            </AnimatePresence>
+          </div>
+        </details>
+      ))}
     </>
   );
 }
