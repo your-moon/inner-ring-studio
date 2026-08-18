@@ -1,6 +1,7 @@
 import { PromptSelectedFragment } from "@/components/editor/prompt-plugin";
 import SqlEditor from "@/components/gui/sql-editor";
 import OpacityLoading from "@/components/gui/loading-opacity";
+import { addHistory, getHistory } from "@/lib/query-history";
 import { usePathname } from "next/navigation";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -42,6 +43,7 @@ import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import {
   LucideGrid,
   LucideMessageSquareWarning,
+  LucideHistory,
   LucidePlay,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -86,6 +88,9 @@ export default function QueryWindow({
     return initialCode ?? "";
   });
   const [isRunning, setIsRunning] = useState(false);
+  const [historyList, setHistoryList] = useState<
+    ReturnType<typeof getHistory>
+  >([]);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
 
   useEffect(() => {
@@ -185,6 +190,9 @@ export default function QueryWindow({
     }
 
     if (finalStatements.length > 0) {
+      // Record each executed statement in the per-connection query history.
+      for (const stmt of finalStatements) addHistory(pathname, stmt);
+
       // Keep the previous result visible while the new query runs; only replace
       // it once the new result is ready (a loading overlay shows meanwhile).
       setProgress(undefined);
@@ -401,6 +409,38 @@ export default function QueryWindow({
                   docId={savedKey}
                 />
               )}
+
+              <DropdownMenu
+                onOpenChange={(open) => {
+                  if (open) setHistoryList(getHistory(pathname));
+                }}
+              >
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      buttonVariants({ size: "sm", variant: "ghost" })
+                    )}
+                    title="Query history"
+                  >
+                    <LucideHistory className="mr-2 h-4 w-4" />
+                    History
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="max-h-80 w-[28rem] overflow-auto">
+                  {historyList.length === 0 && (
+                    <DropdownMenuItem disabled>No history yet</DropdownMenuItem>
+                  )}
+                  {historyList.map((h, i) => (
+                    <DropdownMenuItem
+                      key={i}
+                      onClick={() => setCode(h.sql)}
+                      className="block"
+                    >
+                      <div className="truncate font-mono text-xs">{h.sql}</div>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <div className="flex">
                 <button
