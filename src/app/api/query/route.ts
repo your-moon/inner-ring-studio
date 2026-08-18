@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Pool, type QueryArrayResult } from "pg";
 import { getConnection } from "@/lib/vault";
+import { requireAuth } from "@/lib/auth";
 
 // node-postgres needs the Node.js runtime (not edge).
 export const runtime = "nodejs";
@@ -149,6 +150,8 @@ function toResultSet(r: QueryArrayResult) {
 }
 
 export async function POST(req: Request) {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
   try {
     const body = await req.json();
     const conn = resolveConnection(body);

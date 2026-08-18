@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { listConnections } from "@/lib/vault";
+import { requireAuth } from "@/lib/auth";
 
 // Reads the encrypted vault (fs + crypto) — needs the Node.js runtime.
 export const runtime = "nodejs";
@@ -11,6 +12,8 @@ export const dynamic = "force-dynamic";
  * never leaves the server (queries are proxied by connection id via /api/query).
  */
 export async function GET() {
+  const unauth = await requireAuth();
+  if (unauth) return unauth;
   try {
     return NextResponse.json({ connections: listConnections() });
   } catch (e) {

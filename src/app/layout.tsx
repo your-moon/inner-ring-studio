@@ -7,6 +7,7 @@ import "./globals.css";
 const siteDescription = `${WEBSITE_NAME} is a fast, self-hosted database workspace — connect to your own PostgreSQL, browse and edit data in a grid, and run SQL, with connections stored in an encrypted vault.`;
 
 import { DialogProvider } from "@/components/create-dialog";
+import AuthGuard from "@/components/auth-guard";
 
 export const metadata: Metadata = {
   title: WEBSITE_NAME,
@@ -36,7 +37,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        {children}
+        <AuthGuard>{children}</AuthGuard>
         <DialogProvider slot="default" />
       </body>
     </html>
