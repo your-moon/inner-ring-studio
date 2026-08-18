@@ -104,6 +104,7 @@ async function cmdConnAdd(args: string[]) {
       ssl: { type: "boolean", default: false },
       folder: { type: "string" },
       timezone: { type: "string" },
+      "read-only": { type: "boolean", default: false },
     },
     allowPositionals: false,
   });
@@ -134,6 +135,7 @@ async function cmdConnAdd(args: string[]) {
     ssl: Boolean(values.ssl),
     folder: values.folder,
     timezone: values.timezone,
+    readOnly: Boolean(values["read-only"]),
   });
   commitConfig(`pmsql: add connection ${conn.name}`);
   console.log(`added connection "${conn.name}" (${conn.id})`);
@@ -214,6 +216,8 @@ async function cmdConnSet(args: string[]) {
       database: { type: "string" },
       user: { type: "string" },
       ssl: { type: "boolean" },
+      "read-only": { type: "boolean" },
+      "read-write": { type: "boolean" },
     },
     allowPositionals: false,
   });
@@ -230,6 +234,8 @@ async function cmdConnSet(args: string[]) {
     patch.database = values.database ?? values.db;
   if (values.user !== undefined) patch.user = values.user;
   if (values.ssl !== undefined) patch.ssl = values.ssl;
+  if (values["read-only"]) patch.readOnly = true;
+  if (values["read-write"]) patch.readOnly = false;
 
   updateConnection(conn.id, patch);
   commitConfig(`pmsql: update connection ${name}`);

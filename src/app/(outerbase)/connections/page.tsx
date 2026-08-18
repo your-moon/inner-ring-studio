@@ -9,6 +9,7 @@ interface ConnRow {
   name: string;
   driver: string;
   folder?: string;
+  readOnly?: boolean;
   status: { connected: boolean; total: number; idle: number; waiting: number };
 }
 
@@ -20,11 +21,15 @@ export default function ConnectionManagerPage() {
   );
 
   const act = useCallback(
-    async (connectionId: string, action: "test" | "disconnect") => {
+    async (
+      connectionId: string,
+      action: "test" | "disconnect" | "readonly",
+      value?: boolean
+    ) => {
       await fetch("/api/db", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ connectionId, action }),
+        body: JSON.stringify({ connectionId, action, value }),
       })
         .then((r) => r.json())
         .catch(() => {});
@@ -68,7 +73,14 @@ export default function ConnectionManagerPage() {
                   className="border-t border-neutral-100 dark:border-neutral-800"
                 >
                   <td className="px-4 py-3">
-                    <div className="font-medium">{c.name}</div>
+                    <div className="flex items-center gap-2 font-medium">
+                      {c.name}
+                      {c.readOnly && (
+                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:bg-amber-900/40 dark:text-amber-300">
+                          read-only
+                        </span>
+                      )}
+                    </div>
                     {c.folder && (
                       <div className="text-xs text-neutral-400">{c.folder}</div>
                     )}
@@ -88,6 +100,12 @@ export default function ConnectionManagerPage() {
                     {c.status.total} open · {c.status.idle} idle
                   </td>
                   <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => act(c.id, "readonly", !c.readOnly)}
+                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-amber-500 hover:text-amber-600 dark:border-neutral-700"
+                    >
+                      {c.readOnly ? "Make writable" : "Make read-only"}
+                    </button>
                     <button
                       onClick={() => act(c.id, "test")}
                       className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-blue-500 dark:border-neutral-700"

@@ -44,6 +44,7 @@ function resolveConnection(body: {
       password: c.password,
       ssl: c.ssl,
       timezone: c.timezone,
+      readOnly: c.readOnly,
     };
   }
   if (body.connection?.host && body.connection?.port) return body.connection;

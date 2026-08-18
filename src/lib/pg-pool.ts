@@ -14,6 +14,7 @@ export interface PgConnConfig {
   password?: string;
   ssl?: boolean;
   timezone?: string;
+  readOnly?: boolean;
 }
 
 export interface PoolStatus {
@@ -26,7 +27,7 @@ export interface PoolStatus {
 const pools = new Map<string, Pool>();
 
 export function poolKey(c: PgConnConfig): string {
-  return `${c.host}:${c.port}:${c.database ?? ""}:${c.user ?? ""}:${c.ssl ? 1 : 0}`;
+  return `${c.host}:${c.port}:${c.database ?? ""}:${c.user ?? ""}:${c.ssl ? 1 : 0}:${c.readOnly ? "ro" : "rw"}`;
 }
 
 export function getPool(c: PgConnConfig): Pool {
@@ -37,6 +38,14 @@ export function getPool(c: PgConnConfig): Pool {
       /[^A-Za-z0-9_/+-]/g,
       ""
     );
+    // Build server options: timezone + (for read-only connections) enforce
+    // read-only at the Postgres level so every write/DDL is rejected by the DB.
+    const opts = [
+      tz ? `-c timezone=${tz}` : "",
+      c.readOnly ? "-c default_transaction_read_only=on" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
     pool = new Pool({
       host: c.host,
       port: c.port,
@@ -44,7 +53,7 @@ export function getPool(c: PgConnConfig): Pool {
       user: c.user,
       password: c.password,
       ssl: c.ssl ? { rejectUnauthorized: false } : undefined,
-      options: tz ? `-c timezone=${tz}` : undefined,
+      options: opts || undefined,
       max: 5,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,

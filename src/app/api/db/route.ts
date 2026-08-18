@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
-import { getConnection, listConnections } from "@/lib/vault";
+import { getConnection, listConnections, updateConnection } from "@/lib/vault";
 import {
   closePool,
   poolStatus,
@@ -19,6 +19,7 @@ function configOf(c: {
   ssl?: boolean;
   password?: string;
   timezone?: string;
+  readOnly?: boolean;
 }): PgConnConfig {
   return {
     host: c.host,
@@ -28,6 +29,7 @@ function configOf(c: {
     ssl: c.ssl,
     password: c.password,
     timezone: c.timezone,
+    readOnly: c.readOnly,
   };
 }
 
@@ -40,6 +42,7 @@ export async function GET() {
     name: c.name,
     driver: c.driver,
     folder: c.folder,
+    readOnly: !!c.readOnly,
     status: poolStatus(configOf(c)), // password not needed for the pool key
   }));
   return NextResponse.json({ connections });
@@ -65,6 +68,13 @@ export async function POST(req: Request) {
       ...result,
       status: poolStatus(configOf(conn)),
     });
+  }
+  if (body.action === "readonly") {
+    // Close the current pool so the new read-only/read-write mode takes effect
+    // (mode is applied at pool creation via Postgres server options).
+    await closePool(configOf(conn));
+    updateConnection(conn.id, { readOnly: !!body.value });
+    return NextResponse.json({ ok: true, readOnly: !!body.value });
   }
   return NextResponse.json({ error: "unknown action" }, { status: 400 });
 }
