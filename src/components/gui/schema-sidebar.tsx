@@ -4,7 +4,7 @@ import { scc } from "@/core/command";
 import { StudioExtensionMenuItem } from "@/core/extension-manager";
 import { cn } from "@/lib/utils";
 import { Plus } from "@phosphor-icons/react";
-import { LucideSearch } from "lucide-react";
+import { LucideDatabase, LucideSearch } from "lucide-react";
 import { useMemo, useState } from "react";
 import { buttonVariants } from "../ui/button";
 import {
@@ -18,7 +18,7 @@ import SchemaList from "./schema-sidebar-list";
 
 export default function SchemaView() {
   const [search, setSearch] = useState("");
-  const { databaseDriver, extensions } = useStudioContext();
+  const { databaseDriver, extensions, name } = useStudioContext();
   const { currentSchemaName } = useSchema();
   const [isCreateSchema, setIsCreateSchema] = useState(false);
 
@@ -106,6 +106,12 @@ export default function SchemaView() {
       )}
 
       <div className="flex flex-col p-4 pb-2">
+        {name && (
+          <div className="mb-2 flex items-center gap-1.5 truncate text-xs font-semibold tracking-wide text-neutral-500 uppercase">
+            <LucideDatabase style={{ width: 13, height: 13 }} />
+            <span className="truncate">{name}</span>
+          </div>
+        )}
         <div className="mb-5 flex items-center justify-between">
           <h1 className="text-primary text-xl font-medium">Tables</h1>
           {activatorButton}

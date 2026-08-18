@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Database, List, Plus } from "@phosphor-icons/react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { PropsWithChildren, useState } from "react";
+import useSWR from "swr";
 import NavigationProfile from "./nav-profile";
 import NavigationSigninBanner from "./nav-signin-banner";
 import { useSession } from "./session-provider";
@@ -20,6 +21,25 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
   const { workspaces, loading: workspaceLoading } = useWorkspaces();
   const pathname = usePathname();
   const { workspaceId } = useParams<{ workspaceId?: string }>();
+
+  // Vault connections for the sidebar navigator, grouped by folder.
+  const { data: connData } = useSWR<{
+    connections: { id: string; name: string; folder?: string }[];
+  }>("/api/connections", (u: string) => fetch(u).then((r) => r.json()));
+  const connFolders = new Map<
+    string,
+    { id: string; name: string; folder?: string }[]
+  >();
+  for (const c of connData?.connections ?? []) {
+    const k = c.folder?.trim() || "";
+    if (!connFolders.has(k)) connFolders.set(k, []);
+    connFolders.get(k)!.push(c);
+  }
+  const connFolderKeys = [...connFolders.keys()].sort((a, b) => {
+    if (a === "") return -1;
+    if (b === "") return 1;
+    return a.localeCompare(b);
+  });
 
   return (
     <div className="flex w-screen flex-col lg:h-screen lg:flex-row">
@@ -52,6 +72,30 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
           )}
         >
           <div className="flex flex-1 flex-col">
+            {(connData?.connections?.length ?? 0) > 0 && (
+              <>
+                <SidebarMenuHeader text="Databases" />
+                {connFolderKeys.map((folder) => (
+                  <div key={folder || "_ungrouped"}>
+                    {folder && (
+                      <div className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-neutral-500 uppercase">
+                        {folder}
+                      </div>
+                    )}
+                    {connFolders.get(folder)!.map((conn) => (
+                      <SidebarMenuItem
+                        key={conn.id}
+                        text={conn.name}
+                        icon={Database}
+                        href={`/vault/${conn.id}`}
+                        selected={pathname.includes(conn.id)}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </>
+            )}
+
             <SidebarMenuHeader text="Workspace" />
             <SidebarMenuItem
               selected={pathname === "/local" || pathname === "/local-setting"}
