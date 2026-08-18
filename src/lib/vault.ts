@@ -146,6 +146,32 @@ export function addConnection(
   return safe;
 }
 
+export function updateConnection(
+  id: string,
+  patch: Partial<Omit<VaultConnection, "id" | "createdAt">>
+): SafeConnection | null {
+  const data = readVault();
+  const conn = data.connections.find((c) => c.id === id);
+  if (!conn) return null;
+  // Only overwrite fields that were provided; an omitted password is kept.
+  for (const key of [
+    "name",
+    "host",
+    "port",
+    "database",
+    "user",
+    "ssl",
+  ] as const) {
+    if (patch[key] !== undefined) (conn[key] as unknown) = patch[key];
+  }
+  if (patch.password !== undefined && patch.password !== "") {
+    conn.password = patch.password;
+  }
+  writeVault(data);
+  const { password: _pw, ...safe } = conn;
+  return safe;
+}
+
 export function removeConnection(nameOrId: string): boolean {
   const data = readVault();
   const before = data.connections.length;
