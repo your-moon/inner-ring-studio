@@ -13,8 +13,9 @@ import {
   Plus,
 } from "@phosphor-icons/react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { PropsWithChildren, useState } from "react";
+import { PropsWithChildren, useCallback, useState } from "react";
 import useSWR from "swr";
+import NavConnectionItem, { NavConnection } from "./nav-connection-item";
 import NavigationProfile from "./nav-profile";
 import NavigationSigninBanner from "./nav-signin-banner";
 import { useSession } from "./session-provider";
@@ -28,14 +29,28 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const { workspaceId } = useParams<{ workspaceId?: string }>();
 
-  // Vault connections for the sidebar navigator, grouped by folder.
-  const { data: connData } = useSWR<{
-    connections: { id: string; name: string; folder?: string }[];
-  }>("/api/connections", (u: string) => fetch(u).then((r) => r.json()));
-  const connFolders = new Map<
-    string,
-    { id: string; name: string; folder?: string }[]
-  >();
+  // Vault connections for the sidebar navigator, with live pool status.
+  const { data: connData, mutate: mutateConns } = useSWR<{
+    connections: NavConnection[];
+  }>("/api/db", (u: string) => fetch(u).then((r) => r.json()), {
+    refreshInterval: 5000,
+  });
+
+  const actOnConn = useCallback(
+    async (id: string, action: "test" | "disconnect") => {
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connectionId: id, action }),
+      })
+        .then((r) => r.json())
+        .catch(() => {});
+      mutateConns();
+    },
+    [mutateConns]
+  );
+
+  const connFolders = new Map<string, NavConnection[]>();
   for (const c of connData?.connections ?? []) {
     const k = c.folder?.trim() || "";
     if (!connFolders.has(k)) connFolders.set(k, []);
@@ -89,12 +104,11 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
                       </div>
                     )}
                     {connFolders.get(folder)!.map((conn) => (
-                      <SidebarMenuItem
+                      <NavConnectionItem
                         key={conn.id}
-                        text={conn.name}
-                        icon={Database}
-                        href={`/vault/${conn.id}`}
+                        conn={conn}
                         selected={pathname.includes(conn.id)}
+                        onAction={actOnConn}
                       />
                     ))}
                   </div>
