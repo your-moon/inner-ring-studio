@@ -29,7 +29,10 @@ import {
   LucideArrowRight,
   LucideRefreshCcw,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { SavedView } from "@/lib/saved-views";
+import SavedViewsButton from "../table-result/saved-views-button";
 import AggregateResultButton from "../aggregate-result/aggregate-result-button";
 import ExportResultButton from "../export/export-result-button";
 import OpacityLoading from "../loading-opacity";
@@ -143,9 +146,46 @@ export default function TableDataWindow({
     }
   }, [data]);
 
-  const { columnIndexList, filterColumnButton } = useTableResultColumnFilter({
-    state: data,
-  });
+  const { columnIndexList, setColumnIndexList, filterColumnButton } =
+    useTableResultColumnFilter({
+      state: data,
+    });
+
+  const pathname = usePathname();
+  const viewScope = `${pathname}:${schemaName}.${tableName}`;
+
+  // The visible-column names for the current view (undefined when all visible).
+  const currentColumns = useMemo(() => {
+    if (!data) return undefined;
+    const headers = data.getHeaders();
+    if (columnIndexList.length === headers.length) return undefined;
+    return columnIndexList
+      .map((i) => headers[i]?.name)
+      .filter((n): n is string => !!n);
+  }, [data, columnIndexList]);
+
+  const applyView = useCallback(
+    (view: SavedView) => {
+      setWhere(view.where);
+      setWhereInput(view.where);
+      setSortColumns(view.sortColumns);
+      if (data) {
+        const headers = data.getHeaders();
+        if (view.columns) {
+          const nameToIndex = new Map(headers.map((h, i) => [h.name, i]));
+          setColumnIndexList(
+            view.columns
+              .map((n) => nameToIndex.get(n))
+              .filter((i): i is number => i !== undefined)
+              .sort((a, b) => a - b)
+          );
+        } else {
+          setColumnIndexList(headers.map((_, i) => i)); // all columns
+        }
+      }
+    },
+    [data, setColumnIndexList]
+  );
 
   const onCommit = useCallback(() => {
     if (!tableSchema) return;
@@ -240,6 +280,14 @@ export default function TableDataWindow({
             <Button variant={"secondary"} onClick={onRemoveRow}>
               <div className="text-sm">Delete row</div>
             </Button>
+
+            <SavedViewsButton
+              scope={viewScope}
+              currentWhere={where}
+              currentSort={sortColumns}
+              currentColumns={currentColumns}
+              onApply={applyView}
+            />
           </div>
 
           <div className="mx-2 flex max-w-1/3 grow">

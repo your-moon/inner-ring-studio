@@ -169,9 +169,25 @@ server cursor**, not LIMIT/OFFSET re-runs (no duplicate/skipped rows).
   shows "N loaded, scroll for more…", releases the cursor on unmount.
 - Verified live on the 3M-row `order_requests`: page 1 in ~1s, fetch-more ~1s.
 
+## Status — saved views (2026-08-19) — DONE & deployed
+
+Table browser can save the current filter + sort + visible columns under a name and
+re-apply in one click. A "Views" button sits in the table-data toolbar (badge = count).
+
+- `src/lib/saved-views.ts` — localStorage CRUD keyed by `pmsql.savedViews:${pathname}:${schema}.${table}`
+  (same per-connection keying convention as the editor draft + sidebar-collapse state).
+  Local to the device, like the app's saved queries + history. Unit-tested (`saved-views.test.ts`).
+- `src/components/gui/table-result/saved-views-button.tsx` — the Views popover (list/apply/delete +
+  name-and-save). `filter-column.tsx` now also returns `setColumnIndexList` so a view can
+  restore column visibility. Wired in `table-data-tab.tsx` (`applyView` sets where/sort/columns).
+- Verified live: saved "Org 1 actions" (`org_id = 1`) on `action_logs`, persisted to localStorage,
+  badge shows count, subtitle shows the filter.
+- **Not synced across devices** (localStorage, matching existing saved queries/history). A future
+  upgrade could store views in the git config repo for multi-device sync.
+
 ## Status — still PENDING / nice-to-have
 
-- **Saved views** (#4) — persist per-table filter + sort + column visibility, synced via the
-  vault/config repo. Still not built (see memory for the seam mapping).
+- **Git-synced saved views** — currently per-device localStorage; could move to a `views.json`
+  in the config repo (committed by config-repo.ts) for cross-device sync.
 - **`docs/superpowers/specs/2026-08-18-pmsql-design.md`** predates most features — this
   guide supersedes it.

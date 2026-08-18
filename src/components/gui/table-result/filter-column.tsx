@@ -107,5 +107,5 @@ export default function useTableResultColumnFilter({
     </Popover>
   );
 
-  return { columnIndexList, filterColumnButton };
+  return { columnIndexList, setColumnIndexList, filterColumnButton };
 }
