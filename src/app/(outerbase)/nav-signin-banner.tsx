@@ -8,6 +8,9 @@ export default function NavigationSigninBanner() {
   const { isLoading, session } = useSession();
   const router = useRouter();
 
+  // Inner Ring Studio is self-hosted — no Outerbase Cloud upsell.
+  return null;
+
   if (isLoading) {
     return null;
   }
