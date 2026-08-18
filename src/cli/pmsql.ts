@@ -22,6 +22,7 @@ import {
   readVault,
   removeConnection,
   vaultPath,
+  writeVault,
 } from "../lib/vault";
 import { commitConfig, linkRepo, status as configStatus, sync } from "../lib/config-repo";
 
@@ -159,6 +160,41 @@ async function cmdConnRm(args: string[]) {
   console.log(removed ? `removed "${name}" (run \`pmsql sync\` to publish)` : `no connection "${name}"`);
 }
 
+async function cmdPassphrase(args: string[]) {
+  const action = args[0];
+  if (action && action !== "change") {
+    die(`unknown passphrase action "${action}". Try: change`);
+  }
+  const { values } = parseArgs({
+    args: args.slice(action === "change" ? 1 : 0),
+    options: { new: { type: "string" } },
+    allowPositionals: false,
+  });
+
+  // Unlock with the current passphrase and decrypt the vault into memory.
+  await ensurePassphrase();
+  const data = readVault();
+
+  // Obtain the new passphrase (flag for automation, else prompt twice).
+  let next = values.new;
+  if (next === undefined) {
+    if (!isInteractive()) {
+      die("no --new passphrase and no terminal to prompt.");
+    }
+    const p1 = await prompt("New passphrase: ", { hidden: true });
+    const p2 = await prompt("Confirm new passphrase: ", { hidden: true });
+    if (p1 !== p2) die("passphrases do not match");
+    next = p1;
+  }
+  if (!next) die("new passphrase must not be empty");
+
+  // Re-encrypt with the new passphrase.
+  process.env.PMSQL_PASSPHRASE = next;
+  writeVault(data);
+  commitConfig("pmsql: rotate vault passphrase");
+  console.log("passphrase changed. run `pmsql sync` to publish the re-encrypted vault.");
+}
+
 function cmdConfig(args: string[]) {
   const action = args[0];
   if (action === "link") {
@@ -221,6 +257,7 @@ async function main() {
   }
 
   if (cmd === "config") return cmdConfig([sub, ...rest].filter(Boolean) as string[]);
+  if (cmd === "passphrase") return cmdPassphrase([sub, ...rest].filter(Boolean) as string[]);
   if (cmd === "sync") return cmdSync();
   if (cmd === "serve") return cmdServe([sub, ...rest].filter(Boolean) as string[]);
 
