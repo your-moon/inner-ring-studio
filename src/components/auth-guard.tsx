@@ -15,6 +15,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (pathname === "/login") return;
+    // Embed pages are used by the desktop app, which supplies DB access via
+    // local IPC (never touching our protected API), so they must load without
+    // the web login gate.
+    if (pathname.startsWith("/embed")) return;
     let alive = true;
     fetch("/api/auth/me")
       .then((r) => r.json())
