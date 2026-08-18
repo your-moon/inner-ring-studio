@@ -5,7 +5,8 @@ export type SupportedDriver =
   | "starbase"
   | "cloudflare-d1"
   | "cloudflare-wae"
-  | "sqlite-filehandler";
+  | "sqlite-filehandler"
+  | "postgres";
 
 export type SavedConnectionStorage = "remote" | "local";
 export type SavedConnectionLabel = "gray" | "red" | "yellow" | "green" | "blue";
@@ -52,6 +53,11 @@ export interface SavedConnectionRawLocalStorage {
   username?: string;
   password?: string;
   database?: string;
+  // Host-based drivers (e.g. postgres proxy) store host/port/ssl directly
+  // instead of packing them into `url`.
+  host?: string;
+  port?: string;
+  ssl?: boolean;
   driver?: SupportedDriver;
   label?: SavedConnectionLabel;
   file_handler?: string;
