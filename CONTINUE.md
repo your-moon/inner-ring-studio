@@ -107,22 +107,28 @@ results-on-load; editor persistence; frecency query history; Ask AI (Claude CLI)
 Databases navigator; removed Outerbase promo UI; connection edit/delete; **cursor row-cap
 perf** (fetch first N, `PMSQL_MAX_ROWS`); table-list bounded scroll; offline desktop app.
 
-## Status — PENDING (todo for continuation)
+## Status — recently DONE (were pending)
 
-1. **ClickHouse frontend driver** — backend proxy (`src/lib/clickhouse.ts` + `/api/query`
-   branch) + vault `driver:"clickhouse"` + CLI `--driver clickhouse` are done and tested
-   (HTTP 8123, `SELECT 1` works). Missing: a ClickHouse driver in the frontend +
-   `createLocalDriver` branch (`src/drivers/helpers.ts`) so the studio can use it. It is
-   read-only (ClickHouse has no row UPDATE/DELETE). Prod CH: `clickhouse.mtm.mn:8123` (HTTP),
-   user from `.env.prod` CLICKHOUSE_DSN (password contains `@`). No dev CH in configs.
-2. **Row detail on Tab** — DBeaver-style: select a row, press Tab → detailed single-row
-   view (all columns vertical). Outerbase has a row-detail panel to wire up.
-3. **Table list right-click sort** — sort tables by name / size in the schema sidebar.
-4. **Jump to reference (FK nav)** — click a foreign-key cell → open the referenced row.
-   Outerbase grid has `metadata.referenceTo`; needs the constraint introspection + action.
-5. **Top-N sort optimization** — large `ORDER BY` without a user LIMIT still does a full
-   sort (~13s on 3M rows; capped at 5000 rows). For "instant," wrap editor SELECTs with a
-   `LIMIT` so Postgres uses a bounded (top-N) sort — only the single-statement editor path,
-   never the introspection/transaction path.
-6. **`docs/superpowers/specs/2026-08-18-pmsql-design.md`** predates most features — refresh
-   or supersede with this guide.
+1. **ClickHouse (read-focused)** — DONE. `src/lib/clickhouse.ts` (HTTP proxy) +
+   `/api/query` branch + `src/drivers/clickhouse/clickhouse-driver.ts` (system-table
+   introspection, backtick quoting) + `createLocalDriver` branch + vault page reads the
+   driver. Connect + schema tree + SQL editor verified against `clickhouse.mtm.mn:8123`
+   (connection `clickhouse-prod`, read-only). No grid write-back (ClickHouse is OLAP).
+2. **Row detail** — DONE. Focus a cell, press **Space** → `src/components/gui/row-detail-dialog.tsx`
+   shows every column of the row (Tab is reserved for cell navigation).
+3. **Table right-click sort** — DONE. Right-click the "Tables" header → sort by name/size
+   (`schema-sidebar.tsx` context menu, `schema-sidebar-list.tsx` `sortTable`, persisted).
+4. **Jump to reference (FK nav)** — already inherited from Outerbase (`generic-cell.tsx`
+   renders a FK link/preview when a column has `referenceTo`, populated by the constraint
+   introspection). Verified FK constraints come through.
+5. **Top-N / large ORDER BY** — DONE. `/api/query` appends `LIMIT PMSQL_MAX_ROWS` (default
+   1000) to plain editor SELECTs so Postgres uses the index (13s → ~1.6s on the 3M table)
+   and reads via a cursor. Only the single-statement editor path is capped.
+
+## Status — still PENDING / nice-to-have
+
+- **Truly-instant large results** — lazy pagination (fetch ~200, load more on scroll) in
+  the SQL-editor result grid, like DBeaver's fetch size. Currently one-shot capped at
+  `PMSQL_MAX_ROWS`. The table-browse grid already paginates; the editor grid does not.
+- **`docs/superpowers/specs/2026-08-18-pmsql-design.md`** predates most features — this
+  guide supersedes it.
