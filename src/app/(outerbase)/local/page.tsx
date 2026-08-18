@@ -10,6 +10,7 @@ import { CaretDown } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import useSWR from "swr";
 import NavigationLayout from "../nav-layout";
 import { ResourceItemList, ResourceItemProps } from "../resource-item-helper";
 import { deleteLocalBaseDialog } from "./dialog-base-delete";
@@ -26,8 +27,14 @@ export default function LocalConnectionPage() {
     mutate: refreshBase,
   } = useLocalConnectionList();
 
+  // Connections stored in the server-side encrypted vault (added via the CLI:
+  // `pmsql conn add`). Fetched without secrets and opened by their vault id.
+  const { data: vaultData } = useSWR<{
+    connections: { id: string; name: string; driver: string; createdAt: number }[];
+  }>("/api/connections", (url: string) => fetch(url).then((r) => r.json()));
+
   const baseResources = useMemo(() => {
-    return (localBases ?? []).map((conn) => {
+    const local = (localBases ?? []).map((conn) => {
       return {
         href:
           conn.content.driver === "sqlite-filehandler"
@@ -41,7 +48,21 @@ export default function LocalConnectionPage() {
         color: conn.content.label || "default",
       } as ResourceItemProps;
     });
-  }, [localBases]);
+
+    const vault = (vaultData?.connections ?? []).map((conn) => {
+      return {
+        href: `/vault/${conn.id}`,
+        name: conn.name,
+        lastUsed: conn.createdAt,
+        id: `vault-${conn.id}`,
+        type: conn.driver,
+        status: "vault",
+        color: "default",
+      } as ResourceItemProps;
+    });
+
+    return [...vault, ...local];
+  }, [localBases, vaultData]);
 
   // Getting the board from indexdb
   const { data: dashboardList, mutate: refreshDashboard } =
@@ -68,6 +89,10 @@ export default function LocalConnectionPage() {
 
   const onBaseRemove = useCallback(
     (deletedResource: ResourceItemProps) => {
+      if (deletedResource.id.startsWith("vault-")) {
+        // Vault connections are managed from the CLI: `pmsql conn rm <name>`.
+        return;
+      }
       deleteLocalBaseDialog
         .show({ baseId: deletedResource.id, baseName: deletedResource.name })
         .then(refreshBase)
@@ -169,6 +194,7 @@ export default function LocalConnectionPage() {
           onBoardRemove={onBoardRemove}
           onBaseRemove={onBaseRemove}
           onBaseEdit={(resource) => {
+            if (resource.id.startsWith("vault-")) return; // CLI-managed
             router.push(`/local/edit-base/${resource.id}`);
           }}
           onBoardCreate={onBoardCreate}
