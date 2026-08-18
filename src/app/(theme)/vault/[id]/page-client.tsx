@@ -19,6 +19,9 @@ export default function VaultStudioClient() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [name, setName] = useState<string>("");
+  const [driverName, setDriverName] = useState<"postgres" | "clickhouse">(
+    "postgres"
+  );
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -28,10 +31,12 @@ export default function VaultStudioClient() {
       .then((j) => {
         if (!alive) return;
         const found = (j.connections ?? []).find(
-          (c: { id: string; name: string }) => c.id === id
+          (c: { id: string; name: string; driver?: string }) => c.id === id
         );
-        if (found) setName(found.name);
-        else setNotFound(true);
+        if (found) {
+          setName(found.name);
+          if (found.driver === "clickhouse") setDriverName("clickhouse");
+        } else setNotFound(true);
       })
       .catch(() => alive && setNotFound(true));
     return () => {
@@ -40,8 +45,12 @@ export default function VaultStudioClient() {
   }, [id]);
 
   const config: SavedConnectionRawLocalStorage = useMemo(
-    () => ({ name: name || "Vault connection", driver: "postgres", vault_id: id }),
-    [name, id]
+    () => ({
+      name: name || "Vault connection",
+      driver: driverName,
+      vault_id: id,
+    }),
+    [name, driverName, id]
   );
 
   const driver = useMemo(() => createLocalDriver(config), [config]);
