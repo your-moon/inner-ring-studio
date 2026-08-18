@@ -145,10 +145,33 @@ perf** (fetch first N, `PMSQL_MAX_ROWS`); table-list bounded scroll; offline des
   query route into `src/lib/sql-topn.ts` (pure, testable). `jest.config.ts` now ignores
   `docs/study/clones/` + `.next/` (were causing haste collisions / obsolete-snapshot noise).
 
+## Status — lazy pagination (2026-08-19) — DONE & deployed
+
+Editor result grid now lazy-loads (DBeaver-style fetch size): first page ~200 rows,
+more pages load as you scroll. Correct regardless of ORDER BY because it uses a **held
+server cursor**, not LIMIT/OFFSET re-runs (no duplicate/skipped rows).
+
+- **Server:** `src/lib/query-cursor.ts` — a registry of held pg cursors (each keeps its
+  checked-out client open), keyed by a generated id; idle-swept at 90s, capped at 16 live
+  (evict oldest), drained cursors release immediately. `/api/query` gained `paginate`
+  (open cursor + first page → `{result, cursorId, hasMore}`), `fetchMore` (`{cursorId}` →
+  next page `{rows, hasMore}` or `{expired:true}`), and `closeCursorId`. Only SELECT/WITH
+  are paginated (never a write). Integration test `src/lib/query-cursor.test.ts` proves
+  no-dupes/no-gaps against the sample DB.
+- **Transport/driver:** `PostgresProxyQueryable.queryPaginated/fetchMorePage/closePage`
+  (postgres-proxy.ts); `PostgresLikeDriver.supportsPagination/queryPaginated/fetchMorePage/
+  closePage`; optional methods on `QueryableBaseDriver`; `DatabaseResultSet` gained
+  `cursorId?`/`hasMore?`.
+- **Client:** `OptimizeTableState.appendData()` appends rows in place + broadcasts (scroll
+  preserved); `OptimizeTable`/`use-visibility-calculation` gained `onScrollToBottom` (fires
+  ~8 rows before bottom); `multipleQuery(..., {paginatePageSize:200})` runs a lone SELECT
+  through the paginated path; `query-result-tab.tsx` holds the cursor, loads more on scroll,
+  shows "N loaded, scroll for more…", releases the cursor on unmount.
+- Verified live on the 3M-row `order_requests`: page 1 in ~1s, fetch-more ~1s.
+
 ## Status — still PENDING / nice-to-have
 
-- **Truly-instant large results** — lazy pagination (fetch ~200, load more on scroll) in
-  the SQL-editor result grid, like DBeaver's fetch size. Currently one-shot capped at
-  `PMSQL_MAX_ROWS`. The table-browse grid already paginates; the editor grid does not.
+- **Saved views** (#4) — persist per-table filter + sort + column visibility, synced via the
+  vault/config repo. Still not built (see memory for the seam mapping).
 - **`docs/superpowers/specs/2026-08-18-pmsql-design.md`** predates most features — this
   guide supersedes it.

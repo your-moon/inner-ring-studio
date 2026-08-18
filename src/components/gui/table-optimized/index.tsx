@@ -80,6 +80,8 @@ export interface OptimizeTableProps<HeaderMetadata = unknown>
   arrangeHeaderIndex: number[];
   stickyHeaderIndex?: number;
   renderAhead: number;
+  // Fired when the user scrolls near the bottom — used for lazy pagination.
+  onScrollToBottom?: () => void;
 }
 
 interface RenderCellListProps<HeaderMetadata = unknown>
@@ -252,6 +254,7 @@ export default function OptimizeTable<HeaderMetadata = unknown>({
   onHeaderContextMenu,
   onKeyDown,
   arrangeHeaderIndex,
+  onScrollToBottom,
 }: OptimizeTableProps<HeaderMetadata>) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -304,6 +307,7 @@ export default function OptimizeTable<HeaderMetadata = unknown>({
     rowHeight,
     totalRowCount: internalState.getRowsCount(),
     state: internalState,
+    onScrollToBottom,
   });
 
   const { rowStart, rowEnd, colEnd, colStart } = visibileRange;

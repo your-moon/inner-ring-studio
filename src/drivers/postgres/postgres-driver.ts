@@ -78,6 +78,25 @@ export default class PostgresLikeDriver extends CommonSQLImplement {
     return this._db.batch ? this._db.batch(stmts) : super.batch(stmts);
   }
 
+  /** True when this driver's transport supports lazy (held-cursor) pagination. */
+  supportsPagination(): boolean {
+    return typeof this._db.queryPaginated === "function";
+  }
+
+  queryPaginated(stmt: string, pageSize: number): Promise<DatabaseResultSet> {
+    if (!this._db.queryPaginated) return this._db.query(stmt);
+    return this._db.queryPaginated(stmt, pageSize);
+  }
+
+  async fetchMorePage(cursorId: string, pageSize: number) {
+    if (!this._db.fetchMorePage) return { rows: [], hasMore: false };
+    return this._db.fetchMorePage(cursorId, pageSize);
+  }
+
+  closePage(cursorId: string): Promise<void> {
+    return this._db.closePage?.(cursorId) ?? Promise.resolve();
+  }
+
   close(): void {
     // Do nothing
   }

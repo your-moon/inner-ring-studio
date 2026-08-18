@@ -6,6 +6,13 @@ import { requireAuth } from "@/lib/auth";
 import { getPool, type PgConnConfig } from "@/lib/pg-pool";
 import { clickhouseQuery } from "@/lib/clickhouse";
 import { wrapForTopN } from "@/lib/sql-topn";
+import {
+  clampPageSize,
+  closeCursor,
+  openCursor,
+  readMore,
+  type CursorField,
+} from "@/lib/query-cursor";
 
 // node-postgres needs the Node.js runtime (not edge).
 export const runtime = "nodejs";
@@ -112,6 +119,19 @@ function normalizeCell(v: unknown): unknown {
   return v;
 }
 
+// Build object-rows (keyed by header name, cells normalized) exactly like
+// toResultSet, for the fetch-more path that returns rows without re-sending
+// headers.
+function objectifyRows(fields: CursorField[], rows: unknown[][]) {
+  const headers = toHeaders(fields);
+  return rows.map((arr) =>
+    headers.reduce<Record<string, unknown>>((o, h, i) => {
+      o[h.name] = normalizeCell(arr[i]);
+      return o;
+    }, {})
+  );
+}
+
 function toResultSet(r: QueryArrayResult) {
   const headers = toHeaders(
     (r.fields ?? []) as { name: string; dataTypeID: number }[]
@@ -161,6 +181,25 @@ export async function POST(req: Request) {
 
     const pool = getPool(conn);
 
+    // Lazy-pagination "load more": read the next page from a held cursor.
+    if (typeof body.cursorId === "string" && body.fetchMore != null) {
+      const page = await readMore(body.cursorId, clampPageSize(body.fetchMore));
+      if (!page) {
+        // Cursor expired (idle-swept or evicted) — client should re-run.
+        return NextResponse.json({ expired: true, rows: [], hasMore: false });
+      }
+      return NextResponse.json({
+        rows: objectifyRows(page.fields, page.rows),
+        hasMore: page.hasMore,
+      });
+    }
+
+    // Explicit close (e.g. the result tab was closed) — free the connection.
+    if (typeof body.closeCursorId === "string") {
+      await closeCursor(body.closeCursorId);
+      return NextResponse.json({ ok: true });
+    }
+
     // Transaction form: run statements in order inside one transaction.
     if (Array.isArray(body.statements)) {
       const client = await pool.connect();
@@ -188,6 +227,22 @@ export async function POST(req: Request) {
     if (typeof body.sql !== "string") {
       return NextResponse.json({ error: "Missing sql" }, { status: 400 });
     }
+
+    // Lazy pagination: open a held cursor and return the first page + its id.
+    // Only for read queries (SELECT / WITH) — never hold a cursor over a write.
+    if (body.paginate != null && /^\s*(select|with)\b/i.test(body.sql)) {
+      const page = await openCursor(pool, body.sql, clampPageSize(body.paginate));
+      return NextResponse.json({
+        result: toResultSet({
+          fields: page.fields,
+          rows: page.rows,
+          rowCount: page.rows.length,
+        } as unknown as QueryArrayResult),
+        cursorId: page.cursorId,
+        hasMore: page.hasMore,
+      });
+    }
+
     const maxRows = Math.max(1, Number(process.env.PMSQL_MAX_ROWS) || 1000);
     const client = await pool.connect();
     try {

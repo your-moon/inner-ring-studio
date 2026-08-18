@@ -60,6 +60,18 @@ export default class OptimizeTableState<HeaderMetadata = unknown> {
     this.headerWidth = headers.map((h) => h.display.initialSize);
   }
 
+  /**
+   * Append fetched rows to the end of the grid (lazy pagination "load more").
+   * These are clean, persisted rows — not edits — so they carry no change flag.
+   * Preserves scroll position because it mutates in place and re-renders via the
+   * change listener rather than replacing the whole state.
+   */
+  appendData(rows: Record<string, unknown>[]) {
+    if (rows.length === 0) return;
+    for (const row of rows) this.data.push({ raw: row });
+    this.broadcastChange(true);
+  }
+
   setReadOnlyMode(readOnly: boolean) {
     this.readOnlyMode = readOnly;
   }

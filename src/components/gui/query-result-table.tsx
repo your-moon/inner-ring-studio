@@ -40,6 +40,7 @@ interface ResultTableProps {
   onSortColumnChange?: (columns: ColumnSortOption[]) => void;
   sortColumns?: ColumnSortOption[];
   visibleColumnIndexList?: number[];
+  onScrollToBottom?: () => void;
 }
 
 function Header({
@@ -130,6 +131,7 @@ export default function ResultTable({
   tableName,
   onSortColumnChange,
   visibleColumnIndexList,
+  onScrollToBottom,
 }: ResultTableProps) {
   const [stickyHeaderIndex, setStickHeaderIndex] = useState<number>();
   const [detailFields, setDetailFields] = useState<RowDetailField[] | null>(
@@ -445,6 +447,7 @@ export default function ResultTable({
         rowHeight={35}
         onKeyDown={onKeyDown}
         renderCell={tableResultCellRenderer}
+        onScrollToBottom={onScrollToBottom}
       />
       <RowDetailDialog
         fields={detailFields}

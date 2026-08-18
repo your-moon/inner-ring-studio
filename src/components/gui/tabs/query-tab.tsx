@@ -281,9 +281,14 @@ export default function QueryWindow({
           .join("");
       }
 
-      multipleQuery(databaseDriver, finalStatements, (currentProgress) => {
-        setProgress(currentProgress);
-      })
+      multipleQuery(
+        databaseDriver,
+        finalStatements,
+        (currentProgress) => {
+          setProgress(currentProgress);
+        },
+        { paginatePageSize: 200 }
+      )
         .then(({ result: completeQueryResult, logs: completeLogs }) => {
           setData(completeQueryResult);
 

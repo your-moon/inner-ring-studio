@@ -29,16 +29,32 @@ export interface MultipleQueryResult {
   order: number;
 }
 
+interface MultipleQueryOptions {
+  // When set and there is exactly one read statement, fetch its first page
+  // through the driver's held-cursor transport so the result grid can lazily
+  // load more rows as the user scrolls. Ignored if the driver can't paginate.
+  paginatePageSize?: number;
+}
+
 export async function multipleQuery(
   driver: BaseDriver,
   statements: string[],
-  onProgress?: (progress: MultipleQueryProgress) => void
+  onProgress?: (progress: MultipleQueryProgress) => void,
+  options?: MultipleQueryOptions
 ): Promise<{
   result: MultipleQueryResult[];
   logs: MultipleQueryProgressItem[];
 }> {
   const logs: MultipleQueryProgressItem[] = [];
   const result: MultipleQueryResult[] = [];
+
+  const paginated = driver as unknown as {
+    queryPaginated?: (stmt: string, pageSize: number) => Promise<DatabaseResultSet>;
+  };
+  const canPaginateSingle =
+    statements.length === 1 &&
+    !!options?.paginatePageSize &&
+    typeof paginated.queryPaginated === "function";
 
   for (let i = 0; i < statements.length; i++) {
     const statement = statements[i] as string;
@@ -58,7 +74,11 @@ export async function multipleQuery(
     }
 
     try {
-      const r = await driver.query(statement);
+      const isRead = /^\s*(select|with)\b/i.test(statement);
+      const r =
+        canPaginateSingle && isRead
+          ? await paginated.queryPaginated!(statement, options!.paginatePageSize!)
+          : await driver.query(statement);
 
       log.end = Date.now();
       log.stats = r.stat;

@@ -72,6 +72,7 @@ export default function useTableVisibilityRecalculation({
   renderAhead,
   headers,
   state,
+  onScrollToBottom,
 }: {
   containerRef: React.RefObject<HTMLDivElement>;
   totalRowCount: number;
@@ -79,6 +80,7 @@ export default function useTableVisibilityRecalculation({
   renderAhead: number;
   headers: OptimizeTableHeaderWithIndexProps[];
   state: OptimizeTableState;
+  onScrollToBottom?: () => void;
 }) {
   const [visibleDebounce, setVisibleDebounce] = useState<{
     rowStart: number;
@@ -124,7 +126,16 @@ export default function useTableVisibilityRecalculation({
     const ref = containerRef.current;
     if (ref) {
       const onContainerScroll = (e: Event) => {
-        recalculateVisible(e.currentTarget as HTMLDivElement);
+        const el = e.currentTarget as HTMLDivElement;
+        recalculateVisible(el);
+        // Prefetch the next page a few rows before the very bottom so scrolling
+        // stays smooth (lazy pagination). No-op if no handler is provided.
+        if (
+          onScrollToBottom &&
+          el.scrollHeight - el.scrollTop - el.clientHeight < rowHeight * 8
+        ) {
+          onScrollToBottom();
+        }
         e.preventDefault();
         e.stopPropagation();
       };
@@ -132,7 +143,7 @@ export default function useTableVisibilityRecalculation({
       containerRef.current.addEventListener("scroll", onContainerScroll);
       return () => ref.removeEventListener("scroll", onContainerScroll);
     }
-  }, [containerRef, recalculateVisible]);
+  }, [containerRef, recalculateVisible, onScrollToBottom, rowHeight]);
 
   useElementResize<HTMLDivElement>(recalculateVisible, containerRef);
 

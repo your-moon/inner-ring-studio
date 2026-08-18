@@ -1,5 +1,9 @@
 import { SavedConnectionRawLocalStorage } from "@/app/(theme)/connect/saved-connection-storage";
-import { DatabaseResultSet, QueryableBaseDriver } from "@/drivers/base-driver";
+import {
+  DatabasePage,
+  DatabaseResultSet,
+  QueryableBaseDriver,
+} from "@/drivers/base-driver";
 
 /**
  * QueryableBaseDriver transport for a self-hosted Postgres, reached through our
@@ -50,6 +54,53 @@ export class PostgresProxyQueryable implements QueryableBaseDriver {
       throw new Error(json.error ?? `Query failed (${res.status})`);
     }
     return json.result as DatabaseResultSet;
+  }
+
+  /** First page of a read query, holding a server cursor for `fetchMorePage`. */
+  async queryPaginated(
+    stmt: string,
+    pageSize: number
+  ): Promise<DatabaseResultSet> {
+    const res = await fetch(this.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(this.requestBody({ sql: stmt, paginate: pageSize })),
+    });
+    const json = await res.json();
+    if (!res.ok || json.error) {
+      throw new Error(json.error ?? `Query failed (${res.status})`);
+    }
+    const result = json.result as DatabaseResultSet;
+    result.cursorId = json.cursorId ?? null;
+    result.hasMore = Boolean(json.hasMore);
+    return result;
+  }
+
+  /** Next page of rows from a held cursor opened by `queryPaginated`. */
+  async fetchMorePage(cursorId: string, pageSize: number): Promise<DatabasePage> {
+    const res = await fetch(this.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(this.requestBody({ cursorId, fetchMore: pageSize })),
+    });
+    const json = await res.json();
+    if (!res.ok || json.error) {
+      throw new Error(json.error ?? `Fetch failed (${res.status})`);
+    }
+    return {
+      rows: (json.rows ?? []) as DatabasePage["rows"],
+      hasMore: Boolean(json.hasMore),
+      expired: Boolean(json.expired),
+    };
+  }
+
+  /** Release a held cursor (best-effort; ignored if already gone). */
+  async closePage(cursorId: string): Promise<void> {
+    await fetch(this.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(this.requestBody({ closeCursorId: cursorId })),
+    }).catch(() => {});
   }
 
   async transaction(stmts: string[]): Promise<DatabaseResultSet[]> {

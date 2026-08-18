@@ -44,6 +44,17 @@ export interface DatabaseResultSet {
   headers: DatabaseHeader[];
   stat: DatabaseResultStat;
   lastInsertRowid?: number;
+  // Lazy pagination: set by the paginated editor path. `cursorId` identifies a
+  // held server cursor to fetch more rows from; `hasMore` is whether more remain.
+  cursorId?: string | null;
+  hasMore?: boolean;
+}
+
+/** One additional page of rows from a held cursor (see queryPaginated). */
+export interface DatabasePage {
+  rows: DatabaseRow[];
+  hasMore: boolean;
+  expired?: boolean;
 }
 
 export interface ColumnSortOption {
@@ -285,6 +296,13 @@ export interface QueryableBaseDriver {
   // This is optional. We can always fallback to multiple query
   // This is just optimization for driver that support batch query
   batch?(stmts: string[]): Promise<DatabaseResultSet[]>;
+
+  // Optional lazy-pagination transport. When present, the editor runs a read
+  // query through queryPaginated (first page + a held-cursor id) and pulls more
+  // pages with fetchMorePage as the user scrolls.
+  queryPaginated?(stmt: string, pageSize: number): Promise<DatabaseResultSet>;
+  fetchMorePage?(cursorId: string, pageSize: number): Promise<DatabasePage>;
+  closePage?(cursorId: string): Promise<void>;
 }
 
 export abstract class BaseDriver {
