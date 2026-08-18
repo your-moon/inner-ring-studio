@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { types, type QueryArrayResult } from "pg";
+import Cursor from "pg-cursor";
 import { getConnection } from "@/lib/vault";
 import { requireAuth } from "@/lib/auth";
 import { getPool, type PgConnConfig } from "@/lib/pg-pool";
+import { clickhouseQuery } from "@/lib/clickhouse";
 
 // node-postgres needs the Node.js runtime (not edge).
 export const runtime = "nodejs";
@@ -45,6 +47,7 @@ function resolveConnection(body: {
       ssl: c.ssl,
       timezone: c.timezone,
       readOnly: c.readOnly,
+      driver: c.driver,
     };
   }
   if (body.connection?.host && body.connection?.port) return body.connection;
@@ -98,13 +101,23 @@ function toHeaders(fields: { name: string; dataTypeID: number }[]) {
   });
 }
 
+// Postgres arrays (e.g. text[]) come back as JS arrays and composite/range types
+// as objects — the grid can't render those, so show them as JSON text. Bytea
+// stays a Buffer so it renders as binary.
+function normalizeCell(v: unknown): unknown {
+  if (v === null || v === undefined) return v;
+  if (Buffer.isBuffer(v)) return v;
+  if (Array.isArray(v) || typeof v === "object") return JSON.stringify(v);
+  return v;
+}
+
 function toResultSet(r: QueryArrayResult) {
   const headers = toHeaders(
     (r.fields ?? []) as { name: string; dataTypeID: number }[]
   );
   const rows = (r.rows ?? []).map((arr: unknown[]) =>
     headers.reduce<Record<string, unknown>>((o, h, i) => {
-      o[h.name] = arr[i];
+      o[h.name] = normalizeCell(arr[i]);
       return o;
     }, {})
   );
@@ -128,6 +141,23 @@ export async function POST(req: Request) {
     const body = await req.json();
     const conn = resolveConnection(body);
     assertConnectable(conn.host);
+
+    // ClickHouse uses its HTTP client instead of the pg pool. It has no
+    // transactions; run statements sequentially.
+    if (conn.driver === "clickhouse") {
+      if (Array.isArray(body.statements)) {
+        const results = [];
+        for (const stmt of body.statements as string[]) {
+          results.push(await clickhouseQuery(conn, stmt));
+        }
+        return NextResponse.json({ results });
+      }
+      if (typeof body.sql !== "string") {
+        return NextResponse.json({ error: "Missing sql" }, { status: 400 });
+      }
+      return NextResponse.json({ result: await clickhouseQuery(conn, body.sql) });
+    }
+
     const pool = getPool(conn);
 
     // Transaction form: run statements in order inside one transaction.
@@ -151,12 +181,37 @@ export async function POST(req: Request) {
       }
     }
 
-    // Single-statement form.
+    // Single-statement form. Use a server-side cursor to fetch only the first
+    // N rows (like DBeaver's fetch size) instead of buffering the entire result
+    // set — this is what makes `SELECT * FROM big_table` return instantly.
     if (typeof body.sql !== "string") {
       return NextResponse.json({ error: "Missing sql" }, { status: 400 });
     }
-    const result = await pool.query({ text: body.sql, rowMode: "array" });
-    return NextResponse.json({ result: toResultSet(result) });
+    const maxRows = Math.max(1, Number(process.env.PMSQL_MAX_ROWS) || 5000);
+    const client = await pool.connect();
+    try {
+      const cursor = client.query(
+        new Cursor(body.sql, [], { rowMode: "array" })
+      );
+      const rows = (await cursor.read(maxRows)) as unknown[][];
+      const fields =
+        (
+          cursor as unknown as {
+            _result?: { fields?: { name: string; dataTypeID: number }[] };
+          }
+        )._result?.fields ?? [];
+      await cursor.close();
+      return NextResponse.json({
+        result: toResultSet({
+          fields,
+          rows,
+          rowCount: rows.length,
+        } as unknown as QueryArrayResult),
+        truncated: rows.length >= maxRows,
+      });
+    } finally {
+      client.release();
+    }
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     return NextResponse.json({ error: message }, { status: 400 });

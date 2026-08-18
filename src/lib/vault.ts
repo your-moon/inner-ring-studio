@@ -18,7 +18,7 @@ import { dirname, join } from "path";
 export interface VaultConnection {
   id: string;
   name: string;
-  driver: "postgres";
+  driver: "postgres" | "clickhouse";
   host: string;
   port: number;
   database?: string;

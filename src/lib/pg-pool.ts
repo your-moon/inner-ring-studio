@@ -15,6 +15,7 @@ export interface PgConnConfig {
   ssl?: boolean;
   timezone?: string;
   readOnly?: boolean;
+  driver?: string; // "postgres" (default) | "clickhouse"
 }
 
 export interface PoolStatus {

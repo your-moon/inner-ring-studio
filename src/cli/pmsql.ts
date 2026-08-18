@@ -105,11 +105,13 @@ async function cmdConnAdd(args: string[]) {
       folder: { type: "string" },
       timezone: { type: "string" },
       "read-only": { type: "boolean", default: false },
+      driver: { type: "string" },
     },
     allowPositionals: false,
   });
 
   if (!values.host) die("--host is required");
+  const driver = values.driver === "clickhouse" ? "clickhouse" : "postgres";
   if (!values.port) die("--port is required");
 
   await ensurePassphrase();
@@ -126,7 +128,7 @@ async function cmdConnAdd(args: string[]) {
 
   const conn = addConnection({
     name,
-    driver: "postgres",
+    driver,
     host: values.host,
     port: Number(values.port),
     database: values.database ?? values.db,

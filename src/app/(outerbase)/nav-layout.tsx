@@ -6,6 +6,8 @@ import {
 } from "@/components/sidebar-menu";
 import { cn } from "@/lib/utils";
 import {
+  CaretDown,
+  CaretRight,
   CloudArrowUp,
   Database,
   List,
@@ -78,6 +80,32 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
     return a.localeCompare(b);
   });
 
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const raw = window.localStorage.getItem("pmsql.sidebarFolders");
+      return raw ? new Set<string>(JSON.parse(raw)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+  const toggleFolder = useCallback((f: string) => {
+    setCollapsedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(f)) next.delete(f);
+      else next.add(f);
+      try {
+        window.localStorage.setItem(
+          "pmsql.sidebarFolders",
+          JSON.stringify([...next])
+        );
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
   return (
     <div className="flex w-screen flex-col lg:h-screen lg:flex-row">
       <div className="bg-background sticky top-0 z-25 flex w-full shrink-0 flex-col overflow-hidden border-r-0 border-b lg:w-[250px] lg:border-r lg:border-b-0">
@@ -115,19 +143,28 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
                 {connFolderKeys.map((folder) => (
                   <div key={folder || "_ungrouped"}>
                     {folder && (
-                      <div className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-neutral-500 uppercase">
+                      <button
+                        onClick={() => toggleFolder(folder)}
+                        className="flex w-full items-center gap-1 px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-neutral-500 uppercase hover:text-neutral-700 dark:hover:text-neutral-300"
+                      >
+                        {collapsedFolders.has(folder) ? (
+                          <CaretRight size={10} weight="bold" />
+                        ) : (
+                          <CaretDown size={10} weight="bold" />
+                        )}
                         {folder}
-                      </div>
+                      </button>
                     )}
-                    {connFolders.get(folder)!.map((conn) => (
-                      <NavConnectionItem
-                        key={conn.id}
-                        conn={conn}
-                        selected={pathname.includes(conn.id)}
-                        onAction={actOnConn}
-                        onDelete={onDeleteConn}
-                      />
-                    ))}
+                    {(!folder || !collapsedFolders.has(folder)) &&
+                      connFolders.get(folder)!.map((conn) => (
+                        <NavConnectionItem
+                          key={conn.id}
+                          conn={conn}
+                          selected={pathname.includes(conn.id)}
+                          onAction={actOnConn}
+                          onDelete={onDeleteConn}
+                        />
+                      ))}
                   </div>
                 ))}
               </>
