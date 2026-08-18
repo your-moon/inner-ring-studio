@@ -149,8 +149,8 @@ export function CloudDriverSupportOnly({ type }: { type: string }) {
             <div className="bg-opacity-50 absolute right-0 bottom-0 left-0 flex cursor-pointer flex-col gap-2 rounded-lg bg-black p-4 text-white">
               <div className="text-2xl font-bold">Download the desktop app</div>
               <p className="text-base">
-                Outerbase Studio Desktop is a lightweight Electron wrapper for
-                the Outerbase Studio web version. It enables support for drivers
+                Inner Ring Studio Desktop is a lightweight Electron wrapper for
+                the Inner Ring Studio web version. It enables support for drivers
                 that aren&apos;t feasible in a browser environment, such as
                 MySQL and PostgreSQL.
               </p>

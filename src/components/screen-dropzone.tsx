@@ -13,7 +13,7 @@ export const unsupportFileHandlerDialogContent = {
   content: (
     <p className="text-sm flex flex-col gap-2">
       <p>
-        Outerbase Studio SQLite client requires the{" "}
+        Inner Ring Studio SQLite client requires the{" "}
         <span className="bg-muted font-mono px-2 inline-flex">
           FileSystemHandle
         </span>{" "}

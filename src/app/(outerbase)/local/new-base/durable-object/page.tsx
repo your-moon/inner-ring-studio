@@ -20,7 +20,7 @@ export default function DurableObjectInstructPage() {
 
         <p className="my-4">
           Since Durable Objects aren&apos;t accessible outside of a Worker,
-          Outerbase Studio can&apos;t connect to them directly. However, we
+          Inner Ring Studio can&apos;t connect to them directly. However, we
           offer a decorator you can attach to your Worker to expose the Studio
           interface.
         </p>

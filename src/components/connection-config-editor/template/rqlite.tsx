@@ -36,7 +36,7 @@ const instruction = (
   <div className="bg-secondary m-4 flex flex-col gap-4 rounded-lg border p-4 text-base leading-7 shadow">
     <h2 className="text-lg font-bold">How to</h2>
     <p>
-      You should include Outerbase Studio in the list of allowed origins for{" "}
+      You should include Inner Ring Studio in the list of allowed origins for{" "}
       <strong>CORS (Cross-Origin Resource Sharing)</strong>
     </p>
     <pre className="bg-background p-2">

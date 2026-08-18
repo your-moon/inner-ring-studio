@@ -1,6 +1,6 @@
 /**
  * scc stands for Studio Core Command. It is a collection of commands that are
- * available to Outerbase Studio.
+ * available to Inner Ring Studio.
  */
 
 import { builtinOpenERDTab } from "../builtin-tab/open-erd-tab";

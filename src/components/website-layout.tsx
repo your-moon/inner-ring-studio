@@ -13,7 +13,7 @@ async function Topbar() {
       <div className="mx-auto container flex">
         <Link href="/">
           <h1 className="text-lg py-2 text-white">
-            Outerbase <strong>Studio</strong>
+            Inner Ring <strong>Studio</strong>
           </h1>
         </Link>
         <div className="grow flex items-center ml-3">
@@ -34,11 +34,11 @@ async function Topbar() {
         <div className="pr-4 flex items-center pt-1">
           <a
             className="github-button"
-            href="https://github.com/invisal/libsql-studio"
+            href="https://github.com/your-moon/inner-ring-studio"
             data-color-scheme="no-preference: dark; light: light; dark: dark;"
             data-size="large"
             data-show-count="true"
-            aria-label="Star invisal/libsql-studio on GitHub"
+            aria-label="Star your-moon/inner-ring-studio on GitHub"
           ></a>
         </div>
       </div>
@@ -52,9 +52,9 @@ function Footer() {
       <div className="grid grid-cols-2 lg:grid-cols-4 mb-8">
         <div className="mb-8">
           <h1 className="text-lg text-white">
-            Outerbase <strong>Studio</strong>
+            Inner Ring <strong>Studio</strong>
           </h1>
-          <p>© 2024 Outerbase Inc.</p>
+          <p>© 2026 Inner Ring Studio — a fork of Outerbase Studio (© Outerbase Inc.)</p>
         </div>
 
         <div className="mb-8">

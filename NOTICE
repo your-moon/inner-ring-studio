@@ -1,0 +1,9 @@
+Inner Ring Studio
+Copyright (C) 2026 your-moon
+
+This product is a fork of Outerbase Studio (https://github.com/outerbase/studio),
+Copyright (C) Outerbase Inc., licensed under the GNU Affero General Public
+License v3.0. See LICENSE for the full license text.
+
+Inner Ring Studio adds: a CLI, an encrypted connection vault, a git-backed config
+store, a server-side Postgres proxy, and app-level authentication.

@@ -5,5 +5,5 @@ export enum MessageChannelName {
 }
 
 export const TAB_PREFIX_SAVED_QUERY = "saved-query-";
-export const WEBSITE_NAME = "Outerbase Studio";
-export const WEBSITE_GENERAL_DESCRIPTION = `${WEBSITE_NAME} is a fully-featured, lightweight GUI client for managing SQLite-based databases like Turso, LibSQL, and rqlite. It runs entirely in your browser, so there's no need to download anything`;
+export const WEBSITE_NAME = "Inner Ring Studio";
+export const WEBSITE_GENERAL_DESCRIPTION = `${WEBSITE_NAME} is a fast, self-hosted database workspace — connect to your own PostgreSQL, browse and edit data in a grid, and run SQL, with connections stored in an encrypted vault.`;

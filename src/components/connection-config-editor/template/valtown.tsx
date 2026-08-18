@@ -20,7 +20,7 @@ const instruction = (
   <div className="bg-secondary m-4 flex flex-col gap-4 rounded-lg border p-4 text-base leading-6 shadow">
     <h2 className="font-bold">How to</h2>
     <p>
-      Outerbase Studio is a powerful SQLite GUI, perfect for managing
+      Inner Ring Studio is a powerful SQLite GUI, perfect for managing
       Val.town&apos;s database. Connecting is easy—just follow these steps:
     </p>
 
