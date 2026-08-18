@@ -5,7 +5,7 @@ import {
   SidebarMenuLoadingItem,
 } from "@/components/sidebar-menu";
 import { cn } from "@/lib/utils";
-import { Database, List, Plus } from "@phosphor-icons/react";
+import { CloudArrowUp, Database, List, Plus } from "@phosphor-icons/react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { PropsWithChildren, useState } from "react";
 import useSWR from "swr";
@@ -149,6 +149,14 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
                   router.push("/signin");
                 }
               }}
+            />
+
+            <SidebarMenuHeader text="Settings" />
+            <SidebarMenuItem
+              text="Vault storage"
+              icon={CloudArrowUp}
+              href="/vault-storage"
+              selected={pathname === "/vault-storage"}
             />
           </div>
 
