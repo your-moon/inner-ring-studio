@@ -303,7 +303,7 @@ export default function TableDataWindow({
 
             {tableSchema && tableSchema.columns.length > 0 && (
               <Button variant={"secondary"} onClick={() => setShowImport(true)}>
-                <div className="text-sm">Import CSV</div>
+                <div className="text-sm">Import</div>
               </Button>
             )}
           </div>
