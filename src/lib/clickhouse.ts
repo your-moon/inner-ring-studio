@@ -1,4 +1,8 @@
-import { createClient, type ClickHouseClient } from "@clickhouse/client";
+import {
+  createClient,
+  type ClickHouseClient,
+  type ClickHouseSettings,
+} from "@clickhouse/client";
 import type { PgConnConfig } from "./pg-pool";
 
 /**
@@ -28,7 +32,21 @@ export function getClickhouse(c: PgConnConfig): ClickHouseClient {
       password: c.password,
       database: c.database || "default",
       request_timeout: 30_000,
-      clickhouse_settings: c.readOnly ? { readonly: 1 } : {},
+      // Browse results compress well; cheap CPU for less transfer over the proxy.
+      compression: { response: true },
+      clickhouse_settings: {
+        // readonly:2 blocks writes/DDL like readonly:1 but (unlike :1) still lets
+        // us attach the guardrail + pagination settings below in the same request.
+        ...(c.readOnly ? { readonly: 2 } : {}),
+        // Keep Int64/UInt64 as JSON strings so JS Number never rounds ids > 2^53.
+        // (The server default for this flipped to 0 in ClickHouse 25.8.)
+        output_format_json_quote_64bit_integers: 1,
+        // Safety ceilings so one browse query can't hang / OOM a shared cluster.
+        max_execution_time: 30,
+        max_result_rows: "1000000",
+        result_overflow_mode: "break",
+        max_memory_usage: "4000000000",
+      } as ClickHouseSettings,
     });
     clients.set(key, client);
   }
@@ -46,8 +64,12 @@ export async function closeClickhouse(c: PgConnConfig): Promise<void> {
 // ClickHouse type -> Outerbase ColumnType hint (TEXT=1, INTEGER=2, REAL=3, BLOB=4)
 function columnType(chType: string): number {
   const t = chType.replace(/^Nullable\(|\)$/g, "").replace(/^LowCardinality\(|\)$/g, "");
+  // 64-bit+ integers arrive as JSON strings (see output_format_json_quote_64bit_integers)
+  // and would lose precision if coerced to a JS Number — keep them as TEXT.
+  if (/^U?Int(64|128|256)\b/.test(t)) return 1;
   if (/^U?Int/.test(t)) return 2;
-  if (/^(Float|Decimal)/.test(t)) return 3;
+  if (/^Float/.test(t)) return 3;
+  // Decimal is exact; showing it as REAL (JS float) would lose precision — TEXT.
   return 1;
 }
 
@@ -70,7 +92,8 @@ interface DatabaseResultSet {
 
 export async function clickhouseQuery(
   c: PgConnConfig,
-  sql: string
+  sql: string,
+  page?: { limit: number; offset: number }
 ): Promise<DatabaseResultSet> {
   const client = getClickhouse(c);
   const isSelectLike = /^\s*(select|with|show|describe|desc|explain)\b/i.test(sql);
@@ -90,7 +113,16 @@ export async function clickhouseQuery(
     };
   }
 
-  const rs = await client.query({ query: sql, format: "JSONCompact" });
+  // Paginate via the outermost `limit`/`offset` settings rather than editing the
+  // SQL text — this applies regardless of the query's own ORDER BY / trailing
+  // SETTINGS clause (appending "LIMIT" after "SETTINGS ..." is a syntax error).
+  const rs = await client.query({
+    query: sql,
+    format: "JSONCompact",
+    clickhouse_settings: page
+      ? { limit: String(page.limit), offset: String(page.offset) }
+      : {},
+  });
   const json = (await rs.json()) as {
     meta?: { name: string; type: string }[];
     data?: unknown[][];

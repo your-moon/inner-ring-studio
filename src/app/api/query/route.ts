@@ -204,10 +204,10 @@ export async function POST(req: Request) {
           return NextResponse.json({ expired: true, rows: [], hasMore: false });
         }
         const pageSize = clampPageSize(body.fetchMore);
-        const rs = await clickhouseQuery(
-          conn,
-          `${dec.sql} LIMIT ${pageSize} OFFSET ${dec.offset}`
-        );
+        const rs = await clickhouseQuery(conn, dec.sql, {
+          limit: pageSize,
+          offset: dec.offset,
+        });
         const hasMore = rs.rows.length >= pageSize;
         return NextResponse.json({
           rows: rs.rows,
@@ -235,10 +235,10 @@ export async function POST(req: Request) {
         const pageable = chPageable(body.sql);
         const pageSize = clampPageSize(body.paginate);
         if (pageable) {
-          const rs = await clickhouseQuery(
-            conn,
-            `${pageable} LIMIT ${pageSize} OFFSET 0`
-          );
+          const rs = await clickhouseQuery(conn, pageable, {
+            limit: pageSize,
+            offset: 0,
+          });
           const hasMore = rs.rows.length >= pageSize;
           return NextResponse.json({
             result: rs,
