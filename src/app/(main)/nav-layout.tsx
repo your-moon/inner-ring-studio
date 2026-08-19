@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import {
   CaretDown,
   CaretRight,
+  Clock,
   CloudArrowUp,
   Database,
   List,
@@ -20,6 +21,7 @@ import { PropsWithChildren, useCallback, useState } from "react";
 import { SignOut, User } from "@phosphor-icons/react";
 import useSWR from "swr";
 import NavConnectionItem, { NavConnection } from "./nav-connection-item";
+import NotificationsBell from "./notifications-bell";
 
 export default function NavigationLayout({ children }: PropsWithChildren) {
   const [mobileToggle, setMobileToggle] = useState(false);
@@ -124,12 +126,15 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
             </div>
             <span className="text-sm font-semibold">{WEBSITE_NAME}</span>
           </Link>
-          <List
-            className="block h-6 w-6 cursor-pointer lg:hidden"
-            onClick={() => {
-              setMobileToggle(!mobileToggle);
-            }}
-          />
+          <div className="flex items-center gap-1">
+            {isCloud && <NotificationsBell />}
+            <List
+              className="block h-6 w-6 cursor-pointer lg:hidden"
+              onClick={() => {
+                setMobileToggle(!mobileToggle);
+              }}
+            />
+          </div>
         </div>
 
         {mobileToggle && (
@@ -195,6 +200,31 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               href="/connections/new"
               selected={pathname === "/connections/new"}
             />
+
+            {/* Scheduled queries + alerts — a Cloud-exclusive feature. In
+                self-hosted/desktop it shows as a quiet, non-nagging ghost that
+                points at Cloud (passive marketing). */}
+            {isCloud ? (
+              <SidebarMenuItem
+                text="Scheduled"
+                icon={Clock}
+                href="/schedules"
+                selected={pathname.startsWith("/schedules")}
+              />
+            ) : (
+              <Link
+                href="https://cloud.carrot-soft.tech/signup"
+                target="_blank"
+                className="hover:bg-secondary flex h-8 items-center p-2 pl-4 text-sm text-neutral-400"
+                title="Run queries on a schedule and get alerted — available on Inner Ring Cloud"
+              >
+                <Clock className="mr-2 h-4 w-4" />
+                <span className="flex-1 text-left">Scheduled</span>
+                <span className="rounded bg-[#FFEB02]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#a07a00] dark:text-[#FFEB02]">
+                  Cloud
+                </span>
+              </Link>
+            )}
 
             <SidebarMenuHeader text="Settings" />
             <SidebarMenuItem

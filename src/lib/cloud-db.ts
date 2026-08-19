@@ -64,8 +64,65 @@ export async function ensureSchema(): Promise<void> {
       created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
       UNIQUE (user_id, name)
     );
+
+    -- Cloud-only: scheduled queries + alerts. A background ticker runs each
+    -- enabled schedule against its connection, records a run, and raises an
+    -- in-app notification when the alert rule trips.
+    CREATE TABLE IF NOT EXISTS scheduled_queries (
+      id            TEXT PRIMARY KEY,
+      user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      connection_id TEXT NOT NULL REFERENCES connections(id) ON DELETE CASCADE,
+      name          TEXT NOT NULL,
+      sql           TEXT NOT NULL,
+      interval_min  INTEGER NOT NULL,
+      alert_metric  TEXT NOT NULL DEFAULT 'rowcount', -- 'rowcount' | 'value'
+      alert_op      TEXT,                              -- null | gt gte lt lte eq ne changed
+      alert_value   DOUBLE PRECISION,
+      enabled       BOOLEAN NOT NULL DEFAULT true,
+      last_run_at   TIMESTAMPTZ,
+      last_metric   DOUBLE PRECISION,                  -- for 'changed' comparisons
+      next_run_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE INDEX IF NOT EXISTS idx_sched_due ON scheduled_queries(enabled, next_run_at);
+
+    CREATE TABLE IF NOT EXISTS schedule_runs (
+      id         TEXT PRIMARY KEY,
+      sched_id   TEXT NOT NULL REFERENCES scheduled_queries(id) ON DELETE CASCADE,
+      ran_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+      status     TEXT NOT NULL,          -- 'ok' | 'error'
+      row_count  INTEGER,
+      metric_val DOUBLE PRECISION,
+      alerted    BOOLEAN NOT NULL DEFAULT false,
+      duration_ms INTEGER,
+      error      TEXT,
+      snapshot   JSONB                   -- { columns: string[], rows: unknown[][] } (first rows)
+    );
+    CREATE INDEX IF NOT EXISTS idx_runs_sched ON schedule_runs(sched_id, ran_at DESC);
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id         TEXT PRIMARY KEY,
+      user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      kind       TEXT NOT NULL DEFAULT 'alert',
+      title      TEXT NOT NULL,
+      body       TEXT,
+      sched_id   TEXT REFERENCES scheduled_queries(id) ON DELETE SET NULL,
+      read       BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, read, created_at DESC);
   `);
   schemaReady = true;
+}
+
+/** Shared accessor for the cloud Postgres pool (used by schedules/notifications). */
+export function cloudPool(): Pool {
+  return pool();
+}
+
+/** Random opaque id, shared with the schedules module. */
+export function cloudNewId(): string {
+  return newId();
 }
 
 function newId(): string {
