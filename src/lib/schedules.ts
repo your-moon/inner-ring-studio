@@ -125,7 +125,7 @@ export async function createSchedule(userId: string, input: NewSchedule): Promis
   const res = await cloudPool().query(
     `INSERT INTO scheduled_queries
        (id, user_id, connection_id, name, sql, interval_min, alert_metric, alert_op, alert_value, next_run_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, now() + ($6 || ' minutes')::interval)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, now() + make_interval(mins => $6))
      RETURNING *`,
     [
       id,
