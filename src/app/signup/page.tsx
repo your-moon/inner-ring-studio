@@ -24,7 +24,9 @@ export default function SignupPage() {
       });
       const j = await res.json().catch(() => ({}));
       if (res.ok) {
-        router.replace("/local");
+        // Honor ?next= so an invited user lands back on their invite.
+        const next = new URLSearchParams(window.location.search).get("next");
+        router.replace(next || "/local");
         return;
       }
       setError(j.error || "Could not create account");

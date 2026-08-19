@@ -42,20 +42,31 @@ export default function WorkspacePage() {
   const [role, setRole] = useState<"editor" | "viewer">("editor");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [invite, setInvite] = useState<{ url: string; added: boolean } | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  async function addMember() {
+  async function createInvite() {
     setBusy(true);
     setError("");
-    const r = await fetch(`/api/workspaces/${wsId}/members`, {
+    setInvite(null);
+    const r = await fetch(`/api/workspaces/${wsId}/invites`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, role }),
     }).then((x) => x.json());
     setBusy(false);
-    if (r.ok) {
+    if (r.token) {
+      setInvite({ url: `${window.location.origin}/invite/${r.token}`, added: !!r.addedDirectly });
       setEmail("");
       mutate();
-    } else setError(r.error || "Could not add member.");
+    } else setError(r.error || "Could not create invite.");
+  }
+
+  async function copyInvite() {
+    if (!invite) return;
+    await navigator.clipboard.writeText(invite.url).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   }
 
   async function changeRole(memberId: string, newRole: string) {
@@ -123,7 +134,7 @@ export default function WorkspacePage() {
             <div className="flex flex-wrap items-center gap-2">
               <input
                 className={input + " flex-1"}
-                placeholder="their@email.com (must have an account)"
+                placeholder="their@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -131,11 +142,26 @@ export default function WorkspacePage() {
                 <option value="editor">Editor</option>
                 <option value="viewer">Viewer</option>
               </select>
-              <button className={yellowBtn} disabled={busy || !email.trim()} onClick={addMember}>
-                Add
+              <button className={yellowBtn} disabled={busy || !email.trim()} onClick={createInvite}>
+                Create invite
               </button>
             </div>
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+            {invite && (
+              <div className="mt-3 rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/50">
+                <p className="mb-2 text-xs text-neutral-500">
+                  {invite.added
+                    ? "Added — they already have an account. Share this link too if they haven't signed in:"
+                    : "Share this link. They join after signing in with the invited email."}
+                </p>
+                <div className="flex items-center gap-2">
+                  <input readOnly value={invite.url} className={input + " flex-1 font-mono text-xs"} />
+                  <button onClick={copyInvite} className="rounded-lg border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-700">
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -5,6 +5,7 @@ import { MultipleQueryResult } from "@/lib/sql/multiple-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AggregateResultButton from "../aggregate-result/aggregate-result-button";
 import ExportResultButton from "../export/export-result-button";
+import ShareResultButton from "../share/share-result-button";
 import ResultTable from "../query-result-table";
 import ResultStats from "../result-stat";
 import { createTableStateFromResult } from "../table-result/helper";
@@ -113,6 +114,7 @@ export default function QueryResult({
             <div>
               <ExportResultButton data={data} />
             </div>
+            <ShareResultButton data={data} />
           </div>
           <div className="p-1 pr-3">
             <AggregateResultButton data={data} />

@@ -65,6 +65,19 @@ export async function ensureSchema(): Promise<void> {
     );
     CREATE INDEX IF NOT EXISTS idx_members_user ON workspace_members(user_id);
 
+    -- Invite links: an email-bound token. Anyone can open the link, but only a
+    -- signed-in user whose email matches can accept and join.
+    CREATE TABLE IF NOT EXISTS workspace_invites (
+      token        TEXT PRIMARY KEY,
+      workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+      email        TEXT NOT NULL,
+      role         TEXT NOT NULL DEFAULT 'editor',
+      created_by   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+      accepted_at  TIMESTAMPTZ
+    );
+    CREATE INDEX IF NOT EXISTS idx_invites_ws ON workspace_invites(workspace_id);
+
     CREATE TABLE IF NOT EXISTS connections (
       id           TEXT PRIMARY KEY,
       user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -158,6 +171,22 @@ export async function ensureSchema(): Promise<void> {
     );
     CREATE INDEX IF NOT EXISTS idx_comments_row
       ON row_comments(connection_id, table_ref, row_key, created_at);
+
+    -- Public shareable result snapshots. A static capture of a query's columns +
+    -- rows, readable by anyone with the token (no login). Owned by a workspace so
+    -- members can list/revoke them.
+    CREATE TABLE IF NOT EXISTS shared_snapshots (
+      token        TEXT PRIMARY KEY,
+      workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+      created_by   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title        TEXT NOT NULL,
+      sql          TEXT,
+      columns      JSONB NOT NULL,
+      rows         JSONB NOT NULL,
+      row_count    INTEGER NOT NULL DEFAULT 0,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE INDEX IF NOT EXISTS idx_snap_ws ON shared_snapshots(workspace_id, created_at DESC);
 
     -- Workspace migration: add workspace_id to every resource, then backfill
     -- each user's data into a personal workspace. All statements are idempotent

@@ -19,6 +19,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     // local IPC (never touching our protected API), so they must load without
     // the web login gate.
     if (pathname.startsWith("/embed")) return;
+    // Public shared-result snapshots (/s/<token>) are readable without login.
+    if (pathname.startsWith("/s/")) return;
     let alive = true;
     fetch("/api/auth/me")
       .then((r) => r.json())

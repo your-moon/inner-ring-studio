@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
 import {
-  addMemberByEmail,
   listMembers,
   removeMember,
   setMemberRole,
@@ -33,22 +32,6 @@ export async function GET(
   const members = await listMembers(uid, id);
   if (!members) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ members });
-}
-
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const uid = await userId();
-  if (uid instanceof Response) return uid;
-  const { id } = await params;
-  const body = (await req.json().catch(() => ({}))) as { email?: string; role?: Role };
-  const email = body.email?.trim();
-  const role = ROLES.includes(body.role as Role) ? (body.role as Role) : "editor";
-  if (!email) return NextResponse.json({ error: "Email is required." }, { status: 400 });
-  const r = await addMemberByEmail(uid, id, email, role);
-  if (!r.ok) return NextResponse.json({ error: r.error }, { status: 400 });
-  return NextResponse.json({ ok: true });
 }
 
 export async function PATCH(
