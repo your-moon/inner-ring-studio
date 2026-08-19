@@ -140,14 +140,38 @@ export default function ResultTable({
 
   const { extensions } = useStudioContext();
 
+  // Per-column client-side search (from each column's dropdown). When any term
+  // is set, render a filtered, read-only copy showing only matching rows.
+  const [columnSearch, setColumnSearch] = useState<Record<string, string>>({});
+
+  const displayData = useMemo(() => {
+    const active = Object.entries(columnSearch).filter(([, v]) => v.trim());
+    if (active.length === 0) return data;
+    const headers = data.getHeaders();
+    const rows = data
+      .getAllRows()
+      .filter((r) => {
+        const raw = r.raw as Record<string, unknown>;
+        return active.every(([col, term]) =>
+          String(raw[col] ?? "")
+            .toLowerCase()
+            .includes(term.toLowerCase())
+        );
+      })
+      .map((r) => ({ ...(r.raw as Record<string, unknown>) }));
+    const st = new OptimizeTableState(headers, rows);
+    st.setReadOnlyMode(true);
+    return st;
+  }, [data, columnSearch]);
+
   const headerIndex = useMemo(() => {
     if (visibleColumnIndexList) return visibleColumnIndexList;
-    return data.getHeaders().map((_, idx) => idx);
-  }, [data, visibleColumnIndexList]);
+    return displayData.getHeaders().map((_, idx) => idx);
+  }, [displayData, visibleColumnIndexList]);
 
   const renderHeader = useCallback(
     (header: OptimizeTableHeaderWithIndexProps<TableHeaderMetadata>) => {
-      const extensionMenu = extensions.getQueryHeaderContextMenu(header, data);
+      const extensionMenu = extensions.getQueryHeaderContextMenu(header, displayData);
       const extensionMenuItems = extensionMenu.map((item) => {
         if (item.component) {
           return (
@@ -177,7 +201,23 @@ export default function ResultTable({
       };
 
       return (
-        <Header key={header.name} header={header} internalState={data}>
+        <Header key={header.name} header={header} internalState={displayData}>
+          <div
+            className="p-1"
+            onKeyDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <input
+              value={columnSearch[header.name] ?? ""}
+              onChange={(e) =>
+                setColumnSearch((s) => ({ ...s, [header.name]: e.target.value }))
+              }
+              placeholder={`Search ${header.name}…`}
+              className="w-full rounded border border-neutral-300 bg-white px-2 py-1 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950"
+            />
+          </div>
+          <DropdownMenuSeparator />
           {extensionMenuItems}
           <DropdownMenuItem onClick={handleOnPinColumnClick}>
             {header.sticky ? (
@@ -213,7 +253,7 @@ export default function ResultTable({
         </Header>
       );
     },
-    [data, tableName, stickyHeaderIndex, onSortColumnChange, extensions]
+    [displayData, tableName, stickyHeaderIndex, onSortColumnChange, extensions, columnSearch]
   );
 
   const onHeaderContextMenu = useCallback((e: React.MouseEvent) => {
@@ -437,7 +477,7 @@ export default function ResultTable({
   return (
     <>
       <OptimizeTable
-        internalState={data}
+        internalState={displayData}
         onContextMenu={onCellContextMenu}
         onHeaderContextMenu={onHeaderContextMenu}
         stickyHeaderIndex={stickyHeaderIndex}

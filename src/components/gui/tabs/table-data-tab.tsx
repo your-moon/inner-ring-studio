@@ -272,7 +272,7 @@ export default function TableDataWindow({
       )}
       <div className="shrink-0 grow-0 border-b border-neutral-200 py-2 dark:border-neutral-800">
         <Toolbar>
-          <div className="ml-2 flex flex-1 items-center gap-2">
+          <div className="ml-2 flex shrink-0 flex-wrap items-center gap-2">
             <Button
               variant={"secondary"}
               onClick={() => setRevision((prev) => prev + 1)}
@@ -308,7 +308,7 @@ export default function TableDataWindow({
             )}
           </div>
 
-          <div className="mx-2 flex max-w-1/3 grow">
+          <div className="mx-2 flex min-w-0 grow">
             <div className="flex w-full items-center overflow-hidden rounded border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-950">
               {filterColumnButton}
               <input
@@ -326,7 +326,7 @@ export default function TableDataWindow({
             </div>
           </div>
 
-          <div className="mr-2 flex flex-1 flex-row-reverse items-center gap-2">
+          <div className="mr-2 flex shrink-0 flex-row-reverse items-center gap-2">
             {/* <ToolbarButton
               text="Save"
               // icon={<LucideSaveAll className="h-4 w-4" />}
