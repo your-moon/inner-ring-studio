@@ -46,7 +46,8 @@ export default function NotificationsBell() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-neutral-200 bg-white shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+          {/* Fixed (not absolute) so it escapes the sidebar's overflow-hidden clip. */}
+          <div className="fixed top-14 left-3 z-50 w-80 max-w-[calc(100vw-1.5rem)] rounded-xl border border-neutral-200 bg-white shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex items-center justify-between border-b border-neutral-200 px-3 py-2 dark:border-neutral-800">
               <span className="text-sm font-medium">Alerts</span>
               {unread > 0 && (
