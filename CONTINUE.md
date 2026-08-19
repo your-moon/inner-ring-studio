@@ -5,9 +5,18 @@ how to deploy, where things live, and what's done vs pending.
 
 ## What it is
 
-A self-hosted PostgreSQL workspace (fork of Outerbase Studio, AGPL). Grid data
-browsing/editing, SQL editor, encrypted git-synced connection vault, app login.
-Runs **hosted** (web) or **fully offline** (desktop). See `README.md`.
+A PostgreSQL/ClickHouse workspace (fork of Outerbase Studio, AGPL — the Outerbase
+CLOUD layer was fully removed 2026-08-19, rebranded to Inner Ring Studio). Grid
+data browsing/editing, SQL editor. Runs in three modes via `DEPLOY_MODE`:
+- **desktop** — offline, local encrypted vault, no login.
+- **selfhosted** (default) — one app password, encrypted git-synced vault. This is
+  the live `db.carrot-soft.tech`.
+- **cloud** — real accounts (email+password), per-user connections isolated in a
+  Postgres, passwords encrypted at rest. Code + tests done & verified locally;
+  deploy guide in `deploy/CLOUD.md` (needs a DNS hostname to go live).
+
+Mode seams: `src/lib/mode.ts` picks a `ConnectionStore` (vault vs `cloud-db.ts`);
+`auth.ts` sessions carry a `userId` in cloud mode. See `README.md`.
 
 ## Repos
 

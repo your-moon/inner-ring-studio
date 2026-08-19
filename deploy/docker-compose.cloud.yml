@@ -1,0 +1,56 @@
+# Inner Ring Studio — CLOUD mode stack.
+#
+# Multi-tenant hosted deployment: real accounts, per-user encrypted connections
+# in a dedicated Postgres. Runs alongside (does not touch) the existing
+# self-hosted `db.carrot-soft.tech` stack or the grape stack.
+#
+# Bring up:  docker compose -f docker-compose.cloud.yml --env-file cloud.env up -d --build
+# See deploy/CLOUD.md for the full guide (DNS + env).
+
+services:
+  irs-cloud-db:
+    image: postgres:16
+    container_name: irs-cloud-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: irs
+      POSTGRES_PASSWORD: ${IRS_CLOUD_DB_PASSWORD}
+      POSTGRES_DB: irs
+    volumes:
+      - irs-cloud-db-data:/var/lib/postgresql/data
+    networks:
+      - irs-cloud
+    # No published port — only the app (same private network) reaches it.
+
+  app:
+    build: ./app
+    image: inner-ring-studio:latest
+    container_name: inner-ring-cloud
+    restart: unless-stopped
+    depends_on:
+      - irs-cloud-db
+    environment:
+      DEPLOY_MODE: cloud
+      IRS_CLOUD_DB_URL: postgres://irs:${IRS_CLOUD_DB_PASSWORD}@irs-cloud-db:5432/irs
+      IRS_CLOUD_KEY: ${IRS_CLOUD_KEY}
+      PMSQL_TZ: Asia/Ulaanbaatar
+      PMSQL_MAX_ROWS: "1000"
+    networks:
+      - traefik
+      - irs-cloud
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.irscloud.entrypoints=websecure"
+      - "traefik.http.routers.irscloud.rule=Host(`${CLOUD_HOST}`)"
+      - "traefik.http.routers.irscloud.tls=true"
+      - "traefik.http.routers.irscloud.tls.certresolver=letsencrypt"
+      - "traefik.http.services.irscloud.loadbalancer.server.port=3000"
+
+networks:
+  traefik:
+    external: true
+  irs-cloud:
+    driver: bridge
+
+volumes:
+  irs-cloud-db-data:
