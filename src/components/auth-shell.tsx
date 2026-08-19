@@ -2,51 +2,83 @@
 
 import { ReactNode } from "react";
 
-/** The concentric "inner ring" motif — a slow-orbiting dashed ring over static rings. */
-function Rings() {
+// Deterministic "star field" so SSR and client render identically.
+const STARS = [
+  [70, 90, 1], [140, 60, 0.8], [210, 130, 1.2], [300, 80, 0.7], [380, 160, 1],
+  [110, 220, 0.9], [260, 250, 1.1], [420, 240, 0.8], [60, 320, 1], [180, 360, 0.7],
+  [340, 340, 1.2], [470, 320, 0.9], [90, 430, 0.8], [230, 460, 1], [400, 450, 1.1],
+  [150, 520, 0.7], [320, 540, 0.9], [500, 500, 1], [50, 600, 1.1], [260, 620, 0.8],
+  [430, 610, 1], [120, 700, 0.9], [360, 720, 1.2], [510, 690, 0.7], [200, 760, 1],
+];
+
+/**
+ * The "inner ring" orbital scene — concentric rings, a few dashed rings orbiting
+ * at different speeds with planets riding them, over a soft glow and star field.
+ * All motion is transform-based (compositor) so it stays smooth.
+ */
+function OrbitalScene() {
+  const spin = (dur: number, dir: "normal" | "reverse" = "normal") => ({
+    transformOrigin: "300px 400px" as const,
+    animation: `spin ${dur}s linear infinite`,
+    animationDirection: dir,
+    willChange: "transform" as const,
+  });
   return (
     <svg
-      viewBox="0 0 600 600"
-      className="pointer-events-none absolute -right-24 top-1/2 h-[820px] w-[820px] -translate-y-1/2 opacity-[0.5]"
+      viewBox="0 0 600 800"
+      className="pointer-events-none absolute inset-0 h-full w-full"
+      preserveAspectRatio="xMidYMid slice"
       fill="none"
     >
       <defs>
-        <radialGradient id="ringGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#6366f1" stopOpacity="0.35" />
-          <stop offset="70%" stopColor="#6366f1" stopOpacity="0" />
+        <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.28" />
+          <stop offset="60%" stopColor="#3b82f6" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="core" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#93c5fd" stopOpacity="1" />
+          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.6" />
         </radialGradient>
       </defs>
-      <circle cx="300" cy="300" r="290" fill="url(#ringGlow)" />
-      {[70, 130, 195, 260].map((r) => (
+
+      {/* stars */}
+      {STARS.map(([x, y, r], i) => (
+        <circle key={i} cx={x} cy={y} r={r} fill="#cbd5e1" opacity={0.25} />
+      ))}
+
+      {/* glow behind the rings */}
+      <circle cx="300" cy="400" r="380" fill="url(#glow)" />
+
+      {/* static concentric rings */}
+      {[90, 165, 240, 315, 390].map((r) => (
         <circle
           key={r}
           cx="300"
-          cy="300"
+          cy="400"
           r={r}
-          stroke="#818cf8"
-          strokeOpacity={0.18}
+          stroke="#60a5fa"
+          strokeOpacity={0.14}
           strokeWidth="1"
         />
       ))}
-      {/* orbiting dashed ring */}
-      <g
-        className="motion-safe:animate-[spin_44s_linear_infinite]"
-        style={{ transformOrigin: "300px 300px" }}
-      >
-        <circle
-          cx="300"
-          cy="300"
-          r="230"
-          stroke="#a5b4fc"
-          strokeOpacity="0.5"
-          strokeWidth="1.5"
-          strokeDasharray="2 12"
-          strokeLinecap="round"
-        />
+
+      {/* orbiting dashed rings + planets */}
+      <g style={spin(60)}>
+        <circle cx="300" cy="400" r="240" stroke="#93c5fd" strokeOpacity="0.45" strokeWidth="1.5" strokeDasharray="2 14" strokeLinecap="round" />
+        <circle cx="300" cy="160" r="6" fill="#bfdbfe" />
       </g>
-      {/* filled core */}
-      <circle cx="300" cy="300" r="20" fill="#a5b4fc" fillOpacity="0.9" />
-      <circle cx="300" cy="300" r="46" stroke="#a5b4fc" strokeOpacity="0.6" strokeWidth="2" />
+      <g style={spin(90, "reverse")}>
+        <circle cx="300" cy="400" r="315" stroke="#3b82f6" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="1 18" strokeLinecap="round" />
+        <circle cx="300" cy="85" r="4" fill="#60a5fa" />
+      </g>
+      <g style={spin(40)}>
+        <circle cx="300" cy="400" r="165" stroke="#60a5fa" strokeOpacity="0.35" strokeWidth="1.5" strokeDasharray="3 10" strokeLinecap="round" />
+        <circle cx="300" cy="235" r="5" fill="#93c5fd" />
+      </g>
+
+      {/* glowing core */}
+      <circle cx="300" cy="400" r="26" fill="url(#core)" />
+      <circle cx="300" cy="400" r="52" stroke="#93c5fd" strokeOpacity="0.55" strokeWidth="2" />
     </svg>
   );
 }
@@ -76,28 +108,28 @@ export default function AuthShell({
         className="relative hidden w-1/2 flex-col justify-between overflow-hidden p-12 lg:flex"
         style={{
           background:
-            "radial-gradient(130% 130% at 25% 15%, #1c1f3a 0%, #0e1020 55%, #07080f 100%)",
+            "radial-gradient(140% 120% at 30% 0%, #12213f 0%, #0b1120 55%, #05060d 100%)",
         }}
       >
-        <Rings />
-        <div className="relative z-10 flex items-center gap-2.5 text-white">
+        <OrbitalScene />
+        <div className="animate-[fadeUp_0.6s_ease-out] relative z-10 flex items-center gap-2.5 text-white">
           <Mark className="h-7 w-7" />
           <span className="text-sm font-semibold tracking-wide">
             Inner Ring Studio
           </span>
         </div>
-        <div className="relative z-10">
-          <h1 className="max-w-md text-4xl font-semibold leading-[1.15] text-white">
+        <div className="animate-[fadeUp_0.7s_ease-out] relative z-10">
+          <h1 className="max-w-md text-[2.6rem] font-semibold leading-[1.1] text-white">
             Your databases,
             <br />
             one workspace.
           </h1>
           <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-white/55">
-            Browse, query, and edit your own PostgreSQL and ClickHouse — in a fast
-            grid and SQL editor, from anywhere.
+            Browse, query, and edit your own PostgreSQL, MySQL, and ClickHouse —
+            in a fast grid and SQL editor, from anywhere.
           </p>
         </div>
-        <div className="relative z-10 flex items-center gap-2 text-xs font-medium tracking-wide text-white/35">
+        <div className="animate-[fadeUp_0.8s_ease-out] relative z-10 flex items-center gap-2 text-xs font-medium tracking-wide text-white/35">
           <span>Self-hosted</span>
           <span className="text-white/20">·</span>
           <span>Cloud</span>
@@ -128,7 +160,7 @@ export default function AuthShell({
 
 /** Shared field + button styles for the auth forms. */
 export const authInput =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-[15px] text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white";
+  "w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-[15px] text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white";
 
 export const authButton =
-  "w-full rounded-lg bg-indigo-600 py-2.5 text-[15px] font-medium text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded-lg bg-blue-600 py-2.5 text-[15px] font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50";

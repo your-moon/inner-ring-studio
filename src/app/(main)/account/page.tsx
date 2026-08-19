@@ -54,7 +54,7 @@ export default function AccountPage() {
 }
 
 const input =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-neutral-700 dark:bg-neutral-950";
+  "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950";
 
 function ChangePassword() {
   const [current, setCurrent] = useState("");
@@ -107,7 +107,7 @@ function ChangePassword() {
         <button
           onClick={submit}
           disabled={busy || !current || next.length < 8}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
           {busy ? "Updating…" : "Update password"}
         </button>
