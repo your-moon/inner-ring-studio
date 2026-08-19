@@ -33,6 +33,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SavedView } from "@/lib/saved-views";
 import SavedViewsButton from "../table-result/saved-views-button";
+import ImportCsvDialog from "../import-csv-dialog";
 import AggregateResultButton from "../aggregate-result/aggregate-result-button";
 import ExportResultButton from "../export/export-result-button";
 import OpacityLoading from "../loading-opacity";
@@ -153,6 +154,7 @@ export default function TableDataWindow({
 
   const pathname = usePathname();
   const viewScope = `${pathname}:${schemaName}.${tableName}`;
+  const [showImport, setShowImport] = useState(false);
 
   // The visible-column names for the current view (undefined when all visible).
   const currentColumns = useMemo(() => {
@@ -258,6 +260,16 @@ export default function TableDataWindow({
           </AlertDialogContent>
         </AlertDialog>
       )}
+      {showImport && tableSchema && (
+        <ImportCsvDialog
+          driver={databaseDriver}
+          schemaName={schemaName}
+          tableName={tableName}
+          columns={tableSchema.columns.map((c) => c.name)}
+          onClose={() => setShowImport(false)}
+          onImported={() => setRevision((p) => p + 1)}
+        />
+      )}
       <div className="shrink-0 grow-0 border-b border-neutral-200 py-2 dark:border-neutral-800">
         <Toolbar>
           <div className="ml-2 flex flex-1 items-center gap-2">
@@ -288,6 +300,12 @@ export default function TableDataWindow({
               currentColumns={currentColumns}
               onApply={applyView}
             />
+
+            {tableSchema && tableSchema.columns.length > 0 && (
+              <Button variant={"secondary"} onClick={() => setShowImport(true)}>
+                <div className="text-sm">Import CSV</div>
+              </Button>
+            )}
           </div>
 
           <div className="mx-2 flex max-w-1/3 grow">
