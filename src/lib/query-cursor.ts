@@ -43,6 +43,7 @@ interface Held {
   fields: CursorField[];
   lastUsed: number;
   closing: boolean;
+  pool: Pool;
 }
 
 // Survive Next.js hot reloads: keep one registry on globalThis.
@@ -170,8 +171,27 @@ export async function openCursor(
   }
 
   const id = newId();
-  registry.set(id, { client, cursor, fields, lastUsed: Date.now(), closing: false });
+  registry.set(id, {
+    client,
+    cursor,
+    fields,
+    lastUsed: Date.now(),
+    closing: false,
+    pool,
+  });
   return { cursorId: id, fields, rows, hasMore: true };
+}
+
+/**
+ * Release every held cursor belonging to a pool. Called before closing the pool
+ * (disconnect), so `pool.end()` doesn't hang waiting on a checked-out cursor
+ * client.
+ */
+export async function closeCursorsForPool(pool: Pool): Promise<void> {
+  const ids = [...registry.entries()]
+    .filter(([, h]) => h.pool === pool)
+    .map(([id]) => id);
+  await Promise.all(ids.map(destroy));
 }
 
 export interface CursorMore {

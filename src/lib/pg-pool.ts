@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { closeCursorsForPool } from "./query-cursor";
 
 /**
  * Shared registry of live node-postgres pools, keyed per connection identity.
@@ -89,6 +90,9 @@ export async function closePool(c: PgConnConfig): Promise<void> {
   const pool = pools.get(key);
   if (!pool) return;
   pools.delete(key);
+  // Release any held pagination cursors on this pool first, or pool.end() hangs
+  // waiting for their checked-out clients.
+  await closeCursorsForPool(pool).catch(() => {});
   await pool.end().catch(() => {});
 }
 
