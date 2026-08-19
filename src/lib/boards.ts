@@ -17,6 +17,20 @@ export interface BoardRecord extends BoardSummary {
 
 const ms = (v: Date | string): number => new Date(v).getTime();
 
+// The query route installs a GLOBAL pg jsonb parser that returns raw text, so
+// `data` can arrive as a JSON string here. Normalize to an object either way.
+function asObj(v: unknown): Record<string, unknown> {
+  if (v && typeof v === "object") return v as Record<string, unknown>;
+  if (typeof v === "string") {
+    try {
+      return JSON.parse(v) as Record<string, unknown>;
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
 /** An empty DashboardProps skeleton for a freshly created board. */
 function emptyBoard(name: string): Record<string, unknown> {
   return { charts: [], layout: [], name, data: { filters: [] } };
@@ -46,7 +60,7 @@ export async function getBoard(userId: string, id: string): Promise<BoardRecord 
   return {
     id: r.id,
     name: r.name,
-    data: r.data ?? {},
+    data: asObj(r.data),
     updatedAt: ms(r.updated_at),
   };
 }
@@ -60,7 +74,7 @@ export async function createBoard(userId: string, name: string): Promise<BoardRe
     [id, userId, name, JSON.stringify(data)]
   );
   const r = res.rows[0];
-  return { id: r.id, name: r.name, data: r.data ?? {}, updatedAt: ms(r.updated_at) };
+  return { id: r.id, name: r.name, data: asObj(r.data), updatedAt: ms(r.updated_at) };
 }
 
 export async function updateBoard(
@@ -89,7 +103,7 @@ export async function updateBoard(
     vals
   );
   const r = res.rows[0];
-  return r ? { id: r.id, name: r.name, data: r.data ?? {}, updatedAt: ms(r.updated_at) } : null;
+  return r ? { id: r.id, name: r.name, data: asObj(r.data), updatedAt: ms(r.updated_at) } : null;
 }
 
 export async function deleteBoard(userId: string, id: string): Promise<boolean> {
