@@ -185,7 +185,33 @@ re-apply in one click. A "Views" button sits in the table-data toolbar (badge = 
 - **Not synced across devices** (localStorage, matching existing saved queries/history). A future
   upgrade could store views in the git config repo for multi-device sync.
 
+## Status — connect UX + ClickHouse hardening (2026-08-19) — DONE & deployed
+
+- **Inline connect loading** — `schema-provider.tsx` no longer blocks the whole studio
+  behind a full-screen `ConnectingDialog`; it exposes `loading`/`error`/`refresh` and
+  `schema-sidebar.tsx` shows them inline (spinner / error box + Retry). Workspace renders
+  immediately (verified chrome at 700ms). A transient schema error is now non-blocking.
+- **ClickHouse instant load** — CH had no row cap (loaded whole tables). Now paginated like
+  Postgres, but stateless: LIMIT/OFFSET via CH `limit`/`offset` *settings*, offset carried
+  in an opaque cursor token; `DatabasePage.nextCursorId` + client adopts it.
+- **ClickHouse connection hardening** (from a best-practice study vs ClickHouse docs +
+  Grafana/DBeaver/clickhouse-js — `src/lib/clickhouse.ts`):
+  - `readonly:1`→`readonly:2` (still blocks writes — verified — but allows attaching settings;
+    `readonly:1` locks all settings, which is why guardrails couldn't be added before).
+  - Guardrails on every query: `max_execution_time:30`, `max_result_rows:1e6` +
+    `result_overflow_mode:break`, `max_memory_usage:4GB`.
+  - **64-bit int corruption fixed**: `output_format_json_quote_64bit_integers:1` + map
+    Int64/UInt64/128/256 → TEXT (were rounding ids > 2^53 in JS; CH 25.8 flipped the default).
+    Decimal → TEXT too. Verified: `9007199254740993` and UInt64 max now exact.
+  - Response compression on. Confirmed correct (no change): HTTP transport, Basic-auth header
+    (no query-string leak), `system.*` introspection, JSONCompact at ≤200 rows/page.
+
 ## Status — still PENDING / nice-to-have
+
+- **ClickHouse follow-ups from the study** (P1/P2, not yet done): tolerate `total_bytes = NULL`
+  in the table list (views/Distributed show 0 today, should be blank); enrich introspection
+  (table/column comments, PK/sorting-key flags via `system.columns.is_in_*`, engine); keyset
+  pagination on the sorting key for very deep scrolls (OFFSET re-scans skipped rows).
 
 - **Git-synced saved views** — currently per-device localStorage; could move to a `views.json`
   in the config repo (committed by config-repo.ts) for cross-device sync.
