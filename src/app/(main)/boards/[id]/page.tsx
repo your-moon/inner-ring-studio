@@ -69,7 +69,10 @@ export default function BoardEditorPage() {
     }, 500);
   };
 
-  if (!value) {
+  // Gate the board render until BOTH the board and its connections have loaded —
+  // charts resolve their source at render time, so an empty source list would
+  // throw "Source does not exist" and crash the tree.
+  if (!value || !conns) {
     return (
       <NavigationLayout>
         <div className="p-8 text-sm text-neutral-500">Loading board…</div>
