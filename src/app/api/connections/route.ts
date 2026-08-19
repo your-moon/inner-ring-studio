@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { requireStoreContext } from "@/lib/workspace-context";
 import { commitConfig } from "@/lib/config-repo";
 import { getConnectionStore } from "@/lib/mode";
 import { IS_CLOUD } from "@/lib/mode";
@@ -21,7 +21,7 @@ function commitLocal(msg: string) {
  * scoped to the authenticated user; in local mode it's the single vault.
  */
 export async function GET() {
-  const auth = await requireAuth();
+  const auth = await requireStoreContext();
   if (auth instanceof Response) return auth;
   try {
     return NextResponse.json({ connections: await store.list(auth) });
@@ -34,8 +34,10 @@ export async function GET() {
 
 /** Create a connection (used by the in-app "new connection" form). */
 export async function POST(req: Request) {
-  const auth = await requireAuth();
+  const auth = await requireStoreContext();
   if (auth instanceof Response) return auth;
+  if (auth.role === "viewer")
+    return NextResponse.json({ error: "Viewers can't add connections." }, { status: 403 });
   try {
     const body = await req.json();
     if (!body.name || !body.host || !body.port) {
@@ -72,8 +74,10 @@ export async function POST(req: Request) {
 
 /** Edit a connection. Provided fields overwrite; an omitted password is kept. */
 export async function PUT(req: Request) {
-  const auth = await requireAuth();
+  const auth = await requireStoreContext();
   if (auth instanceof Response) return auth;
+  if (auth.role === "viewer")
+    return NextResponse.json({ error: "Viewers can't edit connections." }, { status: 403 });
   try {
     const body = await req.json();
     if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
@@ -103,8 +107,10 @@ export async function PUT(req: Request) {
 
 /** Delete a connection. */
 export async function DELETE(req: Request) {
-  const auth = await requireAuth();
+  const auth = await requireStoreContext();
   if (auth instanceof Response) return auth;
+  if (auth.role === "viewer")
+    return NextResponse.json({ error: "Viewers can't delete connections." }, { status: 403 });
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
   const removed = await store.remove(auth, id);

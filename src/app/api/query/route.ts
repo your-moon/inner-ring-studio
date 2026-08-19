@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { types, type QueryArrayResult } from "pg";
 import Cursor from "pg-cursor";
-import { requireAuth } from "@/lib/auth";
+import { requireStoreContext } from "@/lib/workspace-context";
 import { getConnectionStore } from "@/lib/mode";
 import type { AuthContext } from "@/lib/connection-store";
 import { getPool, type PgConnConfig } from "@/lib/pg-pool";
@@ -59,7 +59,8 @@ async function resolveConnection(
       password: c.password,
       ssl: c.ssl,
       timezone: c.timezone,
-      readOnly: c.readOnly,
+      // Viewers always run read-only, regardless of the connection's own flag.
+      readOnly: c.readOnly || auth.role === "viewer",
       driver: c.driver,
     };
   }
@@ -188,7 +189,7 @@ function decodeChCursor(token: string): { sql: string; offset: number } | null {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAuth();
+  const auth = await requireStoreContext();
   if (auth instanceof Response) return auth;
   try {
     const body = await req.json();

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
+import { requireWorkspace } from "@/lib/workspace-context";
+import { roleAtLeast } from "@/lib/workspaces";
 import { createSchedule, listSchedules, type NewSchedule } from "@/lib/schedules";
 import type { AlertOp } from "@/lib/query-runner";
 
@@ -21,19 +22,19 @@ function cloudOnly(): Response | null {
 export async function GET() {
   const gate = cloudOnly();
   if (gate) return gate;
-  const auth = await requireAuth();
-  if (auth instanceof Response) return auth;
-  if (!auth.userId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const schedules = await listSchedules(auth.userId);
+  const ctx = await requireWorkspace();
+  if (ctx instanceof Response) return ctx;
+  const schedules = await listSchedules(ctx.workspaceId);
   return NextResponse.json({ schedules });
 }
 
 export async function POST(req: Request) {
   const gate = cloudOnly();
   if (gate) return gate;
-  const auth = await requireAuth();
-  if (auth instanceof Response) return auth;
-  if (!auth.userId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const ctx = await requireWorkspace();
+  if (ctx instanceof Response) return ctx;
+  if (!roleAtLeast(ctx.role, "editor"))
+    return NextResponse.json({ error: "Viewers can't create schedules." }, { status: 403 });
 
   const body = (await req.json().catch(() => ({}))) as Partial<NewSchedule>;
   const name = body.name?.trim();
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
   const alertMetric = body.alertMetric === "value" ? "value" : "rowcount";
 
   try {
-    const schedule = await createSchedule(auth.userId, {
+    const schedule = await createSchedule(ctx.workspaceId, ctx.userId, {
       name,
       sql,
       connectionId,

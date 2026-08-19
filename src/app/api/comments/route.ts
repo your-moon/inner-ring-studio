@@ -1,22 +1,18 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
+import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
 import { addComment, deleteComment, listComments } from "@/lib/comments";
 import { getUserById } from "@/lib/cloud-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function guard(): Promise<{ userId: string } | Response> {
+async function guard(): Promise<WorkspaceContext | Response> {
   if (!IS_CLOUD)
     // Not an error: lets the client render nothing and treat comments as a
     // Cloud-only capability without special-casing the request.
     return NextResponse.json({ cloud: false, comments: [] });
-  const auth = await requireAuth();
-  if (auth instanceof Response) return auth;
-  if (!auth.userId)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  return { userId: auth.userId };
+  return requireWorkspace();
 }
 
 export async function GET(req: Request) {
@@ -28,13 +24,14 @@ export async function GET(req: Request) {
   const rowKey = url.searchParams.get("rowKey") ?? "";
   if (!connectionId || !table || !rowKey)
     return NextResponse.json({ cloud: true, comments: [] });
-  const comments = await listComments(g.userId, connectionId, table, rowKey);
+  const comments = await listComments(g.workspaceId, g.userId, connectionId, table, rowKey);
   return NextResponse.json({ cloud: true, comments });
 }
 
 export async function POST(req: Request) {
   const g = await guard();
   if (g instanceof Response) return g;
+  // Any member (viewer included) can comment — that's the collaboration point.
   const body = (await req.json().catch(() => ({}))) as {
     connectionId?: string;
     table?: string;
@@ -50,7 +47,7 @@ export async function POST(req: Request) {
     );
   const user = await getUserById(g.userId);
   try {
-    const comment = await addComment(g.userId, user?.email ?? null, {
+    const comment = await addComment(g.workspaceId, g.userId, user?.email ?? null, {
       connectionId: body.connectionId,
       tableRef: body.table,
       rowKey: body.rowKey,

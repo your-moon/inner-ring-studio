@@ -47,6 +47,24 @@ export async function ensureSchema(): Promise<void> {
       password_hash TEXT NOT NULL,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+    -- Team workspaces: resources belong to a workspace, not a user. Every user
+    -- gets a personal workspace; shared workspaces have multiple members.
+    CREATE TABLE IF NOT EXISTS workspaces (
+      id         TEXT PRIMARY KEY,
+      name       TEXT NOT NULL,
+      owner_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      personal   BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS workspace_members (
+      workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+      user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      role         TEXT NOT NULL DEFAULT 'editor', -- owner | editor | viewer
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (workspace_id, user_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_members_user ON workspace_members(user_id);
+
     CREATE TABLE IF NOT EXISTS connections (
       id           TEXT PRIMARY KEY,
       user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -140,6 +158,39 @@ export async function ensureSchema(): Promise<void> {
     );
     CREATE INDEX IF NOT EXISTS idx_comments_row
       ON row_comments(connection_id, table_ref, row_key, created_at);
+
+    -- Workspace migration: add workspace_id to every resource, then backfill
+    -- each user's data into a personal workspace. All statements are idempotent
+    -- (guarded by IF NOT EXISTS / IS NULL / NOT EXISTS), so this runs safely on
+    -- every boot.
+    ALTER TABLE connections       ADD COLUMN IF NOT EXISTS workspace_id TEXT REFERENCES workspaces(id) ON DELETE CASCADE;
+    ALTER TABLE boards            ADD COLUMN IF NOT EXISTS workspace_id TEXT REFERENCES workspaces(id) ON DELETE CASCADE;
+    ALTER TABLE scheduled_queries ADD COLUMN IF NOT EXISTS workspace_id TEXT REFERENCES workspaces(id) ON DELETE CASCADE;
+    ALTER TABLE row_comments      ADD COLUMN IF NOT EXISTS workspace_id TEXT REFERENCES workspaces(id) ON DELETE CASCADE;
+    CREATE INDEX IF NOT EXISTS idx_conn_ws    ON connections(workspace_id);
+    CREATE INDEX IF NOT EXISTS idx_boards_ws  ON boards(workspace_id);
+    CREATE INDEX IF NOT EXISTS idx_sched_ws   ON scheduled_queries(workspace_id);
+    CREATE INDEX IF NOT EXISTS idx_cmt_ws     ON row_comments(workspace_id);
+
+    -- 1. a personal workspace for every user that lacks one
+    INSERT INTO workspaces (id, name, owner_id, personal)
+    SELECT gen_random_uuid()::text, 'Personal', u.id, true
+      FROM users u
+     WHERE NOT EXISTS (SELECT 1 FROM workspaces w WHERE w.owner_id = u.id AND w.personal);
+
+    -- 2. owner membership for every workspace owner
+    INSERT INTO workspace_members (workspace_id, user_id, role)
+    SELECT w.id, w.owner_id, 'owner'
+      FROM workspaces w
+     WHERE NOT EXISTS (
+       SELECT 1 FROM workspace_members m WHERE m.workspace_id = w.id AND m.user_id = w.owner_id
+     );
+
+    -- 3. move each user's existing resources into their personal workspace
+    UPDATE connections c       SET workspace_id = (SELECT id FROM workspaces w WHERE w.owner_id = c.user_id AND w.personal LIMIT 1) WHERE c.workspace_id IS NULL;
+    UPDATE boards b            SET workspace_id = (SELECT id FROM workspaces w WHERE w.owner_id = b.user_id AND w.personal LIMIT 1) WHERE b.workspace_id IS NULL;
+    UPDATE scheduled_queries s SET workspace_id = (SELECT id FROM workspaces w WHERE w.owner_id = s.user_id AND w.personal LIMIT 1) WHERE s.workspace_id IS NULL;
+    UPDATE row_comments r      SET workspace_id = (SELECT id FROM workspaces w WHERE w.owner_id = r.user_id AND w.personal LIMIT 1) WHERE r.workspace_id IS NULL;
   `);
   schemaReady = true;
 }
@@ -301,24 +352,32 @@ function requireUser(ctx: AuthContext): string {
   return ctx.userId;
 }
 
+// Cloud connections are scoped to the active workspace (membership already
+// verified when the context was built).
+function requireWs(ctx: AuthContext): string {
+  if (!ctx.workspaceId) throw new Error("Cloud store requires an active workspace.");
+  return ctx.workspaceId;
+}
+
 export class CloudConnectionStore implements ConnectionStore {
   async list(ctx: AuthContext): Promise<SafeConnection[]> {
     await ensureSchema();
-    const uid = requireUser(ctx);
+    const ws = requireWs(ctx);
     const res = await pool().query(
-      "SELECT * FROM connections WHERE user_id = $1 ORDER BY created_at",
-      [uid]
+      "SELECT * FROM connections WHERE workspace_id = $1 ORDER BY created_at",
+      [ws]
     );
     return (res.rows as ConnRow[]).map(rowToSafe);
   }
 
   async get(ctx: AuthContext, id: string): Promise<VaultConnection | undefined> {
     await ensureSchema();
-    const uid = requireUser(ctx);
-    // Scoped by user_id — a caller can never resolve another user's connection.
+    const ws = requireWs(ctx);
+    // Scoped by workspace — a caller can only resolve connections in a workspace
+    // they're a member of.
     const res = await pool().query(
-      "SELECT * FROM connections WHERE id = $1 AND user_id = $2",
-      [id, uid]
+      "SELECT * FROM connections WHERE id = $1 AND workspace_id = $2",
+      [id, ws]
     );
     const r = res.rows[0] as ConnRow | undefined;
     if (!r) return undefined;
@@ -331,16 +390,18 @@ export class CloudConnectionStore implements ConnectionStore {
   async add(ctx: AuthContext, conn: NewConnection): Promise<SafeConnection> {
     await ensureSchema();
     const uid = requireUser(ctx);
+    const ws = requireWs(ctx);
     const id = newId();
     try {
       await pool().query(
         `INSERT INTO connections
-           (id, user_id, name, driver, host, port, database, db_user,
+           (id, user_id, workspace_id, name, driver, host, port, database, db_user,
             password_enc, ssl, read_only, folder, timezone)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
         [
           id,
           uid,
+          ws,
           conn.name,
           conn.driver,
           conn.host,
@@ -369,7 +430,7 @@ export class CloudConnectionStore implements ConnectionStore {
     patch: Partial<NewConnection>
   ): Promise<SafeConnection | null> {
     await ensureSchema();
-    const uid = requireUser(ctx);
+    const ws = requireWs(ctx);
     const sets: string[] = [];
     const vals: unknown[] = [];
     const col = (c: string, v: unknown) => {
@@ -393,10 +454,10 @@ export class CloudConnectionStore implements ConnectionStore {
       const rows = await this.list(ctx);
       return rows.find((c) => c.id === id) ?? null;
     }
-    vals.push(id, uid);
+    vals.push(id, ws);
     const res = await pool().query(
       `UPDATE connections SET ${sets.join(", ")}
-       WHERE id = $${vals.length - 1} AND user_id = $${vals.length}
+       WHERE id = $${vals.length - 1} AND workspace_id = $${vals.length}
        RETURNING *`,
       vals
     );
@@ -406,10 +467,10 @@ export class CloudConnectionStore implements ConnectionStore {
 
   async remove(ctx: AuthContext, id: string): Promise<boolean> {
     await ensureSchema();
-    const uid = requireUser(ctx);
+    const ws = requireWs(ctx);
     const res = await pool().query(
-      "DELETE FROM connections WHERE id = $1 AND user_id = $2",
-      [id, uid]
+      "DELETE FROM connections WHERE id = $1 AND workspace_id = $2",
+      [id, ws]
     );
     return (res.rowCount ?? 0) > 0;
   }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { requireStoreContext } from "@/lib/workspace-context";
 import { clickhouseQuery, closeClickhouse } from "@/lib/clickhouse";
 import { getConnectionStore } from "@/lib/mode";
 import {
@@ -71,7 +71,7 @@ async function closeOf(c: ConnLike) {
 
 /** Connection-manager status: which connections have a live pool. */
 export async function GET() {
-  const auth = await requireAuth();
+  const auth = await requireStoreContext();
   if (auth instanceof Response) return auth;
   const connections = (await store.list(auth)).map((c) => ({
     id: c.id,
@@ -86,7 +86,7 @@ export async function GET() {
 
 /** Actions: disconnect (close pool) or test/retry (SELECT 1). */
 export async function POST(req: Request) {
-  const auth = await requireAuth();
+  const auth = await requireStoreContext();
   if (auth instanceof Response) return auth;
   const body = await req.json().catch(() => ({}));
   const conn = body.connectionId

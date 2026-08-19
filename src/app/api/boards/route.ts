@@ -1,31 +1,30 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
+import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
+import { roleAtLeast } from "@/lib/workspaces";
 import { createBoard, listBoards } from "@/lib/boards";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function guard(): Promise<{ userId: string } | Response> {
+async function guard(): Promise<WorkspaceContext | Response> {
   if (!IS_CLOUD)
     return NextResponse.json({ error: "Boards are a Cloud feature." }, { status: 404 });
-  const auth = await requireAuth();
-  if (auth instanceof Response) return auth;
-  if (!auth.userId)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  return { userId: auth.userId };
+  return requireWorkspace();
 }
 
 export async function GET() {
   const g = await guard();
   if (g instanceof Response) return g;
-  const boards = await listBoards(g.userId);
+  const boards = await listBoards(g.workspaceId);
   return NextResponse.json({ boards });
 }
 
 export async function POST(req: Request) {
   const g = await guard();
   if (g instanceof Response) return g;
+  if (!roleAtLeast(g.role, "editor"))
+    return NextResponse.json({ error: "Viewers can't create boards." }, { status: 403 });
   const body = (await req.json().catch(() => ({}))) as {
     name?: string;
     data?: Record<string, unknown>;
@@ -34,6 +33,6 @@ export async function POST(req: Request) {
   const embeddedName =
     body.data && typeof body.data.name === "string" ? (body.data.name as string) : undefined;
   const name = body.name?.trim() || embeddedName?.trim() || "Untitled board";
-  const board = await createBoard(g.userId, name, body.data);
+  const board = await createBoard(g.workspaceId, g.userId, name, body.data);
   return NextResponse.json({ board });
 }

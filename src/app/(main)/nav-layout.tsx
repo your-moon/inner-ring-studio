@@ -23,6 +23,7 @@ import { SignOut, User } from "@phosphor-icons/react";
 import useSWR from "swr";
 import NavConnectionItem, { NavConnection } from "./nav-connection-item";
 import NotificationsBell from "./notifications-bell";
+import WorkspaceSwitcher from "./workspace-switcher";
 
 export default function NavigationLayout({ children }: PropsWithChildren) {
   const [mobileToggle, setMobileToggle] = useState(false);
@@ -34,6 +35,9 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
     mode: string;
     authed: boolean;
     email: string | null;
+    workspaceId: string | null;
+    workspaceName: string | null;
+    role: string | null;
   }>("/api/auth/me", (u: string) => fetch(u).then((r) => r.json()));
   const isCloud = me?.mode === "cloud";
 
@@ -137,6 +141,13 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
             />
           </div>
         </div>
+
+        {isCloud && (
+          <WorkspaceSwitcher
+            activeId={me?.workspaceId ?? null}
+            activeName={me?.workspaceName ?? null}
+          />
+        )}
 
         {mobileToggle && (
           <div

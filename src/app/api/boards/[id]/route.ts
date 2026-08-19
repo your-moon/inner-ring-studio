@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
+import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
+import { roleAtLeast } from "@/lib/workspaces";
 import { deleteBoard, getBoard, updateBoard } from "@/lib/boards";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function guard(): Promise<{ userId: string } | Response> {
+async function guard(): Promise<WorkspaceContext | Response> {
   if (!IS_CLOUD)
     return NextResponse.json({ error: "Cloud feature." }, { status: 404 });
-  const auth = await requireAuth();
-  if (auth instanceof Response) return auth;
-  if (!auth.userId)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  return { userId: auth.userId };
+  return requireWorkspace();
 }
 
 export async function GET(
@@ -23,7 +20,7 @@ export async function GET(
   const g = await guard();
   if (g instanceof Response) return g;
   const { id } = await params;
-  const board = await getBoard(g.userId, id);
+  const board = await getBoard(g.workspaceId, id);
   if (!board) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ board });
 }
@@ -34,12 +31,14 @@ export async function PUT(
 ) {
   const g = await guard();
   if (g instanceof Response) return g;
+  if (!roleAtLeast(g.role, "editor"))
+    return NextResponse.json({ error: "Viewers can't edit boards." }, { status: 403 });
   const { id } = await params;
   const body = (await req.json().catch(() => ({}))) as {
     name?: string;
     data?: Record<string, unknown>;
   };
-  const board = await updateBoard(g.userId, id, {
+  const board = await updateBoard(g.workspaceId, id, {
     name: body.name,
     data: body.data,
   });
@@ -53,7 +52,9 @@ export async function DELETE(
 ) {
   const g = await guard();
   if (g instanceof Response) return g;
+  if (!roleAtLeast(g.role, "editor"))
+    return NextResponse.json({ error: "Viewers can't delete boards." }, { status: 403 });
   const { id } = await params;
-  const ok = await deleteBoard(g.userId, id);
+  const ok = await deleteBoard(g.workspaceId, id);
   return NextResponse.json({ ok });
 }

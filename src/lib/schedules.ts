@@ -94,42 +94,47 @@ function toSchedule(r: SchedRow): Schedule {
 
 // --------------------------- user-scoped ---------------------------
 
-export async function listSchedules(userId: string): Promise<Schedule[]> {
+export async function listSchedules(workspaceId: string): Promise<Schedule[]> {
   await ensureSchema();
   const res = await cloudPool().query(
-    "SELECT * FROM scheduled_queries WHERE user_id = $1 ORDER BY created_at DESC",
-    [userId]
+    "SELECT * FROM scheduled_queries WHERE workspace_id = $1 ORDER BY created_at DESC",
+    [workspaceId]
   );
   return (res.rows as SchedRow[]).map(toSchedule);
 }
 
-export async function getSchedule(userId: string, id: string): Promise<Schedule | null> {
+export async function getSchedule(workspaceId: string, id: string): Promise<Schedule | null> {
   await ensureSchema();
   const res = await cloudPool().query(
-    "SELECT * FROM scheduled_queries WHERE id = $1 AND user_id = $2",
-    [id, userId]
+    "SELECT * FROM scheduled_queries WHERE id = $1 AND workspace_id = $2",
+    [id, workspaceId]
   );
   const r = res.rows[0] as SchedRow | undefined;
   return r ? toSchedule(r) : null;
 }
 
-export async function createSchedule(userId: string, input: NewSchedule): Promise<Schedule> {
+export async function createSchedule(
+  workspaceId: string,
+  userId: string,
+  input: NewSchedule
+): Promise<Schedule> {
   await ensureSchema();
-  // Ownership check: the connection must belong to this user.
+  // Ownership check: the connection must belong to this workspace.
   const own = await cloudPool().query(
-    "SELECT 1 FROM connections WHERE id = $1 AND user_id = $2",
-    [input.connectionId, userId]
+    "SELECT 1 FROM connections WHERE id = $1 AND workspace_id = $2",
+    [input.connectionId, workspaceId]
   );
   if (own.rowCount === 0) throw new Error("Unknown connection.");
   const id = cloudNewId();
   const res = await cloudPool().query(
     `INSERT INTO scheduled_queries
-       (id, user_id, connection_id, name, sql, interval_min, alert_metric, alert_op, alert_value, next_run_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, now() + make_interval(mins => $6))
+       (id, user_id, workspace_id, connection_id, name, sql, interval_min, alert_metric, alert_op, alert_value, next_run_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now() + make_interval(mins => $7))
      RETURNING *`,
     [
       id,
       userId,
+      workspaceId,
       input.connectionId,
       input.name,
       input.sql,
@@ -143,7 +148,7 @@ export async function createSchedule(userId: string, input: NewSchedule): Promis
 }
 
 export async function updateSchedule(
-  userId: string,
+  workspaceId: string,
   id: string,
   patch: Partial<NewSchedule> & { enabled?: boolean }
 ): Promise<Schedule | null> {
@@ -165,28 +170,28 @@ export async function updateSchedule(
     // Re-enabling schedules a run soon; disabling leaves next_run_at untouched.
     if (patch.enabled) sets.push(`next_run_at = now()`);
   }
-  if (sets.length === 0) return getSchedule(userId, id);
-  vals.push(id, userId);
+  if (sets.length === 0) return getSchedule(workspaceId, id);
+  vals.push(id, workspaceId);
   const res = await cloudPool().query(
     `UPDATE scheduled_queries SET ${sets.join(", ")}
-     WHERE id = $${vals.length - 1} AND user_id = $${vals.length} RETURNING *`,
+     WHERE id = $${vals.length - 1} AND workspace_id = $${vals.length} RETURNING *`,
     vals
   );
   const r = res.rows[0] as SchedRow | undefined;
   return r ? toSchedule(r) : null;
 }
 
-export async function deleteSchedule(userId: string, id: string): Promise<boolean> {
+export async function deleteSchedule(workspaceId: string, id: string): Promise<boolean> {
   await ensureSchema();
   const res = await cloudPool().query(
-    "DELETE FROM scheduled_queries WHERE id = $1 AND user_id = $2",
-    [id, userId]
+    "DELETE FROM scheduled_queries WHERE id = $1 AND workspace_id = $2",
+    [id, workspaceId]
   );
   return (res.rowCount ?? 0) > 0;
 }
 
 export async function listRuns(
-  userId: string,
+  workspaceId: string,
   schedId: string,
   limit = 20
 ): Promise<ScheduleRun[]> {
@@ -194,9 +199,9 @@ export async function listRuns(
   const res = await cloudPool().query(
     `SELECT r.* FROM schedule_runs r
        JOIN scheduled_queries s ON s.id = r.sched_id
-      WHERE r.sched_id = $1 AND s.user_id = $2
+      WHERE r.sched_id = $1 AND s.workspace_id = $2
       ORDER BY r.ran_at DESC LIMIT $3`,
-    [schedId, userId, limit]
+    [schedId, workspaceId, limit]
   );
   return res.rows.map((r: Record<string, unknown>) => ({
     id: r.id as string,

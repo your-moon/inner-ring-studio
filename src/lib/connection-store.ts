@@ -10,10 +10,16 @@ import {
 
 /**
  * Who is making a request. `userId === null` is the single-tenant case
- * (desktop / self-hosted); a string id is a cloud account.
+ * (desktop / self-hosted); a string id is a cloud account. In cloud mode
+ * `workspaceId` names the active workspace resources are scoped to (membership
+ * is verified before this context is built).
  */
 export interface AuthContext {
   userId: string | null;
+  workspaceId?: string | null;
+  // Cloud role in the active workspace ("owner" | "editor" | "viewer"). Used to
+  // enforce read-only for viewers; undefined in self-hosted/desktop.
+  role?: string | null;
 }
 
 /** Fields accepted when creating a connection (no id/createdAt — the store sets those). */

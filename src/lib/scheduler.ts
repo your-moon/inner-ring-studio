@@ -27,6 +27,7 @@ const BATCH = 25;
 interface DueRow {
   id: string;
   user_id: string;
+  workspace_id: string;
   name: string;
   sql: string;
   alert_metric: "rowcount" | "value";
@@ -90,15 +91,16 @@ async function runOne(r: DueRow): Promise<void> {
     if (alerted) {
       const metricLabel =
         r.alert_metric === "rowcount" ? "row count" : "value";
+      // Fan the alert out to every member of the schedule's workspace.
       await cloudPool().query(
         `INSERT INTO notifications (id, user_id, kind, title, body, sched_id)
-         VALUES ($1,$2,'alert',$3,$4,$5)`,
+         SELECT gen_random_uuid()::text, m.user_id, 'alert', $1, $2, $3
+           FROM workspace_members m WHERE m.workspace_id = $4`,
         [
-          cloudNewId(),
-          r.user_id,
           `Alert: ${r.name}`,
           `The ${metricLabel} is ${metric} (${opLabel(r.alert_op)} ${r.alert_value ?? ""}).`.trim(),
           r.id,
+          r.workspace_id,
         ]
       );
     }
@@ -150,8 +152,8 @@ async function tick(): Promise<void> {
            FOR UPDATE SKIP LOCKED
            LIMIT 1
         )
-        RETURNING s.id, s.user_id, s.name, s.sql, s.alert_metric, s.alert_op,
-                  s.alert_value, s.last_metric, s.connection_id`
+        RETURNING s.id, s.user_id, s.workspace_id, s.name, s.sql, s.alert_metric,
+                  s.alert_op, s.alert_value, s.last_metric, s.connection_id`
     );
     const claim = claimed.rows[0];
     if (!claim) break; // nothing due
