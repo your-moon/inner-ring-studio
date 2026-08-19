@@ -30,6 +30,10 @@ services:
     depends_on:
       - irs-cloud-db
     environment:
+      # Next standalone binds to $HOSTNAME; Docker sets it to the container id by
+      # default, which is unreachable from Traefik — force all-interfaces.
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
       DEPLOY_MODE: cloud
       IRS_CLOUD_DB_URL: postgres://irs:${IRS_CLOUD_DB_PASSWORD}@irs-cloud-db:5432/irs
       IRS_CLOUD_KEY: ${IRS_CLOUD_KEY}
@@ -40,6 +44,9 @@ services:
       - irs-cloud
     labels:
       - "traefik.enable=true"
+      # The app is on two networks (traefik + irs-cloud); tell Traefik which one
+      # to route through, or it may pick the private one and 502.
+      - "traefik.docker.network=traefik"
       - "traefik.http.routers.irscloud.entrypoints=websecure"
       - "traefik.http.routers.irscloud.rule=Host(`${CLOUD_HOST}`)"
       - "traefik.http.routers.irscloud.tls=true"
