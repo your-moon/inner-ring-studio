@@ -23,7 +23,7 @@ export function BoardToolbar(props: Props) {
   }, [props]);
 
   return (
-    <div className="flex items-center justify-between border border-x-0 px-1 py-2">
+    <div className="flex items-center justify-between gap-2 border border-x-0 px-4 py-2">
       <div className="w-1/3">
         <button
           className={buttonVariants({ size: "sm", variant: "ghost" })}

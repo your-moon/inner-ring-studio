@@ -85,22 +85,15 @@ export default function BoardEditorPage() {
 
   return (
     <NavigationLayout>
-      <div className="flex items-center gap-2 border-b border-neutral-200 px-4 py-2 dark:border-neutral-800">
+      {/* Slim utility row: back link + JSON. The board's title lives in the
+          board toolbar below (centered), so it isn't repeated here. */}
+      <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2 dark:border-neutral-800">
         <Link
           href="/boards"
           className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
         >
           <CaretLeft size={14} /> Boards
         </Link>
-        <input
-          value={value.name}
-          onChange={(e) => {
-            const v = { ...value, name: e.target.value };
-            setValue(v);
-            persist(v);
-          }}
-          className="min-w-0 flex-1 rounded-md bg-transparent px-2 py-1 text-sm font-semibold outline-none focus:bg-neutral-100 dark:focus:bg-neutral-800"
-        />
         <button
           onClick={() => setJsonOpen(true)}
           title="View / edit the dashboard JSON model"

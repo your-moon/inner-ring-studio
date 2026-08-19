@@ -184,11 +184,11 @@ function CreateForm({
           <div className="mb-2 text-sm font-medium">Alert (optional)</div>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="text-neutral-500">Notify me when</span>
-            <select className={input + " w-36"} value={metric} onChange={(e) => setMetric(e.target.value as "rowcount" | "value")}>
+            <select style={{ width: "9.5rem" }} className={input} value={metric} onChange={(e) => setMetric(e.target.value as "rowcount" | "value")}>
               <option value="rowcount">row count</option>
               <option value="value">first value</option>
             </select>
-            <select className={input + " w-32"} value={op} onChange={(e) => setOp(e.target.value as AlertOp | "")}>
+            <select style={{ width: "7.5rem" }} className={input} value={op} onChange={(e) => setOp(e.target.value as AlertOp | "")}>
               <option value="">— no alert —</option>
               {(Object.keys(OP_LABEL) as AlertOp[]).map((o) => (
                 <option key={o} value={o}>
@@ -199,7 +199,8 @@ function CreateForm({
             {needsValue && (
               <input
                 type="number"
-                className={input + " w-28"}
+                style={{ width: "6.5rem" }}
+                className={input}
                 placeholder="value"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}

@@ -53,7 +53,7 @@ export default function WorkspaceSwitcher({
     <div className="relative px-3 pb-2">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-left text-sm hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
+        className="flex w-full items-center gap-2.5 rounded-lg border border-neutral-200 px-3 py-2 text-left text-sm hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
       >
         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-[#FFEB02] text-[10px] font-bold text-black">
           {(activeName ?? "P").slice(0, 1).toUpperCase()}
