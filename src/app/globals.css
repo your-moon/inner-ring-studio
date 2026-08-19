@@ -1,6 +1,19 @@
 @import "tailwindcss";
 @import "./styles/markdown.css";
 
+/*
+ * Keep loading spinners smooth even while the main thread is busy (e.g. mounting
+ * a large schema on connect). `animate-spin` animates `transform`, which is
+ * compositor-eligible, but a small inline-SVG spinner often isn't promoted to
+ * its own layer, so it rotates on the main thread and stutters under load.
+ * `will-change: transform` forces the layer so the rotation runs on the
+ * compositor thread, independent of main-thread work.
+ */
+.animate-spin {
+  will-change: transform;
+}
+
+
 @custom-variant dark (&:is(.dark *));
 @custom-variant interactive (&:where(.interactive, .interactive *));
 @custom-variant toggle (&:where(.toggle, .toggle *));
