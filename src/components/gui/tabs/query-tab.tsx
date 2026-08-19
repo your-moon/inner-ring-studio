@@ -45,7 +45,6 @@ import {
   LucideMessageSquareWarning,
   LucideHistory,
   LucidePlay,
-  LucideSparkles,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -92,47 +91,7 @@ export default function QueryWindow({
   const [historyList, setHistoryList] = useState<
     ReturnType<typeof getHistory>
   >([]);
-  const [aiOpen, setAiOpen] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [aiBusy, setAiBusy] = useState(false);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
-
-  const askAI = useCallback(async () => {
-    if (!aiPrompt.trim()) return;
-    setAiBusy(true);
-    let schema = "";
-    try {
-      schema = Object.entries(
-        (autoCompleteSchema ?? {}) as Record<string, unknown>
-      )
-        .slice(0, 80)
-        .map(([t, cols]) =>
-          Array.isArray(cols) ? `${t}(${cols.join(", ")})` : t
-        )
-        .join("; ");
-    } catch {
-      /* schema is best-effort */
-    }
-    try {
-      const res = await fetch("/api/ai/sql", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: aiPrompt, schema }),
-      });
-      const j = await res.json();
-      if (j.sql) {
-        setCode(j.sql);
-        setAiOpen(false);
-        setAiPrompt("");
-      } else {
-        toast.error(j.error || "AI could not generate a query");
-      }
-    } catch {
-      toast.error("AI request failed");
-    } finally {
-      setAiBusy(false);
-    }
-  }, [aiPrompt, autoCompleteSchema]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -495,15 +454,6 @@ export default function QueryWindow({
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <button
-                onClick={() => setAiOpen((v) => !v)}
-                className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
-                title="Generate SQL with Claude"
-              >
-                <LucideSparkles className="mr-2 h-4 w-4" />
-                Ask AI
-              </button>
-
               <div className="flex">
                 <button
                   onClick={() => onRunClicked()}
@@ -542,29 +492,6 @@ export default function QueryWindow({
               </div>
             </div>
           </div>
-          {aiOpen && (
-            <div className="flex items-center gap-2 border-b bg-neutral-50 p-2 dark:bg-neutral-900">
-              <LucideSparkles className="h-4 w-4 shrink-0 text-neutral-500" />
-              <input
-                autoFocus
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") askAI();
-                  if (e.key === "Escape") setAiOpen(false);
-                }}
-                placeholder="Describe the query in plain language…"
-                className="flex-1 bg-transparent text-sm outline-none"
-              />
-              <button
-                onClick={askAI}
-                disabled={aiBusy || !aiPrompt.trim()}
-                className={cn(buttonVariants({ size: "sm" }))}
-              >
-                {aiBusy ? "Generating…" : "Generate"}
-              </button>
-            </div>
-          )}
           <div className="grow overflow-hidden p-2">
             <SqlEditor
               onPrompt={onPrompt}

@@ -53,7 +53,7 @@ class PlaceholderWidget extends WidgetType {
     const wrap = document.createElement("span");
     wrap.className = "cm-placeholder";
     wrap.style.padding = "";
-    wrap.append(document.createTextNode("⌘ + B to get AI assistant"));
+    wrap.append(document.createTextNode("Write SQL, then ⌘↵ to run"));
     return wrap;
   }
 

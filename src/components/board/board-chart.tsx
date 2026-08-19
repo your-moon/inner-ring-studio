@@ -29,20 +29,28 @@ export default function BoardChart({ value }: { value: ChartValue }) {
       return;
     }
 
+    // Ignore a superseded run: when the query re-fires (re-render, refresh),
+    // a slower earlier request must not overwrite state — otherwise a stale
+    // error flashes over a chart that actually loaded fine.
+    let ignore = false;
     setLoading(true);
     setErrorMessage(null);
 
     sources
       .query(sourceId, finalSql)
       .then((v) => {
-        setData(v.rows);
+        if (!ignore) setData(v.rows);
       })
       .catch((e) => {
-        setErrorMessage(e.toString());
+        if (!ignore) setErrorMessage(e.toString());
       })
       .finally(() => {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       });
+
+    return () => {
+      ignore = true;
+    };
   }, [sources, sourceId, finalSql, lastRunTimestamp, loaderRef]);
 
   useEffect(() => {

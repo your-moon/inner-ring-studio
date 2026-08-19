@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import NavigationLayout from "../nav-layout";
 
@@ -11,10 +12,22 @@ interface ConfigStatus {
 }
 
 export default function VaultStoragePage() {
+  const router = useRouter();
   const [status, setStatus] = useState<ConfigStatus | null>(null);
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+
+  // The file-backed vault is a self-hosted/desktop concept — in cloud mode
+  // connections live in the database, so send cloud users back to their list.
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.mode === "cloud") router.replace("/local");
+      })
+      .catch(() => {});
+  }, [router]);
 
   const refresh = useCallback(() => {
     fetch("/api/config")

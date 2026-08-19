@@ -75,7 +75,7 @@ export default function RowDetailDialog({
                     {f.name}
                   </td>
                   <td
-                    className="px-4 py-2 align-top font-mono text-xs break-words whitespace-pre-wrap"
+                    className="px-4 py-2 align-top font-mono text-xs"
                     onClick={() =>
                       navigator.clipboard
                         ?.writeText(String(f.value ?? ""))
@@ -83,7 +83,11 @@ export default function RowDetailDialog({
                     }
                     title="Click to copy"
                   >
-                    {render(f.value)}
+                    {/* Cap tall values so a huge cell (e.g. JSON) doesn't push
+                        the comment thread off-screen. */}
+                    <div className="max-h-40 overflow-y-auto break-words whitespace-pre-wrap">
+                      {render(f.value)}
+                    </div>
                   </td>
                 </tr>
               ))}

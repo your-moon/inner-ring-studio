@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { IS_CLOUD } from "@/lib/mode";
 import {
   configDir,
   isRepo,
@@ -13,7 +14,15 @@ import { vaultPath } from "@/lib/vault";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// The git-backed vault only exists in self-hosted/desktop; never expose the
+// server's filesystem paths in cloud mode.
+function cloudGuard(): Response | null {
+  return IS_CLOUD ? NextResponse.json({ error: "not found" }, { status: 404 }) : null;
+}
+
 export async function GET() {
+  const gate = cloudGuard();
+  if (gate) return gate;
   const auth = await requireAuth();
   if (auth instanceof Response) return auth;
   return NextResponse.json({
@@ -25,6 +34,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const gate = cloudGuard();
+  if (gate) return gate;
   const auth = await requireAuth();
   if (auth instanceof Response) return auth;
   try {
