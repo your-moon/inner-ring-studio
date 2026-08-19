@@ -13,7 +13,7 @@ data browsing/editing, SQL editor. Runs in three modes via `DEPLOY_MODE`:
   the live `db.carrot-soft.tech`.
 - **cloud** — real accounts (email+password), per-user connections isolated in a
   Postgres, passwords encrypted at rest. Code + tests done & verified locally;
-  deploy guide in `deploy/CLOUD.md` (needs a DNS hostname to go live).
+  LIVE at https://cloud.carrot-soft.tech (grape-2 /opt/inner-ring-cloud, own Postgres irs-cloud-db). Deploy guide: `deploy/CLOUD.md`.
 
 Mode seams: `src/lib/mode.ts` picks a `ConnectionStore` (vault vs `cloud-db.ts`);
 `auth.ts` sessions carry a `userId` in cloud mode. See `README.md`.
