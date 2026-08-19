@@ -35,7 +35,7 @@ export default function LocalConnectionPage() {
           </div>
           <Link
             href="/connections/new"
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+            className="flex items-center gap-1.5 rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00]"
           >
             <Plus size={16} weight="bold" />
             New connection
@@ -57,7 +57,7 @@ export default function LocalConnectionPage() {
             </div>
             <Link
               href="/connections/new"
-              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+              className="flex items-center gap-1.5 rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00]"
             >
               <Plus size={16} weight="bold" />
               Add your first connection
@@ -72,7 +72,7 @@ export default function LocalConnectionPage() {
               <Link
                 key={conn.id}
                 href={`/vault/${conn.id}`}
-                className="group flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-4 transition-colors hover:border-blue-400 dark:border-neutral-800 dark:bg-neutral-900"
+                className="group flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-4 transition-colors hover:border-[#e6d400] dark:border-neutral-800 dark:bg-neutral-900"
               >
                 <div className="flex items-center gap-2">
                   <Database size={18} className="text-neutral-500" />

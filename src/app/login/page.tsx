@@ -104,7 +104,7 @@ function LoginForm() {
       {isCloud && (
         <p className="mt-6 text-center text-sm text-neutral-500">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="font-medium text-blue-600 hover:underline">
+          <Link href="/signup" className="font-medium text-[#a07a00] hover:underline dark:text-[#FFEB02]">
             Sign up
           </Link>
         </p>

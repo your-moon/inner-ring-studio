@@ -118,7 +118,7 @@ export default function ImportCsvDialog({
               </p>
               <button
                 onClick={onClose}
-                className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+                className="mt-4 rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00]"
               >
                 Done
               </button>
@@ -182,7 +182,7 @@ export default function ImportCsvDialog({
             <button
               onClick={runImport}
               disabled={busy || mappedCols.length === 0}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+              className="rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50"
             >
               {busy
                 ? "Importing…"

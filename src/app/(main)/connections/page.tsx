@@ -109,7 +109,7 @@ export default function ConnectionManagerPage() {
                     </button>
                     <button
                       onClick={() => act(c.id, "test")}
-                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-blue-500 dark:border-neutral-700"
+                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-[#e0cf00] dark:border-neutral-700"
                     >
                       Retry
                     </button>
@@ -122,7 +122,7 @@ export default function ConnectionManagerPage() {
                     </button>
                     <Link
                       href={`/connections/${c.id}/edit`}
-                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-blue-500 dark:border-neutral-700"
+                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-[#e0cf00] dark:border-neutral-700"
                     >
                       Edit
                     </Link>

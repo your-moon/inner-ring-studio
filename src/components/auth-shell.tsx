@@ -32,18 +32,18 @@ function OrbitalScene() {
     >
       <defs>
         <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.28" />
-          <stop offset="60%" stopColor="#3b82f6" stopOpacity="0" />
+          <stop offset="0%" stopColor="#f5c518" stopOpacity="0.26" />
+          <stop offset="60%" stopColor="#f5c518" stopOpacity="0" />
         </radialGradient>
         <radialGradient id="core" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#93c5fd" stopOpacity="1" />
-          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.6" />
+          <stop offset="0%" stopColor="#fff7cc" stopOpacity="1" />
+          <stop offset="100%" stopColor="#FFEB02" stopOpacity="0.7" />
         </radialGradient>
       </defs>
 
       {/* stars */}
       {STARS.map(([x, y, r], i) => (
-        <circle key={i} cx={x} cy={y} r={r} fill="#cbd5e1" opacity={0.25} />
+        <circle key={i} cx={x} cy={y} r={r} fill="#e2e8f0" opacity={0.25} />
       ))}
 
       {/* glow behind the rings */}
@@ -56,29 +56,29 @@ function OrbitalScene() {
           cx="300"
           cy="400"
           r={r}
-          stroke="#60a5fa"
-          strokeOpacity={0.14}
+          stroke="#facc15"
+          strokeOpacity={0.13}
           strokeWidth="1"
         />
       ))}
 
       {/* orbiting dashed rings + planets */}
       <g style={spin(60)}>
-        <circle cx="300" cy="400" r="240" stroke="#93c5fd" strokeOpacity="0.45" strokeWidth="1.5" strokeDasharray="2 14" strokeLinecap="round" />
-        <circle cx="300" cy="160" r="6" fill="#bfdbfe" />
+        <circle cx="300" cy="400" r="240" stroke="#fde047" strokeOpacity="0.5" strokeWidth="1.5" strokeDasharray="2 14" strokeLinecap="round" />
+        <circle cx="300" cy="160" r="6" fill="#fef08a" />
       </g>
       <g style={spin(90, "reverse")}>
-        <circle cx="300" cy="400" r="315" stroke="#3b82f6" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="1 18" strokeLinecap="round" />
-        <circle cx="300" cy="85" r="4" fill="#60a5fa" />
+        <circle cx="300" cy="400" r="315" stroke="#f5c518" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="1 18" strokeLinecap="round" />
+        <circle cx="300" cy="85" r="4" fill="#facc15" />
       </g>
       <g style={spin(40)}>
-        <circle cx="300" cy="400" r="165" stroke="#60a5fa" strokeOpacity="0.35" strokeWidth="1.5" strokeDasharray="3 10" strokeLinecap="round" />
-        <circle cx="300" cy="235" r="5" fill="#93c5fd" />
+        <circle cx="300" cy="400" r="165" stroke="#facc15" strokeOpacity="0.38" strokeWidth="1.5" strokeDasharray="3 10" strokeLinecap="round" />
+        <circle cx="300" cy="235" r="5" fill="#fde047" />
       </g>
 
       {/* glowing core */}
       <circle cx="300" cy="400" r="26" fill="url(#core)" />
-      <circle cx="300" cy="400" r="52" stroke="#93c5fd" strokeOpacity="0.55" strokeWidth="2" />
+      <circle cx="300" cy="400" r="52" stroke="#fde047" strokeOpacity="0.55" strokeWidth="2" />
     </svg>
   );
 }
@@ -160,7 +160,9 @@ export default function AuthShell({
 
 /** Shared field + button styles for the auth forms. */
 export const authInput =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-[15px] text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white";
+  "w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-[15px] text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-[#e0cf00] focus:ring-2 focus:ring-[#FFEB02]/35 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white";
 
+// Brand CTA: Mercury yellow fill with black label (yellow is too light for white
+// text — matches fms `onBrand = black`).
 export const authButton =
-  "w-full rounded-lg bg-blue-600 py-2.5 text-[15px] font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded-lg bg-[#FFEB02] py-2.5 text-[15px] font-semibold text-black transition-colors hover:bg-[#f2df00] disabled:cursor-not-allowed disabled:opacity-50";

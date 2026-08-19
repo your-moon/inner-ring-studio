@@ -230,7 +230,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
                     className="flex min-w-0 items-center gap-2 text-sm hover:underline"
                     title={me.email ?? ""}
                   >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-yellow-100 text-xs font-semibold text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300">
                       {(me.email ?? "?").slice(0, 1).toUpperCase()}
                     </span>
                     <span className="truncate text-neutral-600 dark:text-neutral-300">

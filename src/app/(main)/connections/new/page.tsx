@@ -126,7 +126,7 @@ export default function NewConnectionPage() {
   }
 
   const input =
-    "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950";
+    "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950";
 
   const driverBtn = (d: Driver, label: string) => (
     <button
@@ -135,7 +135,7 @@ export default function NewConnectionPage() {
       className={
         "flex-1 rounded-lg border px-4 py-2 text-sm font-medium " +
         (f.driver === d
-          ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+          ? "border-[#e0cf00] bg-yellow-50 text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300"
           : "border-neutral-300 dark:border-neutral-700")
       }
     >
@@ -239,7 +239,7 @@ export default function NewConnectionPage() {
               type="checkbox"
               checked={f.ssl}
               onChange={(e) => set("ssl", e.target.checked)}
-              className="h-4 w-4 accent-blue-600"
+              className="h-4 w-4 accent-[#e0cf00]"
             />
             Use SSL
           </label>
@@ -248,7 +248,7 @@ export default function NewConnectionPage() {
               type="checkbox"
               checked={f.readOnly}
               onChange={(e) => set("readOnly", e.target.checked)}
-              className="h-4 w-4 accent-blue-600"
+              className="h-4 w-4 accent-[#e0cf00]"
             />
             Read-only (block all writes) — recommended for production
           </label>
@@ -277,7 +277,7 @@ export default function NewConnectionPage() {
             <button
               onClick={save}
               disabled={busy || !canSave}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+              className="rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50"
             >
               Save & connect
             </button>
