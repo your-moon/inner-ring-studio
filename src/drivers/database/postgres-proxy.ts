@@ -91,6 +91,7 @@ export class PostgresProxyQueryable implements QueryableBaseDriver {
       rows: (json.rows ?? []) as DatabasePage["rows"],
       hasMore: Boolean(json.hasMore),
       expired: Boolean(json.expired),
+      nextCursorId: json.nextCursorId,
     };
   }
 

@@ -55,6 +55,9 @@ export interface DatabasePage {
   rows: DatabaseRow[];
   hasMore: boolean;
   expired?: boolean;
+  // Stateless (ClickHouse) pagination hands back the next page's cursor token;
+  // held-cursor (Postgres) pagination omits it (the same id keeps advancing).
+  nextCursorId?: string | null;
 }
 
 export interface ColumnSortOption {

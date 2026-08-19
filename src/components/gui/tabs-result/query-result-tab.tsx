@@ -80,6 +80,9 @@ export default function QueryResult({
       data.appendData(page.rows as Record<string, unknown>[]);
       setLoadedCount(data.getRowsCount());
       setHasMore(page.hasMore);
+      // ClickHouse (stateless) returns the next page's token; adopt it. Postgres
+      // (held cursor) omits it and the same id keeps advancing server-side.
+      if (page.nextCursorId !== undefined) cursorRef.current = page.nextCursorId;
       if (!page.hasMore) cursorRef.current = null;
     } catch {
       // Leave hasMore as-is; a transient error shouldn't kill the cursor UI.

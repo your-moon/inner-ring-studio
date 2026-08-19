@@ -1,4 +1,3 @@
-import ConnectingDialog from "@/components/gui/connection-dialog";
 import { DatabaseSchemaItem, DatabaseSchemas } from "@/drivers/base-driver";
 import {
   PropsWithChildren,
@@ -20,6 +19,10 @@ const SchemaContext = createContext<{
   autoCompleteSchema: AutoCompletionSchema;
   currentSchemaName: string;
   refresh: () => void;
+  // Non-blocking connect: the studio renders immediately and the schema tree
+  // shows these inline instead of a full-screen "Connecting…" gate.
+  loading: boolean;
+  error?: string;
 }>({
   schema: {},
   autoCompleteSchema: {},
@@ -28,6 +31,8 @@ const SchemaContext = createContext<{
   refresh: () => {
     throw new Error("Not implemented");
   },
+  loading: false,
+  error: undefined,
 });
 
 function generateAutoCompleteFromSchemaItems(
@@ -157,13 +162,14 @@ export function SchemaProvider({ children }: Readonly<PropsWithChildren>) {
       currentSchemaName,
       refresh: fetchSchema,
       autoCompleteSchema: generateAutoComplete(currentSchemaName, schema),
+      loading,
+      error,
     };
-  }, [schema, fetchSchema, currentSchema, currentSchemaName]);
+  }, [schema, fetchSchema, currentSchema, currentSchemaName, loading, error]);
 
-  if (error || loading) {
-    return <ConnectingDialog message={error} loading={loading} />;
-  }
-
+  // Render the workspace right away; the schema tree shows loading/error inline
+  // (see schema-sidebar). No full-screen gate — connecting feels instant and a
+  // failed introspection (e.g. ClickHouse) no longer blocks the whole studio.
   return (
     <SchemaContext.Provider value={props}>{children}</SchemaContext.Provider>
   );

@@ -155,6 +155,33 @@ function toResultSet(r: QueryArrayResult) {
   };
 }
 
+// ClickHouse is stateless HTTP (no server-side cursor), so its lazy pagination
+// uses LIMIT/OFFSET with the offset carried in an opaque cursor token. Correct
+// for a query with a stable ORDER BY; for an unordered browse the order may
+// shift between pages — acceptable for read-only OLAP browsing, and far better
+// than loading the whole table. Returns the (trimmed) SQL if it can be paged,
+// or null for statements we must run verbatim (SHOW/DESCRIBE, explicit
+// LIMIT/OFFSET, or a FORMAT clause).
+function chPageable(sql: string): string | null {
+  const t = sql.trim().replace(/;\s*$/, "");
+  if (!/^(select|with)\b/i.test(t)) return null;
+  if (/\b(limit|offset)\b/i.test(t)) return null;
+  if (/\bformat\b/i.test(t)) return null;
+  return t;
+}
+function encodeChCursor(sql: string, offset: number): string {
+  return Buffer.from(JSON.stringify({ sql, offset })).toString("base64url");
+}
+function decodeChCursor(token: string): { sql: string; offset: number } | null {
+  try {
+    const o = JSON.parse(Buffer.from(token, "base64url").toString("utf8"));
+    if (typeof o.sql === "string" && typeof o.offset === "number") return o;
+  } catch {
+    /* malformed token */
+  }
+  return null;
+}
+
 export async function POST(req: Request) {
   const unauth = await requireAuth();
   if (unauth) return unauth;
@@ -166,6 +193,31 @@ export async function POST(req: Request) {
     // ClickHouse uses its HTTP client instead of the pg pool. It has no
     // transactions; run statements sequentially.
     if (conn.driver === "clickhouse") {
+      // Stateless — no held cursor to release.
+      if (typeof body.closeCursorId === "string") {
+        return NextResponse.json({ ok: true });
+      }
+      // Load more: decode the offset from the cursor token and read the next page.
+      if (typeof body.cursorId === "string" && body.fetchMore != null) {
+        const dec = decodeChCursor(body.cursorId);
+        if (!dec) {
+          return NextResponse.json({ expired: true, rows: [], hasMore: false });
+        }
+        const pageSize = clampPageSize(body.fetchMore);
+        const rs = await clickhouseQuery(
+          conn,
+          `${dec.sql} LIMIT ${pageSize} OFFSET ${dec.offset}`
+        );
+        const hasMore = rs.rows.length >= pageSize;
+        return NextResponse.json({
+          rows: rs.rows,
+          hasMore,
+          nextCursorId: hasMore
+            ? encodeChCursor(dec.sql, dec.offset + pageSize)
+            : null,
+        });
+      }
+
       if (Array.isArray(body.statements)) {
         const results = [];
         for (const stmt of body.statements as string[]) {
@@ -176,6 +228,32 @@ export async function POST(req: Request) {
       if (typeof body.sql !== "string") {
         return NextResponse.json({ error: "Missing sql" }, { status: 400 });
       }
+
+      // First page (instant load): cap a plain read with LIMIT and hand back an
+      // offset cursor so the grid can lazily load more as the user scrolls.
+      if (body.paginate != null) {
+        const pageable = chPageable(body.sql);
+        const pageSize = clampPageSize(body.paginate);
+        if (pageable) {
+          const rs = await clickhouseQuery(
+            conn,
+            `${pageable} LIMIT ${pageSize} OFFSET 0`
+          );
+          const hasMore = rs.rows.length >= pageSize;
+          return NextResponse.json({
+            result: rs,
+            cursorId: hasMore ? encodeChCursor(pageable, pageSize) : null,
+            hasMore,
+          });
+        }
+        // Not pageable (SHOW/DESCRIBE, explicit LIMIT, FORMAT) — run verbatim.
+        return NextResponse.json({
+          result: await clickhouseQuery(conn, body.sql),
+          cursorId: null,
+          hasMore: false,
+        });
+      }
+
       return NextResponse.json({ result: await clickhouseQuery(conn, body.sql) });
     }
 
@@ -248,14 +326,13 @@ export async function POST(req: Request) {
     try {
       const cursor = client.query(
         new Cursor(wrapForTopN(body.sql, maxRows), [], { rowMode: "array" })
-      );
-      const rows = (await cursor.read(maxRows)) as unknown[][];
-      const fields =
-        (
-          cursor as unknown as {
-            _result?: { fields?: { name: string; dataTypeID: number }[] };
-          }
-        )._result?.fields ?? [];
+      ) as unknown as {
+        read(n: number): Promise<unknown[][]>;
+        close(): Promise<void>;
+        _result?: { fields?: { name: string; dataTypeID: number }[] };
+      };
+      const rows = await cursor.read(maxRows);
+      const fields = cursor._result?.fields ?? [];
       await cursor.close();
       return NextResponse.json({
         result: toResultSet({

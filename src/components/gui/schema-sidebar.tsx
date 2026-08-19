@@ -4,7 +4,12 @@ import { scc } from "@/core/command";
 import { StudioExtensionMenuItem } from "@/core/extension-manager";
 import { cn } from "@/lib/utils";
 import { Plus } from "@phosphor-icons/react";
-import { LucideDatabase, LucideSearch } from "lucide-react";
+import {
+  LucideDatabase,
+  LucideLoader2,
+  LucideRefreshCw,
+  LucideSearch,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { buttonVariants } from "../ui/button";
 import {
@@ -40,7 +45,7 @@ export default function SchemaView() {
     }
   };
   const { databaseDriver, extensions, name } = useStudioContext();
-  const { currentSchemaName } = useSchema();
+  const { currentSchemaName, loading, error, refresh } = useSchema();
   const [isCreateSchema, setIsCreateSchema] = useState(false);
 
   const contentMenu = useMemo(() => {
@@ -178,7 +183,30 @@ export default function SchemaView() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <SchemaList search={search} sortMode={sortMode} />
+        {error ? (
+          <div className="mx-4 mt-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm dark:border-red-900/50 dark:bg-red-950/30">
+            <div className="mb-1 font-medium text-red-700 dark:text-red-400">
+              Couldn&apos;t load tables
+            </div>
+            <pre className="mb-2 max-h-32 overflow-auto whitespace-pre-wrap text-xs text-red-600/90 dark:text-red-400/80">
+              {error}
+            </pre>
+            <button
+              onClick={() => refresh()}
+              className="inline-flex items-center gap-1.5 rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            >
+              <LucideRefreshCw className="h-3 w-3" />
+              Retry
+            </button>
+          </div>
+        ) : loading ? (
+          <div className="flex items-center gap-2 px-4 py-3 text-sm text-neutral-500">
+            <LucideLoader2 className="h-4 w-4 animate-spin" />
+            Loading tables…
+          </div>
+        ) : (
+          <SchemaList search={search} sortMode={sortMode} />
+        )}
       </div>
     </div>
   );
