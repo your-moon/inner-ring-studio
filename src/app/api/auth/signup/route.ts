@@ -9,12 +9,34 @@ export const dynamic = "force-dynamic";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Cap new accounts per client IP to blunt mass-signup abuse.
+const MAX_SIGNUPS = 5;
+const WINDOW_MS = 60 * 60 * 1000;
+const attempts = new Map<string, { count: number; resetAt: number }>();
+
+function clientIp(req: Request): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
 /** Create a cloud account and sign in. Only available in cloud mode. */
 export async function POST(req: Request) {
   if (!IS_CLOUD) {
     return NextResponse.json(
       { error: "Sign up is only available on the hosted cloud." },
       { status: 400 }
+    );
+  }
+  const ip = clientIp(req);
+  const now = Date.now();
+  const rec = attempts.get(ip);
+  if (rec && now < rec.resetAt && rec.count >= MAX_SIGNUPS) {
+    return NextResponse.json(
+      { error: "Too many sign-ups from this network. Try again later." },
+      { status: 429 }
     );
   }
   const { email, password } = (await req.json().catch(() => ({}))) as {
@@ -32,6 +54,9 @@ export async function POST(req: Request) {
   }
   try {
     const user = await createUser(email, password);
+    const cur = rec && now < rec.resetAt ? rec : { count: 0, resetAt: now + WINDOW_MS };
+    cur.count += 1;
+    attempts.set(ip, cur);
     const token = await createSessionToken(user.id);
     (await cookies()).set(SESSION_COOKIE, token, {
       httpOnly: true,

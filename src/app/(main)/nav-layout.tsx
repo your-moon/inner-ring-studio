@@ -15,14 +15,29 @@ import {
   PlugsConnected,
 } from "@phosphor-icons/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { PropsWithChildren, useCallback, useState } from "react";
+import { SignOut, User } from "@phosphor-icons/react";
 import useSWR from "swr";
 import NavConnectionItem, { NavConnection } from "./nav-connection-item";
 
 export default function NavigationLayout({ children }: PropsWithChildren) {
   const [mobileToggle, setMobileToggle] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Auth state — drives the cloud user menu (email + account + sign out).
+  const { data: me } = useSWR<{
+    mode: string;
+    authed: boolean;
+    email: string | null;
+  }>("/api/auth/me", (u: string) => fetch(u).then((r) => r.json()));
+  const isCloud = me?.mode === "cloud";
+
+  const signOut = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    router.replace("/login");
+  }, [router]);
 
   // Vault connections for the sidebar navigator, with live pool status.
   const { data: connData, mutate: mutateConns } = useSWR<{
@@ -189,12 +204,50 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               href="/connections"
               selected={pathname === "/connections"}
             />
-            <SidebarMenuItem
-              text="Vault storage"
-              icon={CloudArrowUp}
-              href="/vault-storage"
-              selected={pathname === "/vault-storage"}
-            />
+            {/* Vault storage is a self-hosted/desktop concept (git-synced vault). */}
+            {!isCloud && (
+              <SidebarMenuItem
+                text="Vault storage"
+                icon={CloudArrowUp}
+                href="/vault-storage"
+                selected={pathname === "/vault-storage"}
+              />
+            )}
+            {isCloud && (
+              <SidebarMenuItem
+                text="Account"
+                icon={User}
+                href="/account"
+                selected={pathname === "/account"}
+              />
+            )}
+
+            {/* Signed-in user footer (cloud). */}
+            {isCloud && me?.authed && (
+              <div className="mt-4 border-t border-neutral-200 p-3 dark:border-neutral-800">
+                <div className="flex items-center justify-between gap-2">
+                  <Link
+                    href="/account"
+                    className="flex min-w-0 items-center gap-2 text-sm hover:underline"
+                    title={me.email ?? ""}
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      {(me.email ?? "?").slice(0, 1).toUpperCase()}
+                    </span>
+                    <span className="truncate text-neutral-600 dark:text-neutral-300">
+                      {me.email}
+                    </span>
+                  </Link>
+                  <button
+                    onClick={signOut}
+                    title="Sign out"
+                    className="shrink-0 rounded p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+                  >
+                    <SignOut size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

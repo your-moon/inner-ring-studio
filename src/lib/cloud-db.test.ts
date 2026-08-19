@@ -3,8 +3,11 @@ import {
   CloudConnectionStore,
   _closeCloudPool,
   authenticateUser,
+  changePassword,
   createUser,
+  deleteUser,
   ensureSchema,
+  getUserById,
 } from "./cloud-db";
 import type { AuthContext } from "./connection-store";
 
@@ -92,6 +95,31 @@ describe("cloud-db accounts + isolation", () => {
     // B cannot delete A's connection.
     expect(await store.remove(ctxB, added.id)).toBe(false);
     expect(await store.get(ctxA, added.id)).toBeDefined();
+  });
+
+  maybe("getUserById returns the account", async () => {
+    const u = await createUser(`byid_${suffix}@t.co`, "password123");
+    expect(await getUserById(u.id)).toMatchObject({ id: u.id, email: u.email });
+    expect(await getUserById("nope")).toBeNull();
+  });
+
+  maybe("changePassword verifies the current password", async () => {
+    const email = `cpw_${suffix}@t.co`;
+    const u = await createUser(email, "oldpassword");
+    expect(await changePassword(u.id, "wrong", "newpassword")).toBe(false);
+    expect(await changePassword(u.id, "oldpassword", "newpassword")).toBe(true);
+    expect(await authenticateUser(email, "oldpassword")).toBeNull();
+    expect(await authenticateUser(email, "newpassword")).toMatchObject({ id: u.id });
+  });
+
+  maybe("deleteUser needs the password and cascades to connections", async () => {
+    const u = await createUser(`del_${suffix}@t.co`, "password123");
+    const ctx: AuthContext = { userId: u.id };
+    await store.add(ctx, sampleConn);
+    expect(await deleteUser(u.id, "wrong")).toBe(false);
+    expect(await deleteUser(u.id, "password123")).toBe(true);
+    expect(await getUserById(u.id)).toBeNull();
+    expect(await store.list(ctx)).toHaveLength(0); // connections cascade-deleted
   });
 
   maybe("update keeps the password when omitted, replaces when given", async () => {

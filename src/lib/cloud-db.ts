@@ -132,6 +132,47 @@ export async function authenticateUser(
   return { id: row.id, email: row.email };
 }
 
+/** Look up a user by id (for the account page / session email). */
+export async function getUserById(id: string): Promise<CloudUser | null> {
+  await ensureSchema();
+  const res = await pool().query("SELECT id, email FROM users WHERE id = $1", [id]);
+  const row = res.rows[0];
+  return row ? { id: row.id, email: row.email } : null;
+}
+
+/** Change a user's password after verifying the current one. */
+export async function changePassword(
+  id: string,
+  current: string,
+  next: string
+): Promise<boolean> {
+  await ensureSchema();
+  const res = await pool().query(
+    "SELECT password_hash FROM users WHERE id = $1",
+    [id]
+  );
+  const row = res.rows[0];
+  if (!row || !verifyHash(current, row.password_hash)) return false;
+  await pool().query("UPDATE users SET password_hash = $1 WHERE id = $2", [
+    hashPassword(next),
+    id,
+  ]);
+  return true;
+}
+
+/** Delete a user (and, via ON DELETE CASCADE, all their connections). */
+export async function deleteUser(id: string, password: string): Promise<boolean> {
+  await ensureSchema();
+  const res = await pool().query(
+    "SELECT password_hash FROM users WHERE id = $1",
+    [id]
+  );
+  const row = res.rows[0];
+  if (!row || !verifyHash(password, row.password_hash)) return false;
+  await pool().query("DELETE FROM users WHERE id = $1", [id]);
+  return true;
+}
+
 // --------------------------- cloud connection store ---------------------------
 
 interface ConnRow {
