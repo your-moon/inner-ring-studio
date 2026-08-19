@@ -336,6 +336,19 @@ export default function SchemaList({
     return r;
   }, [schema, currentSchemaName, databaseDriver, sortMode]);
 
+  // Every key in the tree — used to force-expand while searching (the ListView's
+  // "collapsedKeys" set is actually the set of EXPANDED keys; see its renderer).
+  const allKeys = useMemo(() => {
+    const keys = new Set<string>();
+    const walk = (items: ListViewItem<DatabaseSchemaItem>[]) =>
+      items.forEach((i) => {
+        keys.add(i.key);
+        if (i.children) walk(i.children as ListViewItem<DatabaseSchemaItem>[]);
+      });
+    walk(listViewItems);
+    return keys;
+  }, [listViewItems]);
+
   const filterCallback = useCallback(
     (item: ListViewItem<DatabaseSchemaItem>) => {
       if (!search) return true;
@@ -357,7 +370,9 @@ export default function SchemaList({
         filter={filterCallback}
         highlight={search}
         items={listViewItems}
-        collapsedKeys={collapsed}
+        // While searching, expand everything so matches inside a collapsed
+        // schema are actually visible; restore the user's state after.
+        collapsedKeys={search ? allKeys : collapsed}
         onCollapsedChange={setCollapsed}
         onContextMenu={(item) => prepareContextMenu(item?.data)}
         selectedKey={selected}
