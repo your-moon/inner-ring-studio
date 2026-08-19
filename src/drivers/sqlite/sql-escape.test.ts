@@ -1,7 +1,7 @@
 import { escapeSqlString, escapeSqlValue } from "./sql-helper";
 
 /**
- * Grid write-back builds SQL by escaping values (the upstream Outerbase model),
+ * Grid write-back builds SQL by escaping values (the upstream model),
  * not bound params. That makes escaping the injection boundary: a cell value
  * carrying a quote or a statement terminator must end up as a literal, never as
  * SQL. These tests pin that.

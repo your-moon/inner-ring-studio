@@ -3,7 +3,7 @@ import { SavedDocNamespace } from "./drivers/saved-doc/saved-doc-driver";
 
 export {};
 
-interface OuterbaseIPC {
+interface DesktopIPC {
   docs?: {
     load(): Promise<{
       namespace: SavedDocNamespace[];
@@ -22,8 +22,8 @@ interface OuterbaseIPC {
 
 declare global {
   interface Window {
-    outerbaseIpc?: OuterbaseIPC;
-    showOuterbaseDialog: Record<
+    irs?: DesktopIPC;
+    showAppDialog: Record<
       string,
       (props: {
         component: FunctionComponent;

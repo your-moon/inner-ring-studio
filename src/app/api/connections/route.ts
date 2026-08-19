@@ -42,9 +42,10 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    const driver = body.driver === "clickhouse" ? "clickhouse" : "postgres";
     const safe = addConnection({
       name: body.name,
-      driver: "postgres",
+      driver,
       host: body.host,
       port: Number(body.port),
       database: body.database,

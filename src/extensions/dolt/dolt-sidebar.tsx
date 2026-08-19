@@ -4,7 +4,7 @@ import {
   ToolbarButton,
   ToolbarSeparator,
 } from "@/components/gui/toolbar";
-import { DoltIcon } from "@/components/icons/outerbase-icon";
+import { DoltIcon } from "@/components/icons/driver-icon";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

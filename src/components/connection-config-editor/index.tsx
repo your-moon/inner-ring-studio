@@ -9,7 +9,7 @@
  * Users can customize the templates to suit their specific requirements.
  */
 
-import { ConnectionTemplateList } from "@/app/(outerbase)/base-template";
+import { ConnectionTemplateList } from "@/app/(main)/base-template";
 import { cn } from "@/lib/utils";
 import { produce } from "immer";
 import { CommonDialogProvider } from "../common-dialog";

@@ -30,7 +30,7 @@ export default function EmbedPageClient({
   }, [driverName]);
 
   const savedDocDriver = useMemo(() => {
-    if (window.outerbaseIpc?.docs) {
+    if (window.irs?.docs) {
       return new ElectronSavedDocs();
     }
   }, []);

@@ -71,7 +71,7 @@ function assertConnectable(host: string): void {
 }
 
 // ---------------------------------------------------------------------------
-// pg result -> Outerbase DatabaseResultSet. rowMode:"array" so duplicate column
+// pg result -> DatabaseResultSet. rowMode:"array" so duplicate column
 // names survive (deduped like the rqlite transport does).
 // ColumnType hint values: TEXT=1, INTEGER=2, REAL=3, BLOB=4.
 // ---------------------------------------------------------------------------

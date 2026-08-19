@@ -1,4 +1,4 @@
-import { ConnectionTemplateList } from "@/app/(outerbase)/base-template";
+import { ConnectionTemplateList } from "@/app/(main)/base-template";
 import Link from "next/link";
 import { CommonConnectionConfigTemplate } from "..";
 

@@ -1,4 +1,4 @@
-import { localSettingDialog } from "@/app/(outerbase)/local-setting-dialog";
+import { localSettingDialog } from "@/app/(main)/local-setting-dialog";
 import { StudioExtension } from "@/core/extension-base";
 import { StudioExtensionContext } from "@/core/extension-manager";
 import { MagicWand } from "@phosphor-icons/react";

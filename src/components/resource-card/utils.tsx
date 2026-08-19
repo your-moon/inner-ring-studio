@@ -5,7 +5,7 @@ import {
   RqliteIcon,
   SQLiteIcon,
   TursoIcon,
-} from "../icons/outerbase-icon";
+} from "../icons/driver-icon";
 import { CloudflareIcon, StarbaseIcon, ValTownIcon } from "./icon";
 import {
   BoardVisual,

@@ -4,7 +4,7 @@ import AgentDriverList from "@/drivers/agent/list";
 import { cn } from "@/lib/utils";
 import { Check, X } from "@phosphor-icons/react";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { CloudflareIcon } from "../icons/outerbase-icon";
+import { CloudflareIcon } from "../icons/driver-icon";
 import { Button } from "../orbit/button";
 import {
   DropdownMenu,

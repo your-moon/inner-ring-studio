@@ -126,7 +126,7 @@ export function SchemaProvider({ children }: Readonly<PropsWithChildren>) {
 
   /**
    * Triggered when re-fetching the database schema.
-   * This is particularly useful for Outerbase Cloud,
+   * This is particularly useful for remote data catalogs,
    * which needs to update its data catalog to provide
    * the schema to the AI.
    */

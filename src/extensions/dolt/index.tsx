@@ -1,4 +1,4 @@
-import { DoltIcon } from "@/components/icons/outerbase-icon";
+import { DoltIcon } from "@/components/icons/driver-icon";
 import { StudioExtension } from "@/core/extension-base";
 import { StudioExtensionContext } from "@/core/extension-manager";
 import DoltSidebar from "./dolt-sidebar";

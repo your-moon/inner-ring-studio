@@ -1,6 +1,6 @@
 import { produce } from "immer";
 import { Dispatch, SetStateAction } from "react";
-import { ChartValue, outerBaseUrl } from "./chart-type";
+import { ChartValue, chartAssetBaseUrl } from "./chart-type";
 
 const PRESET_IMAGES = [
   "/assets/charts/outerbase1.png",
@@ -24,7 +24,7 @@ export default function ChartBackGroundImage({
         return (
           <div key={index} className="relative cursor-pointer">
             <img
-              src={outerBaseUrl + image}
+              src={chartAssetBaseUrl + image}
               alt=""
               className="h-24 w-full rounded-lg object-cover"
               onClick={() => {

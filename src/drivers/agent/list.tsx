@@ -1,4 +1,4 @@
-import { CloudflareIcon } from "@/components/icons/outerbase-icon";
+import { CloudflareIcon } from "@/components/icons/driver-icon";
 import { ReactElement } from "react";
 import { BaseDriver } from "../base-driver";
 import { AgentBaseDriver, AgentPromptOption } from "./base";

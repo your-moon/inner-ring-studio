@@ -77,34 +77,7 @@ function Footer() {
         </div>
 
         <div className="mb-8">
-          <div className="font-bold">Company</div>
-          <ul className="flex flex-col gap-1 mt-3">
-            <li>
-              <Link
-                href="https://www.outerbase.com/about/"
-                className="hover:underline"
-              >
-                About
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="https://www.outerbase.com/blog/"
-                className="hover:underline"
-              >
-                Blog
-              </Link>
-            </li>
-            <li>
-              <Link href="https://x.com/outerbase" className="hover:underline">
-                Twitter
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        <div className="mb-8">
-          <div className="font-bold">Legal & Compilance</div>
+          <div className="font-bold">Legal & Compliance</div>
           <ul className="flex flex-col gap-1 mt-3">
             <li>
               <Link href="/terms" className="hover:underline">

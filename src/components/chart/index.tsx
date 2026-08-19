@@ -4,17 +4,17 @@ import * as echarts from "echarts";
 import { EChartsOption } from "echarts";
 import { useTheme } from "next-themes";
 import { useEffect, useRef } from "react";
-import { ChartData, ChartValue, outerBaseUrl } from "./chart-type";
+import { ChartData, ChartValue, chartAssetBaseUrl } from "./chart-type";
 import EchartOptionsBuilder from "./echart-options-builder";
 
-interface OuterbaseChartProps {
+interface ChartProps {
   data: ChartData[];
   value: ChartValue;
   modifier?: EChartsOption;
   className?: string;
 }
 
-const TextComponent = ({ value }: OuterbaseChartProps) => {
+const TextComponent = ({ value }: ChartProps) => {
   const markdown = value.params.options?.text ?? "";
 
   return (
@@ -34,7 +34,7 @@ const TextComponent = ({ value }: OuterbaseChartProps) => {
   );
 };
 
-const SingleValueComponent = ({ value, data }: OuterbaseChartProps) => {
+const SingleValueComponent = ({ value, data }: ChartProps) => {
   const firstRecord = data.length > 0 ? data[0] : null;
   const keys = Object.keys(firstRecord ?? {});
   let firstRecordValue = firstRecord ? firstRecord[keys[0] ?? ""] : "";
@@ -106,7 +106,7 @@ const SingleValueComponent = ({ value, data }: OuterbaseChartProps) => {
   );
 };
 
-const TableComponent = ({ data }: OuterbaseChartProps) => {
+const TableComponent = ({ data }: ChartProps) => {
   if (data?.length === 0) return;
   return (
     <div className="h-full w-full overflow-hidden overflow-x-auto overflow-y-auto rounded border">
@@ -136,7 +136,7 @@ const TableComponent = ({ data }: OuterbaseChartProps) => {
   );
 };
 
-const ChartComponent = ({ value, data }: OuterbaseChartProps) => {
+const ChartComponent = ({ value, data }: ChartProps) => {
   const domRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const chartBuilderRef = useRef<EchartOptionsBuilder | null>(null);
@@ -201,7 +201,7 @@ const ChartComponent = ({ value, data }: OuterbaseChartProps) => {
   return <div ref={domRef} className="h-full w-full"></div>;
 };
 
-function ChartBody({ value, data, modifier }: OuterbaseChartProps) {
+function ChartBody({ value, data, modifier }: ChartProps) {
   if (value.type === "text") {
     return <TextComponent value={value} data={data} />;
   } else if (value.type === "single_value") {
@@ -213,7 +213,7 @@ function ChartBody({ value, data, modifier }: OuterbaseChartProps) {
   }
 }
 
-export default function Chart(props: OuterbaseChartProps) {
+export default function Chart(props: ChartProps) {
   let backGroundStyle = {};
 
   if (props.value.params.options?.backgroundType === "gradient") {
@@ -224,7 +224,7 @@ export default function Chart(props: OuterbaseChartProps) {
     };
   } else if (props.value.params.options?.backgroundType === "image") {
     backGroundStyle = {
-      backgroundImage: `url(${outerBaseUrl + props.value.params.options?.backgroundImage})`,
+      backgroundImage: `url(${chartAssetBaseUrl + props.value.params.options?.backgroundImage})`,
       backgroundSize: "cover",
       backgroundPosition: "center",
     };

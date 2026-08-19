@@ -19,11 +19,11 @@ export default class ElectronSavedDocs implements SavedDocDriver {
       return this.cacheNamespaceList;
     }
 
-    if (!window.outerbaseIpc?.docs) {
+    if (!window.irs?.docs) {
       throw new Error("Docs driver not found");
     }
 
-    const result = await window.outerbaseIpc.docs.load();
+    const result = await window.irs.docs.load();
     const now = Math.floor(Date.now() / 1000);
 
     if (!result || result.namespace.length === 0) {
@@ -44,11 +44,11 @@ export default class ElectronSavedDocs implements SavedDocDriver {
   }
 
   save() {
-    if (!window.outerbaseIpc?.docs) {
+    if (!window.irs?.docs) {
       throw new Error("Docs driver not found");
     }
 
-    window.outerbaseIpc.docs
+    window.irs.docs
       .save({
         namespace: this.cacheNamespaceList ?? [],
         docs: this.cacheDocs,

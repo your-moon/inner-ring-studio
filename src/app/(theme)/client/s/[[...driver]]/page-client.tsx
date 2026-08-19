@@ -2,7 +2,7 @@
 import {
   updateLocalConnectionUsed,
   useLocalConnection,
-} from "@/app/(outerbase)/local/hooks";
+} from "@/app/(main)/local/hooks";
 import { Studio } from "@/components/gui/studio";
 import { StudioExtensionManager } from "@/core/extension-manager";
 import {

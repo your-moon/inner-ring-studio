@@ -1,4 +1,4 @@
-import { ConnectionTemplateList } from "@/app/(outerbase)/base-template";
+import { ConnectionTemplateList } from "@/app/(main)/base-template";
 import { CloudflareConnectionTemplate } from "./cloudflare";
 import { CloudflareWAEConnectionTemplate } from "./cloudflare-wae";
 import { MySQLConnectionTemplate } from "./mysql";

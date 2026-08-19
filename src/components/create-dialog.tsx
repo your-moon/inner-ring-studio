@@ -40,13 +40,13 @@ export function DialogProvider({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!window.showOuterbaseDialog) {
-      window.showOuterbaseDialog = {};
+    if (!window.showAppDialog) {
+      window.showAppDialog = {};
     }
 
-    window.showOuterbaseDialog[slot] = showToggle;
+    window.showAppDialog[slot] = showToggle;
     return () => {
-      delete window.showOuterbaseDialog[slot];
+      delete window.showAppDialog[slot];
     };
   }, [showToggle, slot]);
 
@@ -99,19 +99,19 @@ export function createDialog<ParamType = unknown, ReturnType = undefined>(
   return {
     show: (props: ParamType) => {
       return new Promise<ReturnType>((resolve) => {
-        if (!window.showOuterbaseDialog) return;
+        if (!window.showAppDialog) return;
 
         let slot = options?.slot;
 
         if (!slot) {
-          if (window.showOuterbaseDialog["base"]) slot = "base";
-          else if (window.showOuterbaseDialog["workspace"]) slot = "workspace";
+          if (window.showAppDialog["base"]) slot = "base";
+          else if (window.showAppDialog["workspace"]) slot = "workspace";
           else slot = "default";
         }
 
-        if (!window.showOuterbaseDialog[slot]) return;
+        if (!window.showAppDialog[slot]) return;
 
-        window.showOuterbaseDialog[slot]({
+        window.showAppDialog[slot]({
           component,
           options: props,
           resolve: resolve as unknown as (props: unknown) => void,

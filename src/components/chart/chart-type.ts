@@ -175,5 +175,5 @@ export const THEMES: Record<
   },
 };
 
-export const outerBaseUrl = "https://app.outerbase.com";
+export const chartAssetBaseUrl = "https://app.outerbase.com";
 export const DEFAULT_THEME = "afterburn";

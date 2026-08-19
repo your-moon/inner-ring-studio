@@ -1,4 +1,4 @@
-import { ConnectionTemplateList } from "@/app/(outerbase)/base-template";
+import { ConnectionTemplateList } from "@/app/(main)/base-template";
 import { GENERIC_CONNECTION_TEMPLATE } from "./generic";
 
 export const PostgresConnectionTemplate: ConnectionTemplateList = {

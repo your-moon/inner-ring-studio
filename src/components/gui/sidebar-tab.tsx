@@ -105,10 +105,10 @@ export default function SidebarTab({ tabs }: Readonly<SidebarTabProps>) {
               <DropdownMenuItem inset>
                 <Link
                   className="block w-full"
-                  href="https://www.outerbase.com/about/"
+                  href="https://github.com/your-moon/inner-ring-studio"
                   target="_blank"
                 >
-                  About us
+                  About
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>

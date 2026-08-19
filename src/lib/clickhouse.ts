@@ -61,7 +61,7 @@ export async function closeClickhouse(c: PgConnConfig): Promise<void> {
   await client.close().catch(() => {});
 }
 
-// ClickHouse type -> Outerbase ColumnType hint (TEXT=1, INTEGER=2, REAL=3, BLOB=4)
+// ClickHouse type -> ColumnType hint (TEXT=1, INTEGER=2, REAL=3, BLOB=4)
 function columnType(chType: string): number {
   const t = chType.replace(/^Nullable\(|\)$/g, "").replace(/^LowCardinality\(|\)$/g, "");
   // 64-bit+ integers arrive as JSON strings (see output_format_json_quote_64bit_integers)

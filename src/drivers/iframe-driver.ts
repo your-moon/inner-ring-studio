@@ -82,17 +82,17 @@ class ElectronConnection {
   }
 
   query(stmt: string): Promise<DatabaseResultSet> {
-    return window.outerbaseIpc!.query(stmt);
+    return window.irs!.query(stmt);
   }
 
   transaction(stmts: string[]): Promise<DatabaseResultSet[]> {
-    return window.outerbaseIpc!.transaction(stmts);
+    return window.irs!.transaction(stmts);
   }
 }
 
 export class EmbedQueryable implements QueryableBaseDriver {
   protected conn =
-    typeof window !== "undefined" && window?.outerbaseIpc
+    typeof window !== "undefined" && window?.irs
       ? new ElectronConnection()
       : new IframeConnection();
 

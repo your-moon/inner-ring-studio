@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocalConnection } from "@/app/(outerbase)/local/hooks";
+import { useLocalConnection } from "@/app/(main)/local/hooks";
 import ClientOnly from "@/components/client-only";
 import { Studio } from "@/components/gui/studio";
 import PageLoading from "@/components/page-loading";
