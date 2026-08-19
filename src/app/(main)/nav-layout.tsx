@@ -183,7 +183,6 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               </>
             )}
 
-            <SidebarMenuHeader text="Workspace" />
             <SidebarMenuItem
               selected={pathname === "/local"}
               text="All connections"
