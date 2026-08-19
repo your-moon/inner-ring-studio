@@ -24,6 +24,7 @@ import useSWR from "swr";
 import NavConnectionItem, { NavConnection } from "./nav-connection-item";
 import NotificationsBell from "./notifications-bell";
 import WorkspaceSwitcher from "./workspace-switcher";
+import CommandPalette from "./command-palette";
 
 export default function NavigationLayout({ children }: PropsWithChildren) {
   const [mobileToggle, setMobileToggle] = useState(false);
@@ -123,6 +124,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
 
   return (
     <div className="flex w-screen flex-col lg:h-screen lg:flex-row">
+      <CommandPalette />
       <div className="bg-background sticky top-0 z-25 flex w-full shrink-0 flex-col overflow-hidden border-r-0 border-b lg:w-[250px] lg:border-r lg:border-b-0">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/local" className="flex items-center gap-2">
@@ -148,6 +150,14 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
             activeName={me?.workspaceName ?? null}
           />
         )}
+
+        <button
+          onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
+          className="mx-3 mb-2 flex items-center gap-2 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-left text-sm text-neutral-400 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
+        >
+          <span className="flex-1">Search…</span>
+          <kbd className="rounded border border-neutral-200 px-1.5 py-0.5 text-[10px] dark:border-neutral-700">⌘K</kbd>
+        </button>
 
         {mobileToggle && (
           <div
