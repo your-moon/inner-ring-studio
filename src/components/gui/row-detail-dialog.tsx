@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { LucideX } from "lucide-react";
+import RowComments from "./row-comments";
 
 export interface RowDetailField {
   name: string;
@@ -10,14 +11,22 @@ export interface RowDetailField {
 
 /**
  * DBeaver-style single-row detail view: every column of the focused row shown
- * vertically as name → value. Opened from the grid with the Space key.
+ * vertically as name → value. Opened from the grid with the Space key. When a
+ * connection + table + stable row key are known, a cloud-only comment thread is
+ * shown beneath the fields.
  */
 export default function RowDetailDialog({
   fields,
   onClose,
+  connectionId,
+  tableName,
+  rowKey,
 }: {
   fields: RowDetailField[] | null;
   onClose: () => void;
+  connectionId?: string;
+  tableName?: string;
+  rowKey?: string;
 }) {
   useEffect(() => {
     if (!fields) return;
@@ -80,6 +89,10 @@ export default function RowDetailDialog({
               ))}
             </tbody>
           </table>
+
+          {connectionId && tableName && rowKey && (
+            <RowComments connectionId={connectionId} table={tableName} rowKey={rowKey} />
+          )}
         </div>
       </div>
     </div>

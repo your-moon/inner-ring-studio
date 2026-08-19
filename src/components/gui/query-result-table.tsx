@@ -6,6 +6,7 @@ import RowDetailDialog, {
   RowDetailField,
 } from "@/components/gui/row-detail-dialog";
 import { useStudioContext } from "@/context/driver-provider";
+import { usePathname } from "next/navigation";
 import { ColumnSortOption } from "@/drivers/base-driver";
 import { exportDataAsDelimitedText } from "@/lib/export-helper";
 import { KEY_BINDING } from "@/lib/key-matcher";
@@ -137,8 +138,17 @@ export default function ResultTable({
   const [detailFields, setDetailFields] = useState<RowDetailField[] | null>(
     null
   );
+  // Stable identity of the row shown in the detail dialog (for comments).
+  const [detailRowKey, setDetailRowKey] = useState<string | undefined>();
 
   const { extensions } = useStudioContext();
+
+  // Connection id from the /vault/<id> route — lets row comments anchor to it.
+  const pathname = usePathname();
+  const connectionId = useMemo(() => {
+    const m = pathname?.match(/\/vault\/([^/?#]+)/);
+    return m?.[1];
+  }, [pathname]);
 
   // Per-column client-side search (from each column's dropdown). When any term
   // is set, render a filtered, read-only copy showing only matching rows.
@@ -460,11 +470,26 @@ export default function ResultTable({
         // Row detail: show every column of the focused row (DBeaver-style).
         const focus = state.getFocus();
         if (focus) {
+          const headers = state.getHeaders();
           setDetailFields(
-            state.getHeaders().map((h, i) => ({
+            headers.map((h, i) => ({
               name: h.name,
               value: state.getValue(focus.y, i),
             }))
+          );
+          // Build a stable row key from the primary-key columns (metadata.n),
+          // falling back to all columns when the table has no PK.
+          const pk = headers
+            .map((h, i) => ({ h, i }))
+            .filter(
+              ({ h }) =>
+                (h.metadata as { isPrimaryKey?: boolean } | undefined)?.isPrimaryKey
+            );
+          const cols = pk.length ? pk : headers.map((h, i) => ({ h, i }));
+          setDetailRowKey(
+            cols
+              .map(({ h, i }) => `${h.name}=${String(state.getValue(focus.y, i) ?? "")}`)
+              .join("|")
           );
         }
       }
@@ -492,6 +517,9 @@ export default function ResultTable({
       <RowDetailDialog
         fields={detailFields}
         onClose={() => setDetailFields(null)}
+        connectionId={connectionId}
+        tableName={tableName}
+        rowKey={detailRowKey}
       />
     </>
   );

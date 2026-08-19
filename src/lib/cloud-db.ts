@@ -123,6 +123,23 @@ export async function ensureSchema(): Promise<void> {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
     CREATE INDEX IF NOT EXISTS idx_boards_user ON boards(user_id, updated_at DESC);
+
+    -- Cloud-only: comments/annotations anchored to a table row (and optionally a
+    -- single column) of a connection. row_key is a stable identity built from the
+    -- row's primary key. Becomes team-shared once workspaces land.
+    CREATE TABLE IF NOT EXISTS row_comments (
+      id            TEXT PRIMARY KEY,
+      user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      connection_id TEXT NOT NULL REFERENCES connections(id) ON DELETE CASCADE,
+      table_ref     TEXT NOT NULL,
+      row_key       TEXT NOT NULL,
+      column_name   TEXT,
+      body          TEXT NOT NULL,
+      author_email  TEXT,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE INDEX IF NOT EXISTS idx_comments_row
+      ON row_comments(connection_id, table_ref, row_key, created_at);
   `);
   schemaReady = true;
 }
