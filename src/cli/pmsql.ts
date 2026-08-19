@@ -111,7 +111,9 @@ async function cmdConnAdd(args: string[]) {
   });
 
   if (!values.host) die("--host is required");
-  const driver = values.driver === "clickhouse" ? "clickhouse" : "postgres";
+  const driver = ["clickhouse", "mysql"].includes(values.driver as string)
+    ? (values.driver as "clickhouse" | "mysql")
+    : "postgres";
   if (!values.port) die("--port is required");
 
   await ensurePassphrase();

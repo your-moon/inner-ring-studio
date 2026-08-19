@@ -3,6 +3,7 @@ import { CloudflareD1Queryable } from "./database/cloudflare-d1";
 import CloudflareWAEDriver from "./database/cloudflare-wae";
 import { PostgresProxyQueryable } from "./database/postgres-proxy";
 import ClickhouseDriver from "./clickhouse/clickhouse-driver";
+import MySQLLikeDriver from "./mysql/mysql-driver";
 import { RqliteQueryable } from "./database/rqlite";
 import { StarbaseQuery } from "./database/starbasedb";
 import TursoDriver from "./database/turso";
@@ -35,6 +36,8 @@ export function createLocalDriver(conn: SavedConnectionRawLocalStorage) {
     );
   } else if (conn.driver === "clickhouse") {
     return new ClickhouseDriver(new PostgresProxyQueryable("/api/query", conn));
+  } else if (conn.driver === "mysql") {
+    return new MySQLLikeDriver(new PostgresProxyQueryable("/api/query", conn));
   }
 
   return new TursoDriver(conn.url!, conn.token!, true);

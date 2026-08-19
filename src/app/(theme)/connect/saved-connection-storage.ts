@@ -7,6 +7,7 @@ export type SupportedDriver =
   | "cloudflare-wae"
   | "sqlite-filehandler"
   | "postgres"
+  | "mysql"
   | "clickhouse";
 
 export type SavedConnectionStorage = "remote" | "local";

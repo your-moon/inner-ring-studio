@@ -6,6 +6,7 @@ import { getConnectionStore } from "@/lib/mode";
 import type { AuthContext } from "@/lib/connection-store";
 import { getPool, type PgConnConfig } from "@/lib/pg-pool";
 import { clickhouseQuery } from "@/lib/clickhouse";
+import { mysqlQuery, mysqlTransaction } from "@/lib/mysql-pool";
 import { wrapForTopN } from "@/lib/sql-topn";
 import {
   clampPageSize,
@@ -259,6 +260,53 @@ export async function POST(req: Request) {
       }
 
       return NextResponse.json({ result: await clickhouseQuery(conn, body.sql) });
+    }
+
+    // MySQL: stateless like ClickHouse (LIMIT/OFFSET pagination via a cursor
+    // token), but supports write-back transactions.
+    if (conn.driver === "mysql") {
+      if (typeof body.closeCursorId === "string") {
+        return NextResponse.json({ ok: true });
+      }
+      if (typeof body.cursorId === "string" && body.fetchMore != null) {
+        const dec = decodeChCursor(body.cursorId);
+        if (!dec) return NextResponse.json({ expired: true, rows: [], hasMore: false });
+        const pageSize = clampPageSize(body.fetchMore);
+        const rs = await mysqlQuery(conn, dec.sql, { limit: pageSize, offset: dec.offset });
+        const hasMore = rs.rows.length >= pageSize;
+        return NextResponse.json({
+          rows: rs.rows,
+          hasMore,
+          nextCursorId: hasMore ? encodeChCursor(dec.sql, dec.offset + pageSize) : null,
+        });
+      }
+      if (Array.isArray(body.statements)) {
+        return NextResponse.json({
+          results: await mysqlTransaction(conn, body.statements as string[]),
+        });
+      }
+      if (typeof body.sql !== "string") {
+        return NextResponse.json({ error: "Missing sql" }, { status: 400 });
+      }
+      if (body.paginate != null) {
+        const pageable = chPageable(body.sql);
+        const pageSize = clampPageSize(body.paginate);
+        if (pageable) {
+          const rs = await mysqlQuery(conn, pageable, { limit: pageSize, offset: 0 });
+          const hasMore = rs.rows.length >= pageSize;
+          return NextResponse.json({
+            result: rs,
+            cursorId: hasMore ? encodeChCursor(pageable, pageSize) : null,
+            hasMore,
+          });
+        }
+        return NextResponse.json({
+          result: await mysqlQuery(conn, body.sql),
+          cursorId: null,
+          hasMore: false,
+        });
+      }
+      return NextResponse.json({ result: await mysqlQuery(conn, body.sql) });
     }
 
     const pool = getPool(conn);

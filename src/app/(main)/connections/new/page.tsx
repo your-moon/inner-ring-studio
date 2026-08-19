@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import NavigationLayout from "../../nav-layout";
 
-type Driver = "postgres" | "clickhouse";
+type Driver = "postgres" | "mysql" | "clickhouse";
 
 interface Fields {
   driver: Driver;
@@ -21,6 +21,7 @@ interface Fields {
 
 const DEFAULT_PORT: Record<Driver, string> = {
   postgres: "5432",
+  mysql: "3306",
   clickhouse: "8123",
 };
 
@@ -157,6 +158,7 @@ export default function NewConnectionPage() {
             <label className="mb-1 block text-sm font-medium">Database type</label>
             <div className="flex gap-2">
               {driverBtn("postgres", "PostgreSQL")}
+              {driverBtn("mysql", "MySQL")}
               {driverBtn("clickhouse", "ClickHouse")}
             </div>
           </div>

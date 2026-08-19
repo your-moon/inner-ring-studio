@@ -44,7 +44,9 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const driver = body.driver === "clickhouse" ? "clickhouse" : "postgres";
+    const driver = ["clickhouse", "mysql"].includes(body.driver)
+      ? body.driver
+      : "postgres";
     const safe = await store.add(auth, {
       name: body.name,
       driver,

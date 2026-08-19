@@ -19,9 +19,9 @@ export default function VaultStudioClient() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [name, setName] = useState<string>("");
-  const [driverName, setDriverName] = useState<"postgres" | "clickhouse">(
-    "postgres"
-  );
+  const [driverName, setDriverName] = useState<
+    "postgres" | "clickhouse" | "mysql"
+  >("postgres");
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -36,6 +36,7 @@ export default function VaultStudioClient() {
         if (found) {
           setName(found.name);
           if (found.driver === "clickhouse") setDriverName("clickhouse");
+          else if (found.driver === "mysql") setDriverName("mysql");
         } else setNotFound(true);
       })
       .catch(() => alive && setNotFound(true));
