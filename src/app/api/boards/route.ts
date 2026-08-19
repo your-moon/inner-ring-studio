@@ -26,8 +26,14 @@ export async function GET() {
 export async function POST(req: Request) {
   const g = await guard();
   if (g instanceof Response) return g;
-  const body = (await req.json().catch(() => ({}))) as { name?: string };
-  const name = body.name?.trim() || "Untitled board";
-  const board = await createBoard(g.userId, name);
+  const body = (await req.json().catch(() => ({}))) as {
+    name?: string;
+    data?: Record<string, unknown>;
+  };
+  // Import: a board name embedded in the blob wins when no explicit name given.
+  const embeddedName =
+    body.data && typeof body.data.name === "string" ? (body.data.name as string) : undefined;
+  const name = body.name?.trim() || embeddedName?.trim() || "Untitled board";
+  const board = await createBoard(g.userId, name, body.data);
   return NextResponse.json({ board });
 }

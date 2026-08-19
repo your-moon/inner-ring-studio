@@ -65,16 +65,39 @@ export async function getBoard(userId: string, id: string): Promise<BoardRecord 
   };
 }
 
-export async function createBoard(userId: string, name: string): Promise<BoardRecord> {
+export async function createBoard(
+  userId: string,
+  name: string,
+  data?: Record<string, unknown>
+): Promise<BoardRecord> {
   await ensureSchema();
   const id = cloudNewId();
-  const data = emptyBoard(name);
+  // Import path: normalize a supplied dashboard blob; otherwise start empty.
+  const content = data ? normalizeBoard(data, name) : emptyBoard(name);
   const res = await cloudPool().query(
     "INSERT INTO boards (id, user_id, name, data) VALUES ($1,$2,$3,$4) RETURNING id, name, data, updated_at",
-    [id, userId, name, JSON.stringify(data)]
+    [id, userId, name, JSON.stringify(content)]
   );
   const r = res.rows[0];
   return { id: r.id, name: r.name, data: asObj(r.data), updatedAt: ms(r.updated_at) };
+}
+
+/** Coerce an arbitrary imported blob into a valid DashboardProps shape. */
+export function normalizeBoard(
+  data: Record<string, unknown>,
+  name: string
+): Record<string, unknown> {
+  const d = data as {
+    charts?: unknown;
+    layout?: unknown;
+    data?: { filters?: unknown };
+  };
+  return {
+    name,
+    charts: Array.isArray(d.charts) ? d.charts : [],
+    layout: Array.isArray(d.layout) ? d.layout : [],
+    data: { filters: Array.isArray(d.data?.filters) ? d.data!.filters : [] },
+  };
 }
 
 export async function updateBoard(
