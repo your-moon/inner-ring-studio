@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
-import { authEnabled, isAuthed } from "@/lib/auth";
+import { authEnabled, getAuthContext } from "@/lib/auth";
+import { IS_CLOUD } from "@/lib/mode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const ctx = await getAuthContext();
   return NextResponse.json({
-    authEnabled: authEnabled(),
-    authed: await isAuthed(),
+    mode: IS_CLOUD ? "cloud" : "selfhosted",
+    // In cloud mode, login (email+password) is always required.
+    authEnabled: IS_CLOUD || authEnabled(),
+    authed: ctx !== null,
+    userId: ctx?.userId ?? null,
   });
 }

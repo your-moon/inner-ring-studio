@@ -1,51 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, Suspense, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
 
-export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
-  );
-}
-
-function LoginForm() {
+export default function SignupPage() {
   const router = useRouter();
-  const params = useSearchParams();
-  const [mode, setMode] = useState<"cloud" | "selfhosted" | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((j) => setMode(j.mode === "cloud" ? "cloud" : "selfhosted"))
-      .catch(() => setMode("selfhosted"));
-  }, []);
-
-  const isCloud = mode === "cloud";
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isCloud ? { email, password } : { password }),
+        body: JSON.stringify({ email, password }),
       });
+      const j = await res.json().catch(() => ({}));
       if (res.ok) {
-        router.replace(params.get("next") || "/local");
+        router.replace("/local");
         return;
       }
-      const j = await res.json().catch(() => ({}));
-      setError(j.error || (isCloud ? "Invalid email or password" : "Incorrect password"));
+      setError(j.error || "Could not create account");
     } catch {
       setError("Something went wrong");
     } finally {
@@ -69,56 +50,49 @@ function LoginForm() {
           </svg>
           <div>
             <div className="font-semibold text-neutral-900 dark:text-white">Inner Ring Studio</div>
-            <div className="text-xs text-neutral-500">Sign in to continue</div>
+            <div className="text-xs text-neutral-500">Create your account</div>
           </div>
         </div>
 
-        {isCloud && (
-          <>
-            <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              Email
-            </label>
-            <input
-              type="email"
-              autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={input + " mb-3"}
-              placeholder="you@example.com"
-            />
-          </>
-        )}
+        <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          Email
+        </label>
+        <input
+          type="email"
+          autoFocus
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={input + " mb-3"}
+          placeholder="you@example.com"
+        />
 
         <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
           Password
         </label>
         <input
           type="password"
-          autoFocus={!isCloud}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className={input}
-          placeholder="••••••••"
+          placeholder="At least 8 characters"
         />
 
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"
-          disabled={loading || !password || (isCloud && !email)}
+          disabled={loading || !email || password.length < 8}
           className="mt-5 w-full rounded-lg bg-blue-600 py-2 font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
-          {loading ? "Signing in…" : "Sign in"}
+          {loading ? "Creating account…" : "Create account"}
         </button>
 
-        {isCloud && (
-          <p className="mt-4 text-center text-sm text-neutral-500">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-blue-600 hover:underline">
-              Sign up
-            </Link>
-          </p>
-        )}
+        <p className="mt-4 text-center text-sm text-neutral-500">
+          Already have an account?{" "}
+          <Link href="/login" className="text-blue-600 hover:underline">
+            Sign in
+          </Link>
+        </p>
       </form>
     </div>
   );

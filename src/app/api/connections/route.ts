@@ -1,28 +1,30 @@
 import { NextResponse } from "next/server";
-import {
-  addConnection,
-  getConnection,
-  listConnections,
-  removeConnection,
-  updateConnection,
-} from "@/lib/vault";
 import { requireAuth } from "@/lib/auth";
 import { commitConfig } from "@/lib/config-repo";
+import { getConnectionStore } from "@/lib/mode";
+import { IS_CLOUD } from "@/lib/mode";
 
-// Reads the encrypted vault (fs + crypto) — needs the Node.js runtime.
+// Reads the vault / cloud DB (fs + crypto / pg) — needs the Node.js runtime.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const store = getConnectionStore();
+
+// Vault-git-sync only applies to the single-tenant vault store; cloud persists
+// directly in its database.
+function commitLocal(msg: string) {
+  if (!IS_CLOUD) commitConfig(msg);
+}
+
 /**
- * List connections stored in the server-side vault, with passwords stripped.
- * The browser uses these to populate its connection list; the actual password
- * never leaves the server (queries are proxied by connection id via /api/query).
+ * List the caller's connections (passwords stripped). In cloud mode this is
+ * scoped to the authenticated user; in local mode it's the single vault.
  */
 export async function GET() {
-  const unauth = await requireAuth();
-  if (unauth) return unauth;
+  const auth = await requireAuth();
+  if (auth instanceof Response) return auth;
   try {
-    return NextResponse.json({ connections: listConnections() });
+    return NextResponse.json({ connections: await store.list(auth) });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     // Vault locked / passphrase missing is an expected state, not a 500.
@@ -30,10 +32,10 @@ export async function GET() {
   }
 }
 
-/** Create a connection in the vault (used by the in-app "new connection" form). */
+/** Create a connection (used by the in-app "new connection" form). */
 export async function POST(req: Request) {
-  const unauth = await requireAuth();
-  if (unauth) return unauth;
+  const auth = await requireAuth();
+  if (auth instanceof Response) return auth;
   try {
     const body = await req.json();
     if (!body.name || !body.host || !body.port) {
@@ -43,7 +45,7 @@ export async function POST(req: Request) {
       );
     }
     const driver = body.driver === "clickhouse" ? "clickhouse" : "postgres";
-    const safe = addConnection({
+    const safe = await store.add(auth, {
       name: body.name,
       driver,
       host: body.host,
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
       timezone: body.timezone || undefined,
       readOnly: !!body.readOnly,
     });
-    commitConfig(`pmsql: add connection ${safe.name}`);
+    commitLocal(`pmsql: add connection ${safe.name}`);
     return NextResponse.json({ ok: true, connection: safe });
   } catch (e) {
     return NextResponse.json(
@@ -68,14 +70,12 @@ export async function POST(req: Request) {
 
 /** Edit a connection. Provided fields overwrite; an omitted password is kept. */
 export async function PUT(req: Request) {
-  const unauth = await requireAuth();
-  if (unauth) return unauth;
+  const auth = await requireAuth();
+  if (auth instanceof Response) return auth;
   try {
     const body = await req.json();
     if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
-    if (!getConnection(body.id))
-      return NextResponse.json({ error: "unknown connection" }, { status: 404 });
-    const safe = updateConnection(body.id, {
+    const safe = await store.update(auth, body.id, {
       name: body.name,
       host: body.host,
       port: body.port !== undefined ? Number(body.port) : undefined,
@@ -87,7 +87,9 @@ export async function PUT(req: Request) {
       timezone: body.timezone,
       readOnly: body.readOnly,
     });
-    commitConfig(`pmsql: update connection ${safe?.name ?? body.id}`);
+    if (!safe)
+      return NextResponse.json({ error: "unknown connection" }, { status: 404 });
+    commitLocal(`pmsql: update connection ${safe.name}`);
     return NextResponse.json({ ok: true, connection: safe });
   } catch (e) {
     return NextResponse.json(
@@ -97,13 +99,13 @@ export async function PUT(req: Request) {
   }
 }
 
-/** Delete a connection from the vault. */
+/** Delete a connection. */
 export async function DELETE(req: Request) {
-  const unauth = await requireAuth();
-  if (unauth) return unauth;
+  const auth = await requireAuth();
+  if (auth instanceof Response) return auth;
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-  const removed = removeConnection(id);
-  if (removed) commitConfig(`pmsql: remove connection ${id}`);
+  const removed = await store.remove(auth, id);
+  if (removed) commitLocal(`pmsql: remove connection ${id}`);
   return NextResponse.json({ ok: removed });
 }

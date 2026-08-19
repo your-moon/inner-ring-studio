@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
-import { getConnection, listConnections, updateConnection } from "@/lib/vault";
+import { getConnectionStore } from "@/lib/mode";
 import {
   closePool,
   poolStatus,
@@ -10,6 +10,8 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const store = getConnectionStore();
 
 function configOf(c: {
   host: string;
@@ -35,9 +37,9 @@ function configOf(c: {
 
 /** Connection-manager status: which connections have a live pool. */
 export async function GET() {
-  const unauth = await requireAuth();
-  if (unauth) return unauth;
-  const connections = listConnections().map((c) => ({
+  const auth = await requireAuth();
+  if (auth instanceof Response) return auth;
+  const connections = (await store.list(auth)).map((c) => ({
     id: c.id,
     name: c.name,
     driver: c.driver,
@@ -50,10 +52,12 @@ export async function GET() {
 
 /** Actions: disconnect (close pool) or test/retry (SELECT 1). */
 export async function POST(req: Request) {
-  const unauth = await requireAuth();
-  if (unauth) return unauth;
+  const auth = await requireAuth();
+  if (auth instanceof Response) return auth;
   const body = await req.json().catch(() => ({}));
-  const conn = body.connectionId ? getConnection(body.connectionId) : undefined;
+  const conn = body.connectionId
+    ? await store.get(auth, body.connectionId)
+    : undefined;
   if (!conn) {
     return NextResponse.json({ error: "unknown connection" }, { status: 400 });
   }
@@ -73,7 +77,7 @@ export async function POST(req: Request) {
     // Close the current pool so the new read-only/read-write mode takes effect
     // (mode is applied at pool creation via Postgres server options).
     await closePool(configOf(conn));
-    updateConnection(conn.id, { readOnly: !!body.value });
+    await store.update(auth, conn.id, { readOnly: !!body.value });
     return NextResponse.json({ ok: true, readOnly: !!body.value });
   }
   return NextResponse.json({ error: "unknown action" }, { status: 400 });

@@ -14,8 +14,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const unauth = await requireAuth();
-  if (unauth) return unauth;
+  const auth = await requireAuth();
+  if (auth instanceof Response) return auth;
   return NextResponse.json({
     vaultPath: vaultPath(),
     configDir: configDir(),
@@ -25,8 +25,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const unauth = await requireAuth();
-  if (unauth) return unauth;
+  const auth = await requireAuth();
+  if (auth instanceof Response) return auth;
   try {
     const body = await req.json();
     if (body.action === "link") {

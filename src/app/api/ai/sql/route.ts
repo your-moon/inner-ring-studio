@@ -16,8 +16,8 @@ const run = promisify(execFile);
  * app; the host for the hosted instance).
  */
 export async function POST(req: Request) {
-  const unauth = await requireAuth();
-  if (unauth) return unauth;
+  const auth = await requireAuth();
+  if (auth instanceof Response) return auth;
 
   const { prompt, schema } = (await req.json().catch(() => ({}))) as {
     prompt?: string;

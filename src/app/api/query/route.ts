@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { types, type QueryArrayResult } from "pg";
 import Cursor from "pg-cursor";
-import { getConnection } from "@/lib/vault";
 import { requireAuth } from "@/lib/auth";
+import { getConnectionStore } from "@/lib/mode";
+import type { AuthContext } from "@/lib/connection-store";
 import { getPool, type PgConnConfig } from "@/lib/pg-pool";
 import { clickhouseQuery } from "@/lib/clickhouse";
 import { wrapForTopN } from "@/lib/sql-topn";
@@ -39,12 +40,15 @@ types.setTypeParser(3802, (v) => v); // jsonb
  * inline `connection` object (used by the manual "new connection" form before a
  * vault entry exists).
  */
-function resolveConnection(body: {
-  connectionId?: string;
-  connection?: PgConnConfig;
-}): PgConnConfig {
+const store = getConnectionStore();
+
+async function resolveConnection(
+  body: { connectionId?: string; connection?: PgConnConfig },
+  auth: AuthContext
+): Promise<PgConnConfig> {
   if (body.connectionId) {
-    const c = getConnection(body.connectionId);
+    // Scoped by the caller — in cloud mode you can only resolve your own.
+    const c = await store.get(auth, body.connectionId);
     if (!c) throw new Error(`Unknown connection id: ${body.connectionId}`);
     return {
       host: c.host,
@@ -183,11 +187,11 @@ function decodeChCursor(token: string): { sql: string; offset: number } | null {
 }
 
 export async function POST(req: Request) {
-  const unauth = await requireAuth();
-  if (unauth) return unauth;
+  const auth = await requireAuth();
+  if (auth instanceof Response) return auth;
   try {
     const body = await req.json();
-    const conn = resolveConnection(body);
+    const conn = await resolveConnection(body, auth);
     assertConnectable(conn.host);
 
     // ClickHouse uses its HTTP client instead of the pg pool. It has no

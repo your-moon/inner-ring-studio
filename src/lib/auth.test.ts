@@ -47,15 +47,19 @@ describe("auth", () => {
       process.env.PMSQL_AUTH_PASSWORD = "Likeofman@12";
     });
 
-    it("verifies a freshly minted token", async () => {
-      const token = await createSessionToken();
-      expect(await verifySessionToken(token)).toBe(true);
+    it("verifies a freshly minted token and carries the userId", async () => {
+      expect(await verifySessionToken(await createSessionToken())).toEqual({
+        userId: null,
+      });
+      expect(await verifySessionToken(await createSessionToken("u123"))).toEqual({
+        userId: "u123",
+      });
     });
 
     it("rejects a tampered signature", async () => {
       const token = await createSessionToken();
       const [payload] = token.split(".");
-      expect(await verifySessionToken(`${payload}.deadbeef`)).toBe(false);
+      expect(await verifySessionToken(`${payload}.deadbeef`)).toBeNull();
     });
 
     it("rejects a tampered payload", async () => {
@@ -64,19 +68,19 @@ describe("auth", () => {
       const forged = Buffer.from(
         JSON.stringify({ exp: Date.now() + 1e12 })
       ).toString("base64url");
-      expect(await verifySessionToken(`${forged}.${sig}`)).toBe(false);
+      expect(await verifySessionToken(`${forged}.${sig}`)).toBeNull();
     });
 
     it("rejects malformed and empty tokens", async () => {
-      expect(await verifySessionToken(undefined)).toBe(false);
-      expect(await verifySessionToken("")).toBe(false);
-      expect(await verifySessionToken("nodot")).toBe(false);
+      expect(await verifySessionToken(undefined)).toBeNull();
+      expect(await verifySessionToken("")).toBeNull();
+      expect(await verifySessionToken("nodot")).toBeNull();
     });
 
     it("rejects a token signed under a different password (rotation)", async () => {
       const token = await createSessionToken();
       process.env.PMSQL_AUTH_PASSWORD = "a-new-password";
-      expect(await verifySessionToken(token)).toBe(false);
+      expect(await verifySessionToken(token)).toBeNull();
     });
   });
 });

@@ -61,41 +61,75 @@ export function verifyPassword(password: string): boolean {
   return diff === 0;
 }
 
-export async function createSessionToken(): Promise<string> {
-  const payload = toB64Url(enc(JSON.stringify({ exp: Date.now() + SESSION_TTL_MS })));
+/** Cloud mode carries a user id in the session; local mode uses null. */
+export function isCloud(): boolean {
+  return process.env.DEPLOY_MODE === "cloud";
+}
+
+export async function createSessionToken(userId?: string | null): Promise<string> {
+  const payload = toB64Url(
+    enc(JSON.stringify({ userId: userId ?? null, exp: Date.now() + SESSION_TTL_MS }))
+  );
   const sig = toB64Url(await crypto.subtle.sign("HMAC", await signingKey(), enc(payload)));
   return `${payload}.${sig}`;
 }
 
-export async function verifySessionToken(token: string | undefined): Promise<boolean> {
-  if (!token) return false;
+/**
+ * Verify a session token's signature + expiry. Returns the decoded payload
+ * ({ userId }) on success, or null when missing/forged/expired.
+ */
+export async function verifySessionToken(
+  token: string | undefined
+): Promise<{ userId: string | null } | null> {
+  if (!token) return null;
   const [payload, sig] = token.split(".");
-  if (!payload || !sig) return false;
+  if (!payload || !sig) return null;
   const valid = await crypto.subtle
     .verify("HMAC", await signingKey(), fromB64Url(sig), enc(payload))
     .catch(() => false);
-  if (!valid) return false;
+  if (!valid) return null;
   try {
-    const { exp } = JSON.parse(new TextDecoder().decode(fromB64Url(payload)));
-    return typeof exp === "number" && exp > Date.now();
+    const { exp, userId } = JSON.parse(new TextDecoder().decode(fromB64Url(payload)));
+    if (typeof exp !== "number" || exp <= Date.now()) return null;
+    return { userId: typeof userId === "string" ? userId : null };
   } catch {
-    return false;
+    return null;
   }
+}
+
+/**
+ * Resolve the caller from the session cookie.
+ * - cloud: requires a valid token carrying a userId → { userId }.
+ * - self-hosted with a password: requires a valid token → { userId: null }.
+ * - self-hosted/desktop with no password: open → { userId: null }.
+ * Returns null when unauthorized.
+ */
+export async function getAuthContext(): Promise<{ userId: string | null } | null> {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (isCloud()) {
+    const payload = await verifySessionToken(token);
+    return payload?.userId ? { userId: payload.userId } : null;
+  }
+  if (!authEnabled()) return { userId: null };
+  const payload = await verifySessionToken(token);
+  return payload ? { userId: null } : null;
 }
 
 /** True if the current request carries a valid session (or auth is disabled). */
 export async function isAuthed(): Promise<boolean> {
-  if (!authEnabled()) return true;
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  return verifySessionToken(token);
+  return (await getAuthContext()) !== null;
 }
 
 /**
- * Guard for API route handlers. Returns null when allowed, or a 401 Response to
- * return immediately when not.
+ * Guard for API route handlers. Returns the AuthContext when allowed, or a 401
+ * Response to return immediately when not. Usage:
+ *   const auth = await requireAuth();
+ *   if (auth instanceof Response) return auth;
+ *   // auth.userId is available
  */
-export async function requireAuth(): Promise<Response | null> {
-  if (await isAuthed()) return null;
+export async function requireAuth(): Promise<{ userId: string | null } | Response> {
+  const ctx = await getAuthContext();
+  if (ctx) return ctx;
   return new Response(JSON.stringify({ error: "unauthorized" }), {
     status: 401,
     headers: { "content-type": "application/json" },

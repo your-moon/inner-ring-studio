@@ -6,6 +6,8 @@ import {
   createSessionToken,
   verifyPassword,
 } from "@/lib/auth";
+import { authenticateUser } from "@/lib/cloud-db";
+import { IS_CLOUD } from "@/lib/mode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,11 +25,18 @@ function clientIp(req: Request): string {
   );
 }
 
-export async function POST(req: Request) {
-  if (!authEnabled()) {
-    return NextResponse.json({ ok: true, authEnabled: false });
-  }
+async function setSession(userId: string | null): Promise<void> {
+  const token = await createSessionToken(userId);
+  (await cookies()).set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  });
+}
 
+export async function POST(req: Request) {
   const ip = clientIp(req);
   const now = Date.now();
   const rec = attempts.get(ip);
@@ -37,23 +46,43 @@ export async function POST(req: Request) {
       { status: 429 }
     );
   }
-  const { password } = (await req.json().catch(() => ({}))) as {
-    password?: string;
-  };
-  if (!password || !verifyPassword(password)) {
+  const recordFail = () => {
     const cur = rec && now < rec.resetAt ? rec : { count: 0, resetAt: now + WINDOW_MS };
     cur.count += 1;
     attempts.set(ip, cur);
+  };
+
+  const body = (await req.json().catch(() => ({}))) as {
+    email?: string;
+    password?: string;
+  };
+
+  if (IS_CLOUD) {
+    const user =
+      body.email && body.password
+        ? await authenticateUser(body.email, body.password)
+        : null;
+    if (!user) {
+      recordFail();
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 }
+      );
+    }
+    attempts.delete(ip);
+    await setSession(user.id);
+    return NextResponse.json({ ok: true, user: { email: user.email } });
+  }
+
+  // Self-hosted / desktop: single app password (or no auth at all).
+  if (!authEnabled()) {
+    return NextResponse.json({ ok: true, authEnabled: false });
+  }
+  if (!body.password || !verifyPassword(body.password)) {
+    recordFail();
     return NextResponse.json({ error: "invalid password" }, { status: 401 });
   }
   attempts.delete(ip);
-  const token = await createSessionToken();
-  (await cookies()).set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60,
-  });
+  await setSession(null);
   return NextResponse.json({ ok: true });
 }
