@@ -111,6 +111,18 @@ export async function ensureSchema(): Promise<void> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
     CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id, read, created_at DESC);
+
+    -- Cloud-only: dashboards (boards). The data column holds the full
+    -- DashboardProps (charts + react-grid layout + filters) as JSON.
+    CREATE TABLE IF NOT EXISTS boards (
+      id         TEXT PRIMARY KEY,
+      user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name       TEXT NOT NULL,
+      data       JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE INDEX IF NOT EXISTS idx_boards_user ON boards(user_id, updated_at DESC);
   `);
   schemaReady = true;
 }

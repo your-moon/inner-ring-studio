@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import {
   CaretDown,
   CaretRight,
+  ChartBar,
   Clock,
   CloudArrowUp,
   Database,
@@ -220,6 +221,29 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               >
                 <Clock className="mr-2 h-4 w-4" />
                 <span className="flex-1 text-left">Scheduled</span>
+                <span className="rounded bg-[#FFEB02]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#a07a00] dark:text-[#FFEB02]">
+                  Cloud
+                </span>
+              </Link>
+            )}
+
+            {/* Boards (dashboards) — Cloud-exclusive, with the same passive ghost. */}
+            {isCloud ? (
+              <SidebarMenuItem
+                text="Boards"
+                icon={ChartBar}
+                href="/boards"
+                selected={pathname.startsWith("/boards")}
+              />
+            ) : (
+              <Link
+                href="https://cloud.carrot-soft.tech/signup"
+                target="_blank"
+                className="hover:bg-secondary flex h-8 items-center p-2 pl-4 text-sm text-neutral-400"
+                title="Build live dashboards from your queries — available on Inner Ring Cloud"
+              >
+                <ChartBar className="mr-2 h-4 w-4" />
+                <span className="flex-1 text-left">Boards</span>
                 <span className="rounded bg-[#FFEB02]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#a07a00] dark:text-[#FFEB02]">
                   Cloud
                 </span>
