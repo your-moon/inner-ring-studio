@@ -229,6 +229,70 @@ export function cloudPool(): Pool {
   return pool();
 }
 
+/**
+ * Connections in OTHER workspaces the user belongs to — candidates to import
+ * into the active workspace (e.g. bring a Personal connection into a team one).
+ */
+export async function listImportableConnections(
+  userId: string,
+  currentWorkspaceId: string
+): Promise<{ id: string; name: string; driver: string; workspaceName: string }[]> {
+  await ensureSchema();
+  const res = await pool().query(
+    `SELECT c.id, c.name, c.driver, w.name AS workspace_name
+       FROM connections c
+       JOIN workspaces w ON w.id = c.workspace_id
+       JOIN workspace_members m ON m.workspace_id = c.workspace_id AND m.user_id = $1
+      WHERE c.workspace_id <> $2
+      ORDER BY w.personal DESC, w.name, c.name`,
+    [userId, currentWorkspaceId]
+  );
+  return res.rows.map((r: Record<string, unknown>) => ({
+    id: r.id as string,
+    name: r.name as string,
+    driver: r.driver as string,
+    workspaceName: r.workspace_name as string,
+  }));
+}
+
+/**
+ * Copy a connection (from any workspace the user belongs to) into the active
+ * workspace. Credentials never leave the server — the encrypted password blob is
+ * copied as-is (same IRS_CLOUD_KEY), so no decrypt/re-encrypt round trip.
+ */
+export async function importConnection(
+  userId: string,
+  currentWorkspaceId: string,
+  sourceId: string
+): Promise<SafeConnection | null> {
+  await ensureSchema();
+  const src = await pool().query(
+    `SELECT c.* FROM connections c
+       JOIN workspace_members m ON m.workspace_id = c.workspace_id AND m.user_id = $1
+      WHERE c.id = $2`,
+    [userId, sourceId]
+  );
+  const s = src.rows[0] as ConnRow | undefined;
+  if (!s) return null;
+  const id = newId();
+  try {
+    await pool().query(
+      `INSERT INTO connections
+         (id, user_id, workspace_id, name, driver, host, port, database, db_user,
+          password_enc, ssl, read_only, folder, timezone)
+       SELECT $1, $2, $3, name, driver, host, port, database, db_user,
+              password_enc, ssl, read_only, folder, timezone
+         FROM connections WHERE id = $4`,
+      [id, userId, currentWorkspaceId, sourceId]
+    );
+  } catch (e) {
+    if ((e as { code?: string }).code === "23505")
+      throw new Error(`A connection named "${s.name}" already exists in this workspace.`);
+    throw e;
+  }
+  return rowToSafe({ ...s, id });
+}
+
 /** Random opaque id, shared with the schedules module. */
 export function cloudNewId(): string {
   return newId();

@@ -5,6 +5,7 @@ import { scc } from "@/core/command";
 import { DatabaseSchemaItem } from "@/drivers/base-driver";
 import { triggerEditorExtensionTab } from "@/extensions/trigger-editor";
 import { ExportFormat, exportTableData } from "@/lib/export-helper";
+import { bumpTable, frecencyScores } from "@/lib/table-frecency";
 import { Icon, Table } from "@phosphor-icons/react";
 import { LucideCog, LucideDatabase, LucideView } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -119,6 +120,7 @@ function groupByFtsTable(items: ListViewItem<DatabaseSchemaItem>[]) {
 }
 
 export type TableSortMode =
+  | "frecency"
   | "name-asc"
   | "name-desc"
   | "size-asc"
@@ -126,12 +128,18 @@ export type TableSortMode =
 
 function sortTable(
   items: ListViewItem<DatabaseSchemaItem>[],
-  mode: TableSortMode = "name-asc"
+  mode: TableSortMode = "name-asc",
+  scores: Record<string, number> = {}
 ) {
   const size = (x: ListViewItem<DatabaseSchemaItem>) =>
     x.data?.tableSchema?.stats?.sizeInByte ?? -1;
   return [...items].sort((a, b) => {
     switch (mode) {
+      case "frecency": {
+        // Most-used first; tables never opened (score 0) fall back to A→Z.
+        const diff = (scores[b.name] ?? 0) - (scores[a.name] ?? 0);
+        return diff !== 0 ? diff : a.name.localeCompare(b.name);
+      }
       case "name-desc":
         return b.name.localeCompare(a.name);
       case "size-asc":
@@ -178,7 +186,7 @@ async function downloadExportTable(
 
 export default function SchemaList({
   search,
-  sortMode: initialSortMode = "name-asc",
+  sortMode: initialSortMode = "frecency",
 }: Readonly<SchemaListProps>) {
   const { databaseDriver, extensions } = useStudioContext();
   const [selected, setSelected] = useState("");
@@ -194,6 +202,13 @@ export default function SchemaList({
       (window.localStorage.getItem(sortKey) as TableSortMode) || initialSortMode
     );
   });
+
+  // Frecency scores (zoxide-style) for the "Most used" default sort. Bumped when
+  // a table is opened; kept in state so re-sorting is instant.
+  const [scores, setScores] = useState<Record<string, number>>({});
+  useEffect(() => {
+    setScores(frecencyScores(pathname));
+  }, [pathname]);
   const changeSort = useCallback(
     (m: TableSortMode) => {
       setSortMode(m);
@@ -321,6 +336,7 @@ export default function SchemaList({
         {
           title: "Sort tables",
           sub: [
+            { title: (sortMode === "frecency" ? "✓ " : "") + "Most used", onClick: () => changeSort("frecency") },
             { title: (sortMode === "name-asc" ? "✓ " : "") + "Name (A → Z)", onClick: () => changeSort("name-asc") },
             { title: (sortMode === "name-desc" ? "✓ " : "") + "Name (Z → A)", onClick: () => changeSort("name-desc") },
             { title: (sortMode === "size-desc" ? "✓ " : "") + "Size (largest first)", onClick: () => changeSort("size-desc") },
@@ -351,11 +367,13 @@ export default function SchemaList({
             groupByFtsTable(
               groupTriggerByTable(prepareListViewItem(tables, maxTableSize))
             ),
-            sortMode
+            sortMode,
+            scores
           ),
         } as ListViewItem<DatabaseSchemaItem>;
       }),
-      sortMode
+      sortMode,
+      scores
     );
 
     if (databaseDriver.getFlags().optionalSchema) {
@@ -364,7 +382,7 @@ export default function SchemaList({
       return flattenSchemaGroup(r);
     }
     return r;
-  }, [schema, currentSchemaName, databaseDriver, sortMode]);
+  }, [schema, currentSchemaName, databaseDriver, sortMode, scores]);
 
   // Every key in the tree — used to force-expand while searching (the ListView's
   // "collapsedKeys" set is actually the set of EXPANDED keys; see its renderer).
@@ -409,6 +427,8 @@ export default function SchemaList({
         onSelectChange={setSelected}
         onDoubleClick={(item) => {
           if (item.data.type === "table" || item.data.type === "view") {
+            bumpTable(pathname, item.data.name);
+            setScores(frecencyScores(pathname));
             scc.tabs.openBuiltinTable({
               schemaName: item.data.schemaName ?? "",
               tableName: item.data.name,

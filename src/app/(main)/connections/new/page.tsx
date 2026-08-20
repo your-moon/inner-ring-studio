@@ -1,8 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NavigationLayout from "../../nav-layout";
+
+interface Importable {
+  id: string;
+  name: string;
+  driver: string;
+  workspaceName: string;
+}
 
 type Driver = "postgres" | "mysql" | "clickhouse";
 
@@ -44,6 +51,36 @@ export default function NewConnectionPage() {
   const [testResult, setTestResult] = useState<null | { ok: boolean; msg: string }>(
     null
   );
+
+  // Connections in the caller's OTHER workspaces — importable into this one.
+  const [importable, setImportable] = useState<Importable[]>([]);
+  const [importSel, setImportSel] = useState("");
+  useEffect(() => {
+    fetch("/api/connections/import")
+      .then((r) => r.json())
+      .then((j) => setImportable(j.connections ?? []))
+      .catch(() => {});
+  }, []);
+
+  async function importConn() {
+    if (!importSel) return;
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/connections/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceId: importSel }),
+      });
+      const j = await res.json();
+      if (res.ok && j.connection) router.push(`/vault/${j.connection.id}`);
+      else setError(j.error || "Failed to import");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const set = (k: keyof Fields, v: string | boolean) =>
     setF((prev) => ({ ...prev, [k]: v }));
@@ -152,6 +189,47 @@ export default function NewConnectionPage() {
         <p className="mb-6 text-sm text-neutral-500">
           Connect to your own database. Credentials are stored encrypted in the vault.
         </p>
+
+        {importable.length > 0 && (
+          <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-900/40">
+            <label className="mb-1 block text-sm font-medium">
+              Import from another workspace
+            </label>
+            <p className="mb-3 text-xs text-neutral-500">
+              Copy a connection you already have — credentials come along, no
+              retyping.
+            </p>
+            <div className="flex gap-2">
+              <select
+                className="irs-select flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950"
+                value={importSel}
+                onChange={(e) => setImportSel(e.target.value)}
+              >
+                <option value="">Choose a connection…</option>
+                {Array.from(new Set(importable.map((c) => c.workspaceName))).map(
+                  (ws) => (
+                    <optgroup key={ws} label={ws}>
+                      {importable
+                        .filter((c) => c.workspaceName === ws)
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} ({c.driver})
+                          </option>
+                        ))}
+                    </optgroup>
+                  )
+                )}
+              </select>
+              <button
+                onClick={importConn}
+                disabled={busy || !importSel}
+                className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              >
+                Import
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-3">
           <div>

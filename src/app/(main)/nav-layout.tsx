@@ -212,18 +212,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               </>
             )}
 
-            <SidebarMenuItem
-              selected={pathname === "/local"}
-              text="All connections"
-              icon={Database}
-              href="/local"
-            />
-            <SidebarMenuItem
-              text="New connection"
-              icon={Plus}
-              href="/connections/new"
-              selected={pathname === "/connections/new"}
-            />
+            <SidebarMenuHeader text="Workspace" />
 
             {/* Scheduled queries + alerts — a Cloud-exclusive feature. In
                 self-hosted/desktop it shows as a quiet, non-nagging ghost that
@@ -273,9 +262,21 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               </Link>
             )}
 
-            <SidebarMenuHeader text="Settings" />
+            <SidebarMenuHeader text="Manage" />
             <SidebarMenuItem
-              text="Connections"
+              selected={pathname === "/local"}
+              text="All connections"
+              icon={Database}
+              href="/local"
+            />
+            <SidebarMenuItem
+              text="New connection"
+              icon={Plus}
+              href="/connections/new"
+              selected={pathname === "/connections/new"}
+            />
+            <SidebarMenuItem
+              text="Connection status"
               icon={PlugsConnected}
               href="/connections"
               selected={pathname === "/connections"}
