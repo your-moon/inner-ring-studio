@@ -23,6 +23,10 @@ export default function VaultStudioClient() {
     "postgres" | "clickhouse" | "mysql"
   >("postgres");
   const [notFound, setNotFound] = useState(false);
+  // Gate mounting until we know the connection's real driver — otherwise Studio
+  // briefly mounts with the default (postgres) driver and fires postgres schema
+  // queries against e.g. a ClickHouse connection ("couldn't load tables").
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -37,6 +41,7 @@ export default function VaultStudioClient() {
           setName(found.name);
           if (found.driver === "clickhouse") setDriverName("clickhouse");
           else if (found.driver === "mysql") setDriverName("mysql");
+          setReady(true);
         } else setNotFound(true);
       })
       .catch(() => alive && setNotFound(true));
@@ -69,6 +74,15 @@ export default function VaultStudioClient() {
       <div className="p-8">
         No vault connection with id <code>{id}</code>. Add one with{" "}
         <code>pmsql conn add</code>.
+      </div>
+    );
+  }
+
+  // Wait for the driver to be resolved before mounting Studio.
+  if (!ready) {
+    return (
+      <div className="flex h-screen items-center justify-center text-sm text-neutral-500">
+        Connecting…
       </div>
     );
   }

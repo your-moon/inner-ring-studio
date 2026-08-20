@@ -23,11 +23,13 @@ import {
 } from "@/drivers/base-driver";
 import { KEY_BINDING } from "@/lib/key-matcher";
 import { commitChange } from "@/lib/sql/sql-execute-helper";
+import { escapeSqlValue } from "@/drivers/sqlite/sql-helper";
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import {
   LucideArrowLeft,
   LucideArrowRight,
   LucideRefreshCcw,
+  LucideX,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -70,6 +72,43 @@ export default function TableDataWindow({
   const [where, setWhere] = useState("");
   const [whereInput, setWhereInput] = useState("");
 
+  // Per-column search → real SERVER-SIDE WHERE (searches the whole table, not
+  // just loaded rows). Combined with the manual `where` filter below.
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+
+  const effectiveWhere = useMemo(() => {
+    const dialect = databaseDriver.getFlags().dialect;
+    const clause = (col: string, term: string): string => {
+      const val = escapeSqlValue(`%${term}%`);
+      if (dialect === "mysql") {
+        return "`" + col.replace(/`/g, "``") + "` LIKE " + val;
+      }
+      const q = '"' + col.replace(/"/g, '""') + '"';
+      // CAST(... AS TEXT) ILIKE works on both Postgres and ClickHouse.
+      return dialect === "postgres"
+        ? `CAST(${q} AS TEXT) ILIKE ${val}`
+        : `${q} LIKE ${val}`;
+    };
+    const parts: string[] = [];
+    if (where.trim()) parts.push(`(${where})`);
+    for (const [col, term] of Object.entries(columnFilters)) {
+      if (term.trim()) parts.push(clause(col, term.trim()));
+    }
+    return parts.join(" AND ");
+  }, [where, columnFilters, databaseDriver]);
+
+  const onColumnFilterChange = useCallback((col: string, term: string) => {
+    setColumnFilters((prev) => {
+      const next = { ...prev };
+      if (term.trim()) next[col] = term;
+      else delete next[col];
+      return next;
+    });
+    // A new search starts from the first page.
+    setFinalOffset(0);
+    setOffset("0");
+  }, []);
+
   const [offset, setOffset] = useState("0");
   const [limit, setLimit] = useState("50");
 
@@ -92,7 +131,7 @@ export default function TableDataWindow({
       try {
         const { data: dataResult, schema: schemaResult } =
           await databaseDriver.selectTable(schemaName, tableName, {
-            whereRaw: where,
+            whereRaw: effectiveWhere,
             limit: finalLimit,
             offset: finalOffset,
             orderBy: sortColumns,
@@ -130,7 +169,7 @@ export default function TableDataWindow({
     sortColumns,
     updateTableSchema,
     setStat,
-    where,
+    effectiveWhere,
     finalOffset,
     finalLimit,
     revision,
@@ -375,6 +414,39 @@ export default function TableDataWindow({
             <pre>{error}</pre>
           </div>
         )}
+        {Object.entries(columnFilters).some(([, v]) => v.trim()) && (
+          <div className="flex flex-wrap items-center gap-1.5 border-b border-neutral-200 bg-neutral-50 px-3 py-1.5 dark:border-neutral-800 dark:bg-neutral-900/50">
+            <span className="text-xs text-neutral-500">Filters:</span>
+            {Object.entries(columnFilters)
+              .filter(([, v]) => v.trim())
+              .map(([col, term]) => (
+                <span
+                  key={col}
+                  className="flex items-center gap-1 rounded-full bg-[#FFEB02]/20 py-0.5 pr-1 pl-2 text-xs"
+                >
+                  <span className="font-medium">{col}</span>
+                  <span className="text-neutral-500">contains “{term}”</span>
+                  <button
+                    onClick={() => onColumnFilterChange(col, "")}
+                    className="rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
+                    title="Remove filter"
+                  >
+                    <LucideX className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            <button
+              onClick={() => {
+                setColumnFilters({});
+                setFinalOffset(0);
+                setOffset("0");
+              }}
+              className="ml-1 text-xs text-neutral-500 underline hover:text-neutral-800 dark:hover:text-neutral-200"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
         {data && !error ? (
           <ResultTable
             data={data}
@@ -383,6 +455,8 @@ export default function TableDataWindow({
             sortColumns={sortColumns}
             onSortColumnChange={setSortColumns}
             visibleColumnIndexList={columnIndexList}
+            columnFilters={columnFilters}
+            onColumnFilterChange={onColumnFilterChange}
           />
         ) : null}
       </div>

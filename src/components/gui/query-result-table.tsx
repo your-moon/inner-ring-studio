@@ -17,11 +17,14 @@ import {
   LucidePinOff,
   LucideSortAsc,
   LucideSortDesc,
+  LucideX,
 } from "lucide-react";
 import React, {
   PropsWithChildren,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -42,6 +45,59 @@ interface ResultTableProps {
   sortColumns?: ColumnSortOption[];
   visibleColumnIndexList?: number[];
   onScrollToBottom?: () => void;
+  // When provided (table browsing), per-column search runs SERVER-SIDE: the
+  // parent turns each term into a WHERE ... LIKE and re-queries. Without it
+  // (ad-hoc query results), column search falls back to a client-side filter of
+  // the loaded rows.
+  columnFilters?: Record<string, string>;
+  onColumnFilterChange?: (column: string, term: string) => void;
+}
+
+/** Debounced per-column search box with a clear (×) button. */
+function ColumnSearchInput({
+  name,
+  value,
+  onCommit,
+}: {
+  name: string;
+  value: string;
+  onCommit: (term: string) => void;
+}) {
+  const [text, setText] = useState(value);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Re-sync when the value is cleared/changed from outside (e.g. the chips bar).
+  useEffect(() => setText(value), [value]);
+  const commit = useCallback(
+    (v: string, immediate = false) => {
+      setText(v);
+      if (timer.current) clearTimeout(timer.current);
+      if (immediate) return onCommit(v);
+      timer.current = setTimeout(() => onCommit(v), 350);
+    },
+    [onCommit]
+  );
+  return (
+    <div className="relative">
+      <input
+        value={text}
+        onChange={(e) => commit(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit(text, true);
+        }}
+        placeholder={`Search ${name}…`}
+        className="w-full rounded border border-neutral-300 bg-white py-1 pr-6 pl-2 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950"
+      />
+      {text && (
+        <button
+          onClick={() => commit("", true)}
+          title="Clear"
+          className="absolute top-1/2 right-1 -translate-y-1/2 rounded p-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+        >
+          <LucideX className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </div>
+  );
 }
 
 function Header({
@@ -133,7 +189,11 @@ export default function ResultTable({
   onSortColumnChange,
   visibleColumnIndexList,
   onScrollToBottom,
+  columnFilters,
+  onColumnFilterChange,
 }: ResultTableProps) {
+  // Server mode: the parent runs the search as a DB WHERE and re-queries.
+  const serverSearch = !!onColumnFilterChange;
   const [stickyHeaderIndex, setStickHeaderIndex] = useState<number>();
   const [detailFields, setDetailFields] = useState<RowDetailField[] | null>(
     null
@@ -155,6 +215,8 @@ export default function ResultTable({
   const [columnSearch, setColumnSearch] = useState<Record<string, string>>({});
 
   const displayData = useMemo(() => {
+    // In server mode the DB already filtered, so never filter client-side.
+    if (serverSearch) return data;
     const active = Object.entries(columnSearch).filter(([, v]) => v.trim());
     if (active.length === 0) return data;
     const headers = data.getHeaders();
@@ -172,7 +234,7 @@ export default function ResultTable({
     const st = new OptimizeTableState(headers, rows);
     st.setReadOnlyMode(true);
     return st;
-  }, [data, columnSearch]);
+  }, [data, columnSearch, serverSearch]);
 
   const headerIndex = useMemo(() => {
     if (visibleColumnIndexList) return visibleColumnIndexList;
@@ -218,13 +280,17 @@ export default function ResultTable({
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <input
-              value={columnSearch[header.name] ?? ""}
-              onChange={(e) =>
-                setColumnSearch((s) => ({ ...s, [header.name]: e.target.value }))
+            <ColumnSearchInput
+              name={header.name}
+              value={
+                serverSearch
+                  ? columnFilters?.[header.name] ?? ""
+                  : columnSearch[header.name] ?? ""
               }
-              placeholder={`Search ${header.name}…`}
-              className="w-full rounded border border-neutral-300 bg-white px-2 py-1 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950"
+              onCommit={(term) => {
+                if (serverSearch) onColumnFilterChange!(header.name, term);
+                else setColumnSearch((s) => ({ ...s, [header.name]: term }));
+              }}
             />
           </div>
           <DropdownMenuSeparator />
@@ -263,7 +329,7 @@ export default function ResultTable({
         </Header>
       );
     },
-    [displayData, tableName, stickyHeaderIndex, onSortColumnChange, extensions, columnSearch]
+    [displayData, tableName, stickyHeaderIndex, onSortColumnChange, extensions, columnSearch, serverSearch, columnFilters, onColumnFilterChange]
   );
 
   const onHeaderContextMenu = useCallback((e: React.MouseEvent) => {
