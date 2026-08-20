@@ -43,7 +43,7 @@ export default function BoardSourcePicker({
       <select
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 rounded-lg border border-neutral-300 bg-white pr-3 pl-8 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-900"
+        className="irs-select h-9 rounded-lg border border-neutral-300 bg-white pl-8 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-900"
       >
         {list.length === 0 && <option value="">No connections</option>}
         {list.map((s) => (

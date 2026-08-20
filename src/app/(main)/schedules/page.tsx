@@ -143,7 +143,7 @@ function CreateForm({
           </div>
           <div className="w-56">
             <label className="mb-1 block text-sm font-medium">Connection</label>
-            <select className={input} value={connectionId} onChange={(e) => setConnectionId(e.target.value)}>
+            <select className={input + " irs-select"} value={connectionId} onChange={(e) => setConnectionId(e.target.value)}>
               {connections.length === 0 && <option value="">No connections</option>}
               {connections.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -184,11 +184,11 @@ function CreateForm({
           <div className="mb-2 text-sm font-medium">Alert (optional)</div>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="text-neutral-500">Notify me when</span>
-            <select style={{ width: "9.5rem" }} className={input} value={metric} onChange={(e) => setMetric(e.target.value as "rowcount" | "value")}>
+            <select style={{ width: "9.5rem" }} className={input + " irs-select"} value={metric} onChange={(e) => setMetric(e.target.value as "rowcount" | "value")}>
               <option value="rowcount">row count</option>
               <option value="value">first value</option>
             </select>
-            <select style={{ width: "7.5rem" }} className={input} value={op} onChange={(e) => setOp(e.target.value as AlertOp | "")}>
+            <select style={{ width: "7.5rem" }} className={input + " irs-select"} value={op} onChange={(e) => setOp(e.target.value as AlertOp | "")}>
               <option value="">— no alert —</option>
               {(Object.keys(OP_LABEL) as AlertOp[]).map((o) => (
                 <option key={o} value={o}>

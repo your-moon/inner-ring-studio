@@ -138,7 +138,7 @@ export default function WorkspacePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <select className={input} value={role} onChange={(e) => setRole(e.target.value as "editor" | "viewer")}>
+              <select className={input + " irs-select"} value={role} onChange={(e) => setRole(e.target.value as "editor" | "viewer")}>
                 <option value="editor">Editor</option>
                 <option value="viewer">Viewer</option>
               </select>
@@ -181,7 +181,7 @@ export default function WorkspacePage() {
                   <span className="text-xs font-medium text-neutral-500">Owner</span>
                 ) : isOwner ? (
                   <select
-                    className={input + " py-1"}
+                    className={input + " py-1 irs-select"}
                     value={m.role}
                     onChange={(e) => changeRole(m.userId, e.target.value)}
                   >
