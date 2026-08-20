@@ -971,3 +971,20 @@
   background-size: 1rem;
   padding-right: 2rem;
 }
+
+/* Desktop (Electron) seamless title bar: the OS chrome bar is hidden, so reserve
+   space at the very top of the sidebar for the inset traffic lights and turn the
+   empty area into a window-drag region. Interactive controls opt back out. */
+[data-desktop] .irs-sidebar-top {
+  padding-top: 22px;
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+[data-desktop] .irs-sidebar-top a,
+[data-desktop] .irs-sidebar-top button,
+[data-desktop] .irs-sidebar-top input,
+[data-desktop] .irs-sidebar-top select,
+[data-desktop] .irs-sidebar-top kbd {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}

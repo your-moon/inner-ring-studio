@@ -274,23 +274,28 @@ export async function importConnection(
   );
   const s = src.rows[0] as ConnRow | undefined;
   if (!s) return null;
+
+  // Pick a name that doesn't collide in the target workspace — importing the
+  // same connection twice just makes "name (2)", never an error.
+  const existing = await pool().query(
+    "SELECT name FROM connections WHERE workspace_id = $1",
+    [currentWorkspaceId]
+  );
+  const taken = new Set(existing.rows.map((r: { name: string }) => r.name));
+  let name = s.name;
+  for (let n = 2; taken.has(name); n++) name = `${s.name} (${n})`;
+
   const id = newId();
-  try {
-    await pool().query(
-      `INSERT INTO connections
-         (id, user_id, workspace_id, name, driver, host, port, database, db_user,
-          password_enc, ssl, read_only, folder, timezone)
-       SELECT $1, $2, $3, name, driver, host, port, database, db_user,
-              password_enc, ssl, read_only, folder, timezone
-         FROM connections WHERE id = $4`,
-      [id, userId, currentWorkspaceId, sourceId]
-    );
-  } catch (e) {
-    if ((e as { code?: string }).code === "23505")
-      throw new Error(`A connection named "${s.name}" already exists in this workspace.`);
-    throw e;
-  }
-  return rowToSafe({ ...s, id });
+  await pool().query(
+    `INSERT INTO connections
+       (id, user_id, workspace_id, name, driver, host, port, database, db_user,
+        password_enc, ssl, read_only, folder, timezone)
+     SELECT $1, $2, $3, $5, driver, host, port, database, db_user,
+            password_enc, ssl, read_only, folder, timezone
+       FROM connections WHERE id = $4`,
+    [id, userId, currentWorkspaceId, sourceId, name]
+  );
+  return rowToSafe({ ...s, id, name });
 }
 
 /** Random opaque id, shared with the schedules module. */
