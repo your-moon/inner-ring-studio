@@ -1,8 +1,25 @@
 "use client";
 
+import {
+  ArrowClockwise,
+  Database,
+  DotsThreeVertical,
+  Lightning,
+  LightningSlash,
+  PencilSimple,
+  PlugsConnected,
+  Trash,
+} from "@phosphor-icons/react";
 import Link from "next/link";
 import { useCallback } from "react";
 import useSWR from "swr";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import NavigationLayout from "../nav-layout";
 
 interface ConnRow {
@@ -13,6 +30,12 @@ interface ConnRow {
   readOnly?: boolean;
   status: { connected: boolean; total: number; idle: number; waiting: number };
 }
+
+const DRIVER_LABEL: Record<string, string> = {
+  postgres: "PostgreSQL",
+  mysql: "MySQL",
+  clickhouse: "ClickHouse",
+};
 
 export default function ConnectionManagerPage() {
   const { data, mutate } = useSWR<{ connections: ConnRow[] }>(
@@ -39,6 +62,17 @@ export default function ConnectionManagerPage() {
     [mutate]
   );
 
+  const del = useCallback(
+    async (id: string, name: string) => {
+      if (!window.confirm(`Delete connection "${name}"?`)) return;
+      await fetch(`/api/connections?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }).catch(() => {});
+      mutate();
+    },
+    [mutate]
+  );
+
   const rows = data?.connections ?? [];
 
   return (
@@ -50,100 +84,113 @@ export default function ConnectionManagerPage() {
           disconnect to close the pool.
         </p>
 
-        <div className="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-neutral-500 dark:bg-neutral-900">
-              <tr>
-                <th className="px-4 py-2 font-medium">Connection</th>
-                <th className="px-4 py-2 font-medium">Status</th>
-                <th className="px-4 py-2 font-medium">Pool</th>
-                <th className="px-4 py-2 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 && (
-                <tr>
-                  <td className="px-4 py-6 text-neutral-500" colSpan={4}>
-                    No connections yet.
-                  </td>
-                </tr>
-              )}
-              {rows.map((c) => (
-                <tr
-                  key={c.id}
-                  className="border-t border-neutral-100 dark:border-neutral-800"
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2 font-medium">
-                      {c.name}
-                      {c.readOnly && (
-                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:bg-amber-900/40 dark:text-amber-300">
-                          read-only
-                        </span>
-                      )}
-                    </div>
-                    {c.folder && (
-                      <div className="text-xs text-neutral-400">{c.folder}</div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span
-                        className={
-                          "inline-block h-2 w-2 rounded-full " +
-                          (c.status.connected ? "bg-green-500" : "bg-neutral-300 dark:bg-neutral-600")
-                        }
-                      />
-                      {c.status.connected ? "Connected" : "Idle"}
+        {rows.length === 0 && (
+          <div className="rounded-xl border border-dashed border-neutral-300 p-12 text-center text-sm text-neutral-500 dark:border-neutral-700">
+            No connections yet.
+          </div>
+        )}
+
+        <div className="space-y-2.5">
+          {rows.map((c) => (
+            <div
+              key={c.id}
+              className="flex items-center gap-4 rounded-xl border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 dark:bg-neutral-800">
+                <Database size={18} />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="truncate font-semibold">{c.name}</span>
+                  {c.readOnly && (
+                    <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide whitespace-nowrap text-amber-700 uppercase dark:bg-amber-900/40 dark:text-amber-300">
+                      read-only
                     </span>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-neutral-500">
+                  )}
+                </div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-xs text-neutral-400">
+                  <span>{DRIVER_LABEL[c.driver] ?? c.driver}</span>
+                  {c.folder && (
+                    <>
+                      <span>·</span>
+                      <span>{c.folder}</span>
+                    </>
+                  )}
+                  <span>·</span>
+                  <span className="font-mono">
                     {c.status.total} open · {c.status.idle} idle
-                  </td>
-                  <td className="px-4 py-3 text-right">
+                  </span>
+                </div>
+              </div>
+
+              {/* status */}
+              <span className="flex shrink-0 items-center gap-1.5 text-xs text-neutral-500">
+                <span
+                  className={
+                    "inline-block h-2 w-2 rounded-full " +
+                    (c.status.connected
+                      ? "bg-green-500"
+                      : "bg-neutral-300 dark:bg-neutral-600")
+                  }
+                />
+                {c.status.connected ? "Connected" : "Idle"}
+              </span>
+
+              {/* primary action + overflow */}
+              <div className="flex shrink-0 items-center gap-1">
+                <button
+                  onClick={() => act(c.id, "test")}
+                  title="Retry / reconnect"
+                  className="flex items-center gap-1.5 rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-medium hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                >
+                  <ArrowClockwise size={13} /> Retry
+                </button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <button
-                      onClick={() => act(c.id, "readonly", !c.readOnly)}
-                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-amber-500 hover:text-amber-600 dark:border-neutral-700"
+                      title="More"
+                      className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                     >
-                      {c.readOnly ? "Make writable" : "Make read-only"}
+                      <DotsThreeVertical size={18} weight="bold" />
                     </button>
-                    <button
-                      onClick={() => act(c.id, "test")}
-                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-[#e0cf00] dark:border-neutral-700"
-                    >
-                      Retry
-                    </button>
-                    <button
-                      onClick={() => act(c.id, "disconnect")}
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem onClick={() => act(c.id, "readonly", !c.readOnly)}>
+                      {c.readOnly ? (
+                        <>
+                          <Lightning className="mr-2 h-4 w-4" /> Make writable
+                        </>
+                      ) : (
+                        <>
+                          <LightningSlash className="mr-2 h-4 w-4" /> Make read-only
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       disabled={!c.status.connected}
-                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-red-500 hover:text-red-500 disabled:opacity-40 dark:border-neutral-700"
+                      onClick={() => act(c.id, "disconnect")}
                     >
-                      Disconnect
-                    </button>
-                    <Link
-                      href={`/connections/${c.id}/edit`}
-                      className="mr-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-[#e0cf00] dark:border-neutral-700"
+                      <PlugsConnected className="mr-2 h-4 w-4" /> Disconnect
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href={`/connections/${c.id}/edit`}>
+                        <PencilSimple className="mr-2 h-4 w-4" /> Edit
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => del(c.id, c.name)}
+                      className="text-red-600 focus:text-red-600 dark:text-red-400"
                     >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={async () => {
-                        if (!window.confirm(`Delete connection "${c.name}"?`)) return;
-                        await fetch(
-                          `/api/connections?id=${encodeURIComponent(c.id)}`,
-                          { method: "DELETE" }
-                        ).catch(() => {});
-                        mutate();
-                      }}
-                      className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-red-500 hover:text-red-500 dark:border-neutral-700"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      <Trash className="mr-2 h-4 w-4" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </NavigationLayout>
