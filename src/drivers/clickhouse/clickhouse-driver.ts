@@ -3,6 +3,7 @@ import {
   DatabaseSchemaItem,
   DatabaseSchemas,
   DatabaseTableColumn,
+  DatabaseTableSchema,
 } from "../base-driver";
 
 const CH_SYS = "('system','information_schema','INFORMATION_SCHEMA')";
@@ -76,5 +77,42 @@ export default class ClickhouseDriver extends PostgresLikeDriver {
     }
 
     return schemas;
+  }
+
+  /**
+   * Single-table schema for the grid. The inherited Postgres version queries
+   * information_schema.constraint_column_usage, which ClickHouse doesn't have —
+   * so read columns from system.columns and report no constraints (ClickHouse
+   * has no SQL PK/FK constraints).
+   */
+  async tableSchema(
+    schemaName: string,
+    tableName: string
+  ): Promise<DatabaseTableSchema> {
+    const colRes = await this.query(
+      `SELECT name, type FROM system.columns WHERE database = ${this.escapeValue(
+        schemaName
+      )} AND table = ${this.escapeValue(tableName)} ORDER BY position`
+    );
+    const sizeRes = await this.query(
+      `SELECT total_bytes FROM system.tables WHERE database = ${this.escapeValue(
+        schemaName
+      )} AND name = ${this.escapeValue(tableName)}`
+    );
+    const size = Number(sizeRes.rows[0]?.total_bytes ?? 0) || 0;
+
+    return {
+      columns: colRes.rows.map((c) => ({
+        name: c.name as string,
+        type: c.type as string,
+        constraint: { notNull: !/Nullable/.test(String(c.type ?? "")) },
+      })),
+      constraints: [],
+      pk: [],
+      autoIncrement: false,
+      schemaName,
+      tableName,
+      stats: { sizeInByte: size },
+    };
   }
 }
