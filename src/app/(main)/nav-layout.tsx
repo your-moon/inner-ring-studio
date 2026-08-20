@@ -43,6 +43,42 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
   }>("/api/auth/me", (u: string) => fetch(u).then((r) => r.json()));
   const isCloud = me?.mode === "cloud";
 
+  // Linked mode (desktop): status of the browser-based cloud connection.
+  const { data: link, mutate: mutateLink } = useSWR<{
+    linked: boolean;
+    signedIn: boolean;
+    email: string | null;
+    cloudUrl: string | null;
+  }>("/api/cloud-link", (u: string) => fetch(u).then((r) => r.json()));
+  const linked = !!link?.linked;
+  const cloudSignedIn = linked && !!link?.signedIn;
+  // Cloud features (Boards/Scheduled/etc.) are live when we're the cloud OR a
+  // linked desktop that's signed in (requests get forwarded to the cloud).
+  const cloudUi = isCloud || cloudSignedIn;
+
+  const connectCloud = useCallback(async () => {
+    const j = await fetch("/api/cloud-link/start")
+      .then((r) => r.json())
+      .catch(() => null);
+    if (!j?.url) return;
+    window.open(j.url, "_blank");
+    // Poll for the callback to land, then refresh the nav.
+    let n = 0;
+    const t = setInterval(async () => {
+      n++;
+      const s = await fetch("/api/cloud-link").then((r) => r.json()).catch(() => null);
+      if (s?.signedIn || n > 150) {
+        clearInterval(t);
+        mutateLink();
+      }
+    }, 2000);
+  }, [mutateLink]);
+
+  const disconnectCloud = useCallback(async () => {
+    await fetch("/api/cloud-link", { method: "DELETE" }).catch(() => {});
+    mutateLink();
+  }, [mutateLink]);
+
   const signOut = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     router.replace("/login");
@@ -214,10 +250,42 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
 
             <SidebarMenuHeader text="Workspace" />
 
-            {/* Scheduled queries + alerts — a Cloud-exclusive feature. In
-                self-hosted/desktop it shows as a quiet, non-nagging ghost that
-                points at Cloud (passive marketing). */}
-            {isCloud ? (
+            {/* Linked desktop: browser-based cloud sign-in unlocks the cloud
+                features below (requests are forwarded to the cloud; DB queries
+                still run locally). */}
+            {linked && !cloudSignedIn && (
+              <button
+                onClick={connectCloud}
+                className="mx-3 mb-1 flex items-center gap-2 rounded-lg border border-[#FFEB02]/50 bg-[#FFEB02]/10 px-3 py-2 text-left text-sm font-medium text-[#8a6d00] hover:bg-[#FFEB02]/20 dark:text-[#FFEB02]"
+                title="Sign in to your cloud account in the browser"
+              >
+                <CloudArrowUp className="h-4 w-4" />
+                <span className="flex-1">Connect to Cloud</span>
+              </button>
+            )}
+            {cloudSignedIn && (
+              <div className="mx-3 mb-1 flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-xs">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />
+                <span
+                  className="flex-1 truncate text-neutral-600 dark:text-neutral-300"
+                  title={link?.email ?? ""}
+                >
+                  {link?.email}
+                </span>
+                <button
+                  onClick={disconnectCloud}
+                  className="shrink-0 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                  title="Disconnect from Cloud"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Scheduled queries + alerts — a Cloud feature. In self-hosted/
+                desktop-without-cloud it shows as a quiet ghost that points at
+                Cloud (passive marketing). */}
+            {cloudUi ? (
               <SidebarMenuItem
                 text="Scheduled"
                 icon={Clock}
@@ -239,8 +307,8 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               </Link>
             )}
 
-            {/* Boards (dashboards) — Cloud-exclusive, with the same passive ghost. */}
-            {isCloud ? (
+            {/* Boards (dashboards) — Cloud feature, with the same passive ghost. */}
+            {cloudUi ? (
               <SidebarMenuItem
                 text="Boards"
                 icon={ChartBar}

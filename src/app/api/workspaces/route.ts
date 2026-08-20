@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
 import { getAuthContext } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
 import { createWorkspace, listMyWorkspaces } from "@/lib/workspaces";
@@ -15,7 +16,8 @@ async function userId(): Promise<string | Response> {
   return auth.userId;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   const uid = await userId();
   if (uid instanceof Response) return uid;
   const workspaces = await listMyWorkspaces(uid);
@@ -23,6 +25,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   const uid = await userId();
   if (uid instanceof Response) return uid;
   const body = (await req.json().catch(() => ({}))) as { name?: string };

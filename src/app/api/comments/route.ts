@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
 import { IS_CLOUD } from "@/lib/mode";
 import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
 import { addComment, deleteComment, listComments } from "@/lib/comments";
@@ -16,6 +17,7 @@ async function guard(): Promise<WorkspaceContext | Response> {
 }
 
 export async function GET(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   const g = await guard();
   if (g instanceof Response) return g;
   const url = new URL(req.url);
@@ -29,6 +31,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   const g = await guard();
   if (g instanceof Response) return g;
   // Any member (viewer included) can comment — that's the collaboration point.
@@ -61,6 +64,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   const g = await guard();
   if (g instanceof Response) return g;
   const id = new URL(req.url).searchParams.get("id") ?? "";

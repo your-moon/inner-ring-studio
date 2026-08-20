@@ -11,6 +11,7 @@ import {
 } from "./connection-store";
 import { decryptSecret, encryptSecret } from "./crypto";
 import { SafeConnection, VaultConnection } from "./vault";
+import { createSessionToken } from "./auth";
 
 /**
  * Cloud-mode persistence: a dedicated Postgres holding user accounts and each
@@ -188,6 +189,17 @@ export async function ensureSchema(): Promise<void> {
     );
     CREATE INDEX IF NOT EXISTS idx_snap_ws ON shared_snapshots(workspace_id, created_at DESC);
 
+    -- Desktop link codes: one-time codes minted during browser-based sign-in so
+    -- a desktop app can pick up a cloud session without the long-lived token
+    -- ever appearing in a URL. Short-lived and single-use.
+    CREATE TABLE IF NOT EXISTS link_codes (
+      code       TEXT PRIMARY KEY,
+      token      TEXT NOT NULL,
+      email      TEXT NOT NULL,
+      used       BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
     -- Workspace migration: add workspace_id to every resource, then backfill
     -- each user's data into a personal workspace. All statements are idempotent
     -- (guarded by IF NOT EXISTS / IS NULL / NOT EXISTS), so this runs safely on
@@ -301,6 +313,44 @@ export async function importConnection(
 /** Random opaque id, shared with the schedules module. */
 export function cloudNewId(): string {
   return newId();
+}
+
+/**
+ * Mint a one-time link code for browser-based desktop sign-in. Stores a fresh
+ * session token keyed by an opaque code; the desktop exchanges the code
+ * server-to-server so the token never rides in a URL.
+ */
+export async function createLinkCode(
+  userId: string
+): Promise<{ code: string; email: string } | null> {
+  await ensureSchema();
+  const u = await getUserById(userId);
+  if (!u) return null;
+  const token = await createSessionToken(userId);
+  const code = newId() + newId();
+  await pool().query(
+    "INSERT INTO link_codes (code, token, email) VALUES ($1, $2, $3)",
+    [code, token, u.email]
+  );
+  return { code, email: u.email };
+}
+
+/**
+ * Redeem a link code (single-use, 5-minute TTL). The UPDATE...RETURNING marks it
+ * used atomically, so a replayed code returns nothing.
+ */
+export async function consumeLinkCode(
+  code: string
+): Promise<{ token: string; email: string } | null> {
+  await ensureSchema();
+  const res = await pool().query(
+    `UPDATE link_codes SET used = true
+      WHERE code = $1 AND used = false AND created_at > now() - interval '5 minutes'
+      RETURNING token, email`,
+    [code]
+  );
+  const r = res.rows[0] as { token: string; email: string } | undefined;
+  return r ?? null;
 }
 
 function newId(): string {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
 import { IS_CLOUD } from "@/lib/mode";
 import { requireWorkspace } from "@/lib/workspace-context";
 import { roleAtLeast } from "@/lib/workspaces";
@@ -19,7 +20,8 @@ function cloudOnly(): Response | null {
   return null;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   const gate = cloudOnly();
   if (gate) return gate;
   const ctx = await requireWorkspace();
@@ -29,6 +31,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   const gate = cloudOnly();
   if (gate) return gate;
   const ctx = await requireWorkspace();

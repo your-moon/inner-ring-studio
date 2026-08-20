@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
 import { IS_CLOUD } from "@/lib/mode";
 import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
 import { roleAtLeast } from "@/lib/workspaces";
@@ -13,7 +14,8 @@ async function guard(): Promise<WorkspaceContext | Response> {
   return requireWorkspace();
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   const g = await guard();
   if (g instanceof Response) return g;
   const boards = await listBoards(g.workspaceId);
@@ -21,6 +23,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   const g = await guard();
   if (g instanceof Response) return g;
   if (!roleAtLeast(g.role, "editor"))

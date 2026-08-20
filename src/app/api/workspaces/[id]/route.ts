@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
 import { getAuthContext } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
 import { deleteWorkspace, renameWorkspace } from "@/lib/workspaces";
@@ -19,6 +20,7 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (IS_LINKED) return forwardToCloud(req);
   const uid = await userId();
   if (uid instanceof Response) return uid;
   const { id } = await params;
@@ -34,6 +36,7 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (IS_LINKED) return forwardToCloud(_req);
   const uid = await userId();
   if (uid instanceof Response) return uid;
   const { id } = await params;

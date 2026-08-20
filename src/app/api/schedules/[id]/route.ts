@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
 import { IS_CLOUD } from "@/lib/mode";
 import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
 import { roleAtLeast } from "@/lib/workspaces";
@@ -26,6 +27,7 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (IS_LINKED) return forwardToCloud(_req);
   const g = await guard();
   if (g instanceof Response) return g;
   const { id } = await params;
@@ -39,6 +41,7 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (IS_LINKED) return forwardToCloud(req);
   const g = await guard();
   if (g instanceof Response) return g;
   if (!roleAtLeast(g.role, "editor"))
@@ -64,6 +67,7 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (IS_LINKED) return forwardToCloud(_req);
   const g = await guard();
   if (g instanceof Response) return g;
   if (!roleAtLeast(g.role, "editor"))

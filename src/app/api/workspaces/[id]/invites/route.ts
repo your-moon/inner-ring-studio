@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
 import { getAuthContext } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
 import { createInvite, type Role } from "@/lib/workspaces";
@@ -12,6 +13,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (IS_LINKED) return forwardToCloud(req);
   if (!IS_CLOUD)
     return NextResponse.json({ error: "Cloud feature." }, { status: 404 });
   const auth = await getAuthContext();

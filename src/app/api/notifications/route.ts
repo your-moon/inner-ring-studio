@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
 import { requireAuth } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
 import {
@@ -10,7 +11,8 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   // Non-cloud has no notifications — return an empty, quiet payload so the nav
   // bell can call this unconditionally without special-casing the mode.
   if (!IS_CLOUD) return NextResponse.json({ notifications: [], unread: 0 });
@@ -25,6 +27,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (IS_LINKED) return forwardToCloud(req);
   if (!IS_CLOUD) return NextResponse.json({ ok: true });
   const auth = await requireAuth();
   if (auth instanceof Response) return auth;
