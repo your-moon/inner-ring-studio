@@ -13,6 +13,7 @@ import {
   CloudArrowUp,
   Database,
   List,
+  MagnifyingGlass,
   Plus,
   PlugsConnected,
 } from "@phosphor-icons/react";
@@ -153,10 +154,11 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
 
         <button
           onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
-          className="mx-3 mb-2 flex items-center gap-2 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-left text-sm text-neutral-400 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
+          className="mx-3 mb-2 flex items-center gap-2 rounded-lg border border-neutral-200 px-3.5 py-2 text-left text-sm text-neutral-400 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
         >
+          <MagnifyingGlass size={14} className="shrink-0" />
           <span className="flex-1">Search…</span>
-          <kbd className="rounded border border-neutral-200 px-1.5 py-0.5 text-[10px] dark:border-neutral-700">⌘K</kbd>
+          <kbd className="shrink-0 rounded border border-neutral-200 px-1.5 py-0.5 text-[10px] dark:border-neutral-700">⌘K</kbd>
         </button>
 
         {mobileToggle && (

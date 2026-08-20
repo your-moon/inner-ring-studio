@@ -178,13 +178,33 @@ async function downloadExportTable(
 
 export default function SchemaList({
   search,
-  sortMode = "name-asc",
+  sortMode: initialSortMode = "name-asc",
 }: Readonly<SchemaListProps>) {
   const { databaseDriver, extensions } = useStudioContext();
   const [selected, setSelected] = useState("");
   const { refresh, schema, currentSchemaName } = useSchema();
   const [editSchema, setEditSchema] = useState<string | null>(null);
   const pathname = usePathname();
+
+  // Table sort order, remembered per connection (right-click a schema to change).
+  const sortKey = `pmsql.schemaSort:${pathname}`;
+  const [sortMode, setSortMode] = useState<TableSortMode>(() => {
+    if (typeof window === "undefined") return initialSortMode;
+    return (
+      (window.localStorage.getItem(sortKey) as TableSortMode) || initialSortMode
+    );
+  });
+  const changeSort = useCallback(
+    (m: TableSortMode) => {
+      setSortMode(m);
+      try {
+        window.localStorage.setItem(sortKey, m);
+      } catch {
+        /* ignore */
+      }
+    },
+    [sortKey]
+  );
 
   // Persist the expanded/collapsed state of the DB tree per connection so it
   // survives reloads (DBeaver-like navigator behavior).
@@ -298,10 +318,20 @@ export default function SchemaList({
         ...modificationSection,
         modificationSection.length > 0 ? { separator: true } : undefined,
 
+        {
+          title: "Sort tables",
+          sub: [
+            { title: (sortMode === "name-asc" ? "✓ " : "") + "Name (A → Z)", onClick: () => changeSort("name-asc") },
+            { title: (sortMode === "name-desc" ? "✓ " : "") + "Name (Z → A)", onClick: () => changeSort("name-desc") },
+            { title: (sortMode === "size-desc" ? "✓ " : "") + "Size (largest first)", onClick: () => changeSort("size-desc") },
+            { title: (sortMode === "size-asc" ? "✓ " : "") + "Size (smallest first)", onClick: () => changeSort("size-asc") },
+          ],
+        },
+        { separator: true },
         { title: "Refresh", onClick: () => refresh() },
       ].filter(Boolean) as OpenContextMenuList;
     },
-    [refresh, databaseDriver, currentSchemaName, extensions, exportFormats]
+    [refresh, databaseDriver, currentSchemaName, extensions, exportFormats, sortMode, changeSort]
   );
 
   const listViewItems = useMemo(() => {

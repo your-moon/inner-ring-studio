@@ -38,6 +38,7 @@ import SavedViewsButton from "../table-result/saved-views-button";
 import ImportCsvDialog from "../import-csv-dialog";
 import AggregateResultButton from "../aggregate-result/aggregate-result-button";
 import ExportResultButton from "../export/export-result-button";
+import ShareResultButton from "../share/share-result-button";
 import OpacityLoading from "../loading-opacity";
 import ResultStats from "../result-stat";
 import OptimizeTableState from "../table-optimized/optimize-table-state";
@@ -466,6 +467,7 @@ export default function TableDataWindow({
             <div>
               <ExportResultButton data={data} />
             </div>
+            <ShareResultButton data={data} />
             <ResultStats stats={stat} />
           </div>
           <div className="p-1 pr-3">
