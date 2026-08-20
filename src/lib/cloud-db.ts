@@ -278,6 +278,18 @@ export async function createUser(
     }
     throw e;
   }
+  // Give the new account a personal workspace + owner membership. The boot
+  // migration only backfills users that existed when it ran, so a fresh signup
+  // must provision its own — otherwise every workspace-scoped API 401s.
+  const wsId = newId();
+  await pool().query(
+    "INSERT INTO workspaces (id, name, owner_id, personal) VALUES ($1, 'Personal', $2, true)",
+    [wsId, id]
+  );
+  await pool().query(
+    "INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, 'owner')",
+    [wsId, id]
+  );
   return { id, email: normalized };
 }
 
