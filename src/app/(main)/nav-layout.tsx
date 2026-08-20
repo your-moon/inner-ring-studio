@@ -19,7 +19,7 @@ import {
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { PropsWithChildren, useCallback, useEffect, useState } from "react";
+import { PropsWithChildren, useCallback, useState } from "react";
 import { SignOut, User } from "@phosphor-icons/react";
 import useSWR from "swr";
 import NavConnectionItem, { NavConnection } from "./nav-connection-item";
@@ -31,14 +31,6 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
   const [mobileToggle, setMobileToggle] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-
-  // In the Electron desktop app the OS title bar is hidden (seamless look), so
-  // mark the document for the desktop-only drag region + traffic-light spacing.
-  useEffect(() => {
-    if (navigator.userAgent.includes("Electron")) {
-      document.documentElement.dataset.desktop = "1";
-    }
-  }, []);
 
   // Auth state — drives the cloud user menu (email + account + sign out).
   const { data: me } = useSWR<{
@@ -134,7 +126,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
   return (
     <div className="flex w-screen flex-col lg:h-screen lg:flex-row">
       <CommandPalette />
-      <div className="irs-sidebar-top bg-background sticky top-0 z-25 flex w-full shrink-0 flex-col overflow-hidden border-r-0 border-b lg:w-[250px] lg:border-r lg:border-b-0">
+      <div className="bg-background sticky top-0 z-25 flex w-full shrink-0 flex-col overflow-hidden border-r-0 border-b lg:w-[250px] lg:border-r lg:border-b-0">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/local" className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-neutral-800 dark:border-neutral-200">
