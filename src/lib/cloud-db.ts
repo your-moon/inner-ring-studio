@@ -232,6 +232,23 @@ export async function ensureSchema(): Promise<void> {
     UPDATE boards b            SET workspace_id = (SELECT id FROM workspaces w WHERE w.owner_id = b.user_id AND w.personal LIMIT 1) WHERE b.workspace_id IS NULL;
     UPDATE scheduled_queries s SET workspace_id = (SELECT id FROM workspaces w WHERE w.owner_id = s.user_id AND w.personal LIMIT 1) WHERE s.workspace_id IS NULL;
     UPDATE row_comments r      SET workspace_id = (SELECT id FROM workspaces w WHERE w.owner_id = r.user_id AND w.personal LIMIT 1) WHERE r.workspace_id IS NULL;
+
+    -- Connection names are unique PER WORKSPACE, not per user: the same database
+    -- may live in two workspaces (e.g. importing it from Personal into a team
+    -- workspace). Drop the old user-wide unique constraint and scope it to the
+    -- workspace. Runs after the backfill so every row already has workspace_id.
+    -- The inner block is guarded so a pre-existing duplicate (two members having
+    -- named a connection the same in one shared workspace) can never break boot.
+    ALTER TABLE connections DROP CONSTRAINT IF EXISTS connections_user_id_name_key;
+    DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'connections_workspace_id_name_key') THEN
+        BEGIN
+          ALTER TABLE connections ADD CONSTRAINT connections_workspace_id_name_key UNIQUE (workspace_id, name);
+        EXCEPTION WHEN unique_violation THEN
+          RAISE NOTICE 'connections_workspace_id_name_key not added: duplicate names exist in a workspace';
+        END;
+      END IF;
+    END $$;
   `);
   schemaReady = true;
 }
