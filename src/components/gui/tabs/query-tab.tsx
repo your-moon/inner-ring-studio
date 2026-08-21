@@ -1,7 +1,7 @@
 import { PromptSelectedFragment } from "@/components/editor/prompt-plugin";
 import SqlEditor from "@/components/gui/sql-editor";
 import OpacityLoading from "@/components/gui/loading-opacity";
-import { addHistory, getHistory } from "@/lib/query-history";
+import { addHistory } from "@/lib/query-history";
 import { usePathname } from "next/navigation";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -28,7 +28,11 @@ import {
   SavedDocData,
   SavedDocInput,
 } from "@/drivers/saved-doc/saved-doc-driver";
-import { escapeSqlValue, extractInputValue } from "@/drivers/sqlite/sql-helper";
+import {
+  discoverPlaceholders,
+  prepareStatements,
+  sqlAltersSchema,
+} from "@/lib/query-plan";
 import { KEY_BINDING } from "@/lib/key-matcher";
 import {
   multipleQuery,
@@ -37,7 +41,6 @@ import {
 } from "@/lib/sql/multiple-query";
 import { sendAnalyticEvents } from "@/lib/tracking";
 import { cn } from "@/lib/utils";
-import { tokenizeSql } from "@outerbase/sdk-transform";
 import { CaretDown } from "@phosphor-icons/react";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import {
@@ -58,8 +61,13 @@ import {
 } from "../sql-editor/statement-highlight";
 import ExplainResultTab from "../tabs-result/explain-result-tab";
 import QueryResult from "../tabs-result/query-result-tab";
-import WindowTabs, { useTabsContext, WindowTabItemProps } from "../windows-tab";
+import WindowTabs, {
+  useCurrentTab,
+  useTabsContext,
+  WindowTabItemProps,
+} from "../windows-tab";
 import { QueryPlaceholder } from "./query-placeholder";
+import QueryHistoryPalette from "./query-history-palette";
 
 interface QueryWindowProps {
   initialCode?: string;
@@ -88,10 +96,27 @@ export default function QueryWindow({
     return initialCode ?? "";
   });
   const [isRunning, setIsRunning] = useState(false);
-  const [historyList, setHistoryList] = useState<
-    ReturnType<typeof getHistory>
-  >([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const { isActiveTab } = useCurrentTab();
   const editorRef = useRef<ReactCodeMirrorRef>(null);
+
+  // ⌘⇧H / Ctrl+Shift+H opens the query-history quick-open palette. Guarded by
+  // isActiveTab so only the visible query tab responds (all tabs stay mounted).
+  useEffect(() => {
+    if (!isActiveTab) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.shiftKey &&
+        e.key.toLowerCase() === "h"
+      ) {
+        e.preventDefault();
+        setHistoryOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isActiveTab]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -125,18 +150,14 @@ export default function QueryWindow({
   useEffect(() => {
     const timer = setTimeout(() => {
       setPlaceholders((prev) => {
-        const newPlaceholders: Record<string, string> = {};
-        const token = tokenizeSql(code, databaseDriver.getFlags().dialect);
-
-        const foundPlaceholders = token
-          .filter((t) => t.type === "PLACEHOLDER")
-          .map((t) => t.value.slice(1));
-
-        for (const foundPlaceholder of foundPlaceholders) {
-          newPlaceholders[foundPlaceholder] = prev[foundPlaceholder] ?? "";
+        const next: Record<string, string> = {};
+        for (const name of discoverPlaceholders(
+          code,
+          databaseDriver.getFlags().dialect
+        )) {
+          next[name] = prev[name] ?? "";
         }
-
-        return newPlaceholders;
+        return next;
       });
     }, 1000);
 
@@ -157,132 +178,62 @@ export default function QueryWindow({
   };
 
   const onRunClicked = (all = false, explained = false) => {
-    let finalStatements: string[] = [];
-
     const editorState = editorRef.current?.view?.state;
-
     if (!editorState) return;
 
+    // Pick the statements to run from the editor (CodeMirror-coupled).
+    let statements: string[];
     if (all) {
-      finalStatements = splitSqlQuery(editorState).map((q) => q.text);
+      statements = splitSqlQuery(editorState).map((q) => q.text);
     } else {
       const segment = resolveToNearestStatement(editorState);
       if (!segment) return;
+      const statement = editorState.doc.sliceString(segment.from, segment.to);
+      statements = statement ? [statement] : [];
+    }
+    if (statements.length === 0) return;
 
-      let statement = editorState.doc.sliceString(segment.from, segment.to);
-
-      if (
-        explained &&
-        statement.toLowerCase().indexOf("explain query plan") !== 0
-      ) {
-        if (databaseDriver.getFlags().dialect === "sqlite") {
-          statement = "explain query plan " + statement;
-        } else if (databaseDriver.getFlags().dialect === "mysql") {
-          statement = "explain format=json " + statement;
-        } else if (databaseDriver.getFlags().dialect === "postgres") {
-          statement = "explain (format json) " + statement;
-        }
-      }
-
-      if (statement) {
-        finalStatements = [statement];
-      }
+    // Prepare (explain-prefix + placeholder substitution). On failure, surface
+    // it and stop before any loading state is set.
+    const prepared = prepareStatements(statements, {
+      dialect: databaseDriver.getFlags().dialect,
+      explained,
+      placeholders,
+    });
+    if (!prepared.ok) {
+      if (prepared.analytics) sendAnalyticEvents(prepared.analytics);
+      toast.error(prepared.message);
+      return;
     }
 
-    if (finalStatements.length > 0) {
-      // Record each executed statement in the per-connection query history.
-      for (const stmt of finalStatements) addHistory(pathname, stmt);
+    // Record the pre-substitution statements (placeholder values never enter
+    // history), then run the substituted ones.
+    for (const stmt of prepared.history) addHistory(pathname, stmt);
 
-      // Keep the previous result visible while the new query runs; only replace
-      // it once the new result is ready (a loading overlay shows meanwhile).
-      setProgress(undefined);
-      setQueryTabIndex(0);
-      setIsRunning(true);
+    // Keep the previous result visible while the new query runs; only replace
+    // it once the new result is ready (a loading overlay shows meanwhile).
+    setProgress(undefined);
+    setQueryTabIndex(0);
+    setIsRunning(true);
 
-      for (let i = 0; i < finalStatements.length; i++) {
-        const token = tokenizeSql(
-          finalStatements[i],
-          databaseDriver.getFlags().dialect
-        );
-
-        // Defensive measurement
-        if (token.join("") === finalStatements[i]) {
-          sendAnalyticEvents([
-            { name: "tokenize_mismatch", data: { token, finalStatements } },
-          ]);
-
-          toast.error("Failed to tokenize SQL statement");
-
-          return;
-        }
-
-        const variables = token
-          .filter((t) => t.type === "PLACEHOLDER")
-          .map((t) => t.value.slice(1));
-
+    multipleQuery(
+      databaseDriver,
+      prepared.run,
+      (currentProgress) => setProgress(currentProgress),
+      { paginatePageSize: 200 }
+    )
+      .then(({ result: completeQueryResult, logs: completeLogs }) => {
+        setData(completeQueryResult);
         if (
-          variables.length > 0 &&
-          variables.some((p) => placeholders[p] === "")
-        ) {
-          toast.error("Please fill in all placeholders");
-          return;
-        }
-
-        finalStatements[i] = token
-          .map((t) => {
-            if (t.type === "PLACEHOLDER") {
-              return escapeSqlValue(
-                extractInputValue(placeholders[t.value.slice(1)])
-              );
-            }
-            return t.value;
+          sqlAltersSchema(completeLogs, {
+            supportUseStatement: databaseDriver.getFlags().supportUseStatement,
           })
-          .join("");
-      }
-
-      multipleQuery(
-        databaseDriver,
-        finalStatements,
-        (currentProgress) => {
-          setProgress(currentProgress);
-        },
-        { paginatePageSize: 200 }
-      )
-        .then(({ result: completeQueryResult, logs: completeLogs }) => {
-          setData(completeQueryResult);
-
-          // Check if sql contain any CREATE/DROP
-          let hasAlterSchema = false;
-          for (const log of completeLogs) {
-            if (
-              log.sql.trim().substring(0, "create ".length).toLowerCase() ===
-              "create "
-            ) {
-              hasAlterSchema = true;
-              break;
-            } else if (
-              log.sql.trim().substring(0, "drop ".length).toLowerCase() ===
-              "drop "
-            ) {
-              hasAlterSchema = true;
-              break;
-            } else if (
-              databaseDriver.getFlags().supportUseStatement &&
-              log.sql.trim().substring(0, "use ".length).toLowerCase() ===
-                "use "
-            ) {
-              hasAlterSchema = true;
-              break;
-            }
-          }
-
-          if (hasAlterSchema) {
-            refreshSchema();
-          }
-        })
-        .catch(console.error)
-        .finally(() => setIsRunning(false));
-    }
+        ) {
+          refreshSchema();
+        }
+      })
+      .catch(console.error)
+      .finally(() => setIsRunning(false));
   };
 
   const onSaveComplete = useCallback(
@@ -415,44 +366,42 @@ export default function QueryWindow({
                 />
               )}
 
-              <DropdownMenu
-                onOpenChange={(open) => {
-                  if (open) setHistoryList(getHistory(pathname));
-                }}
+              <button
+                className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
+                title="Query history (⌘⇧H)"
+                onClick={() => setHistoryOpen(true)}
               >
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className={cn(
-                      buttonVariants({ size: "sm", variant: "ghost" })
-                    )}
-                    title="Query history"
-                  >
-                    <LucideHistory className="mr-2 h-4 w-4" />
-                    History
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="max-h-80 w-[28rem] overflow-auto">
-                  {historyList.length === 0 && (
-                    <DropdownMenuItem disabled>No history yet</DropdownMenuItem>
-                  )}
-                  {historyList.map((h, i) => (
-                    <DropdownMenuItem
-                      key={i}
-                      onClick={() => setCode(h.sql)}
-                      className="flex items-center gap-2"
-                    >
-                      <span className="flex-1 truncate font-mono text-xs">
-                        {h.sql}
-                      </span>
-                      {h.count > 1 && (
-                        <span className="shrink-0 rounded bg-neutral-100 px-1.5 text-[10px] text-neutral-500 dark:bg-neutral-800">
-                          ×{h.count}
-                        </span>
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                <LucideHistory className="mr-2 h-4 w-4" />
+                History
+              </button>
+
+              <QueryHistoryPalette
+                open={historyOpen}
+                onClose={() => setHistoryOpen(false)}
+                scope={pathname}
+                onPick={(sql) => {
+                  const view = editorRef.current?.view;
+                  if (view) {
+                    // Append below the current SQL (blank line between) and put
+                    // the cursor at the end, in ONE transaction — text + caret
+                    // land together, so there's no reconcile race. onChange
+                    // syncs `code` state. Trailing whitespace is collapsed.
+                    const base = view.state.doc.toString().replace(/\s+$/, "");
+                    const next = base ? `${base}\n\n${sql}` : sql;
+                    view.dispatch({
+                      changes: { from: 0, to: view.state.doc.length, insert: next },
+                      selection: { anchor: next.length },
+                      scrollIntoView: true,
+                    });
+                    view.focus();
+                  } else {
+                    setCode((prev) => {
+                      const base = prev.replace(/\s+$/, "");
+                      return base ? `${base}\n\n${sql}` : sql;
+                    });
+                  }
+                }}
+              />
 
               <div className="flex">
                 <button

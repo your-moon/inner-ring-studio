@@ -2,6 +2,8 @@
 // was opened, so the tables you actually work in float to the top. Kept per
 // connection in localStorage (client-only).
 
+import { frecencyScore } from "./frecency";
+
 interface Entry {
   count: number;
   last: number;
@@ -35,24 +37,14 @@ export function bumpTable(connKey: string, table: string) {
   write(connKey, store);
 }
 
-// zoxide's recency weighting: recent accesses count for much more than old ones.
-function ageFactor(ageMs: number): number {
-  const HOUR = 3_600_000;
-  const DAY = 86_400_000;
-  const WEEK = 604_800_000;
-  if (ageMs < HOUR) return 4;
-  if (ageMs < DAY) return 2;
-  if (ageMs < WEEK) return 0.5;
-  return 0.25;
-}
-
-/** Frecency score per table name (higher = more used). Unseen tables are absent. */
+/** Frecency score per table name (higher = more used). Unseen tables are absent.
+ *  Ranking shared with the query-history sort (src/lib/frecency.ts). */
 export function frecencyScores(connKey: string): Record<string, number> {
   const store = read(connKey);
   const now = Date.now();
   const out: Record<string, number> = {};
   for (const [t, e] of Object.entries(store)) {
-    out[t] = e.count * ageFactor(now - e.last);
+    out[t] = frecencyScore(e.count, e.last, now);
   }
   return out;
 }

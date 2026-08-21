@@ -1,6 +1,8 @@
 // Per-connection SQL query history with zoxide-style frecency ranking
 // (frequently + recently run queries surface first). Stored in localStorage.
 
+import { frecencyScore } from "./frecency";
+
 export interface QueryHistoryEntry {
   sql: string;
   at: number;
@@ -20,18 +22,16 @@ function read(scope: string): QueryHistoryEntry[] {
     if (!raw) return [];
     const list = JSON.parse(raw) as QueryHistoryEntry[];
     // Back-compat with entries saved before `count` existed.
-    return list.map((e) => ({ count: 1, ...e }));
+    return list.map((e) => ({ ...e, count: e.count ?? 1 }));
   } catch {
     return [];
   }
 }
 
-// zoxide-like frecency: frequency weighted by how recently it was last used.
+// Frecency ranking shared with the table-usage sort (src/lib/frecency.ts), so
+// the two rankers stay in lockstep.
 function frecency(e: QueryHistoryEntry, now: number): number {
-  const ageHours = (now - e.at) / 3_600_000;
-  const recency =
-    ageHours < 1 ? 4 : ageHours < 24 ? 2 : ageHours < 24 * 7 ? 1 : 0.5;
-  return e.count * recency;
+  return frecencyScore(e.count, e.at, now);
 }
 
 /** History for a connection, ranked most-run-and-recent first. */
@@ -61,6 +61,17 @@ export function addHistory(scope: string, sql: string): void {
     window.localStorage.setItem(key(scope), JSON.stringify(capped));
   } catch {
     /* ignore quota errors */
+  }
+}
+
+/** Remove a single query from history by its exact SQL. */
+export function deleteHistory(scope: string, sql: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const kept = read(scope).filter((e) => e.sql !== sql);
+    window.localStorage.setItem(key(scope), JSON.stringify(kept));
+  } catch {
+    /* ignore */
   }
 }
 
