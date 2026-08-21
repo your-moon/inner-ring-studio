@@ -66,9 +66,9 @@ export default function useCodeEditorTheme({
           { tag: [t.keyword, t.strong, t.standard(t.name)], color: "#3498db" },
           { tag: t.comment, color: "#27ae60" },
           { tag: t.definition(t.typeName), color: "#27ae60" },
-          { tag: t.typeName, color: "#194a7b" },
-          { tag: t.tagName, color: "#008a02" },
-          { tag: t.variableName, color: "#1a00db" },
+          { tag: t.typeName, color: "#4ec9b0" },
+          { tag: t.tagName, color: "#4ec9b0" },
+          { tag: t.variableName, color: "#9cdcfe" },
           { tag: t.string, color: "#e67e22" },
         ],
       });
