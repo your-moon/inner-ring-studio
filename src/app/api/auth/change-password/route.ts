@@ -1,37 +1,22 @@
-import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { authRoute, HttpError } from "@/lib/route";
 import { changePassword } from "@/lib/cloud-db";
-import { IS_CLOUD } from "@/lib/mode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** Change the signed-in user's password (cloud accounts only). */
-export async function POST(req: Request) {
-  const auth = await requireAuth();
-  if (auth instanceof Response) return auth;
-  if (!IS_CLOUD || !auth.userId) {
-    return NextResponse.json(
-      { error: "Only available for cloud accounts." },
-      { status: 400 }
-    );
+export const POST = authRoute(
+  {
+    cloudOnly: true,
+    whenNotCloud: () =>
+      Response.json({ error: "Only available for cloud accounts." }, { status: 400 }),
+  },
+  async ({ ctx, body }) => {
+    const { current, next } = body as { current?: string; next?: string };
+    if (!next || next.length < 8)
+      throw new HttpError(400, "New password must be at least 8 characters.");
+    const ok = await changePassword(ctx.userId!, current ?? "", next);
+    if (!ok) throw new HttpError(401, "Current password is incorrect.");
+    return { ok: true };
   }
-  const { current, next } = (await req.json().catch(() => ({}))) as {
-    current?: string;
-    next?: string;
-  };
-  if (!next || next.length < 8) {
-    return NextResponse.json(
-      { error: "New password must be at least 8 characters." },
-      { status: 400 }
-    );
-  }
-  const ok = await changePassword(auth.userId, current ?? "", next);
-  if (!ok) {
-    return NextResponse.json(
-      { error: "Current password is incorrect." },
-      { status: 401 }
-    );
-  }
-  return NextResponse.json({ ok: true });
-}
+);

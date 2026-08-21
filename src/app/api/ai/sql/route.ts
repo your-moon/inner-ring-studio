@@ -1,7 +1,6 @@
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { authRoute, HttpError } from "@/lib/route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,17 +14,9 @@ const run = promisify(execFile);
  * whichever machine serves this route (the user's machine for the local/desktop
  * app; the host for the hosted instance).
  */
-export async function POST(req: Request) {
-  const auth = await requireAuth();
-  if (auth instanceof Response) return auth;
-
-  const { prompt, schema } = (await req.json().catch(() => ({}))) as {
-    prompt?: string;
-    schema?: string;
-  };
-  if (!prompt) {
-    return NextResponse.json({ error: "prompt required" }, { status: 400 });
-  }
+export const POST = authRoute({}, async ({ body }) => {
+  const { prompt, schema } = body as { prompt?: string; schema?: string };
+  if (!prompt) throw new HttpError(400, "prompt required");
 
   const instructions = [
     "You are a PostgreSQL expert. Generate exactly ONE valid PostgreSQL query",
@@ -47,13 +38,13 @@ export async function POST(req: Request) {
       .replace(/^```\s*/, "")
       .replace(/```$/, "")
       .trim();
-    return NextResponse.json({ sql });
+    return { sql };
   } catch (e) {
     const err = e as { code?: string; stderr?: string; message?: string };
     const message =
       err.code === "ENOENT"
         ? "Claude CLI not found on the server. Install it and run `claude login`."
         : err.stderr || err.message || String(e);
-    return NextResponse.json({ error: message }, { status: 400 });
+    throw new HttpError(400, message);
   }
-}
+});
