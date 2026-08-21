@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE, createSessionToken } from "@/lib/auth";
-import { createUser } from "@/lib/cloud-db";
+import { createUser } from "@/lib/cloud-users";
 import { IS_CLOUD } from "@/lib/mode";
 
 export const runtime = "nodejs";

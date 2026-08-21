@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { authEnabled, getAuthContext } from "@/lib/auth";
-import { getUserById } from "@/lib/cloud-db";
+import { getUserById } from "@/lib/cloud-users";
 import { IS_CLOUD } from "@/lib/mode";
 import { getWorkspaceContext } from "@/lib/workspace-context";
 import { listMyWorkspaces } from "@/lib/workspaces";

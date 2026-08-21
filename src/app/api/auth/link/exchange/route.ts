@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { IS_CLOUD } from "@/lib/mode";
-import { consumeLinkCode } from "@/lib/cloud-db";
+import { consumeLinkCode } from "@/lib/cloud-link-codes";
 import { SESSION_COOKIE } from "@/lib/auth";
 
 export const runtime = "nodejs";

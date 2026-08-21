@@ -6,7 +6,7 @@ import {
   createSessionToken,
   verifyPassword,
 } from "@/lib/auth";
-import { authenticateUser } from "@/lib/cloud-db";
+import { authenticateUser } from "@/lib/cloud-users";
 import { IS_CLOUD } from "@/lib/mode";
 
 export const runtime = "nodejs";

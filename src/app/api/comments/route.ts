@@ -1,6 +1,6 @@
 import { workspaceRoute, HttpError } from "@/lib/route";
 import { addComment, deleteComment, listComments } from "@/lib/comments";
-import { getUserById } from "@/lib/cloud-db";
+import { getUserById } from "@/lib/cloud-users";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -1,5 +1,5 @@
 import { authRoute, HttpError } from "@/lib/route";
-import { createLinkCode } from "@/lib/cloud-db";
+import { createLinkCode } from "@/lib/cloud-link-codes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -1,8 +1,4 @@
-import {
-  randomBytes,
-  scryptSync,
-  timingSafeEqual,
-} from "crypto";
+import { randomBytes } from "crypto";
 import { Pool } from "pg";
 import {
   AuthContext,
@@ -11,7 +7,6 @@ import {
 } from "./connection-store";
 import { decryptSecret, encryptSecret } from "./crypto";
 import { SafeConnection, VaultConnection } from "./vault";
-import { createSessionToken } from "./auth";
 
 /**
  * Cloud-mode persistence: a dedicated Postgres holding user accounts and each
@@ -332,160 +327,10 @@ export function cloudNewId(): string {
   return newId();
 }
 
-/**
- * Mint a one-time link code for browser-based desktop sign-in. Stores a fresh
- * session token keyed by an opaque code; the desktop exchanges the code
- * server-to-server so the token never rides in a URL.
- */
-export async function createLinkCode(
-  userId: string
-): Promise<{ code: string; email: string } | null> {
-  await ensureSchema();
-  const u = await getUserById(userId);
-  if (!u) return null;
-  const token = await createSessionToken(userId);
-  const code = newId() + newId();
-  await pool().query(
-    "INSERT INTO link_codes (code, token, email) VALUES ($1, $2, $3)",
-    [code, token, u.email]
-  );
-  return { code, email: u.email };
-}
-
-/**
- * Redeem a link code (single-use, 5-minute TTL). The UPDATE...RETURNING marks it
- * used atomically, so a replayed code returns nothing.
- */
-export async function consumeLinkCode(
-  code: string
-): Promise<{ token: string; email: string } | null> {
-  await ensureSchema();
-  const res = await pool().query(
-    `UPDATE link_codes SET used = true
-      WHERE code = $1 AND used = false AND created_at > now() - interval '5 minutes'
-      RETURNING token, email`,
-    [code]
-  );
-  const r = res.rows[0] as { token: string; email: string } | undefined;
-  return r ?? null;
-}
-
 function newId(): string {
   return randomBytes(12).toString("hex");
 }
 
-// --------------------------- users / auth ---------------------------
-
-export interface CloudUser {
-  id: string;
-  email: string;
-}
-
-function hashPassword(password: string): string {
-  const salt = randomBytes(16);
-  const hash = scryptSync(password, salt, 64);
-  return `${salt.toString("hex")}:${hash.toString("hex")}`;
-}
-
-function verifyHash(password: string, stored: string): boolean {
-  const [saltHex, hashHex] = stored.split(":");
-  if (!saltHex || !hashHex) return false;
-  const expected = Buffer.from(hashHex, "hex");
-  const actual = scryptSync(password, Buffer.from(saltHex, "hex"), expected.length);
-  return actual.length === expected.length && timingSafeEqual(actual, expected);
-}
-
-/** Create a user; throws if the email is already registered. Returns the new user. */
-export async function createUser(
-  email: string,
-  password: string
-): Promise<CloudUser> {
-  await ensureSchema();
-  const id = newId();
-  const normalized = email.trim().toLowerCase();
-  try {
-    await pool().query(
-      "INSERT INTO users (id, email, password_hash) VALUES ($1, $2, $3)",
-      [id, normalized, hashPassword(password)]
-    );
-  } catch (e) {
-    if ((e as { code?: string }).code === "23505") {
-      throw new Error("An account with that email already exists.");
-    }
-    throw e;
-  }
-  // Give the new account a personal workspace + owner membership. The boot
-  // migration only backfills users that existed when it ran, so a fresh signup
-  // must provision its own — otherwise every workspace-scoped API 401s.
-  const wsId = newId();
-  await pool().query(
-    "INSERT INTO workspaces (id, name, owner_id, personal) VALUES ($1, 'Personal', $2, true)",
-    [wsId, id]
-  );
-  await pool().query(
-    "INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, 'owner')",
-    [wsId, id]
-  );
-  return { id, email: normalized };
-}
-
-/** Verify email+password; returns the user on success, null otherwise. */
-export async function authenticateUser(
-  email: string,
-  password: string
-): Promise<CloudUser | null> {
-  await ensureSchema();
-  const normalized = email.trim().toLowerCase();
-  const res = await pool().query(
-    "SELECT id, email, password_hash FROM users WHERE email = $1",
-    [normalized]
-  );
-  const row = res.rows[0];
-  if (!row) return null;
-  if (!verifyHash(password, row.password_hash)) return null;
-  return { id: row.id, email: row.email };
-}
-
-/** Look up a user by id (for the account page / session email). */
-export async function getUserById(id: string): Promise<CloudUser | null> {
-  await ensureSchema();
-  const res = await pool().query("SELECT id, email FROM users WHERE id = $1", [id]);
-  const row = res.rows[0];
-  return row ? { id: row.id, email: row.email } : null;
-}
-
-/** Change a user's password after verifying the current one. */
-export async function changePassword(
-  id: string,
-  current: string,
-  next: string
-): Promise<boolean> {
-  await ensureSchema();
-  const res = await pool().query(
-    "SELECT password_hash FROM users WHERE id = $1",
-    [id]
-  );
-  const row = res.rows[0];
-  if (!row || !verifyHash(current, row.password_hash)) return false;
-  await pool().query("UPDATE users SET password_hash = $1 WHERE id = $2", [
-    hashPassword(next),
-    id,
-  ]);
-  return true;
-}
-
-/** Delete a user (and, via ON DELETE CASCADE, all their connections). */
-export async function deleteUser(id: string, password: string): Promise<boolean> {
-  await ensureSchema();
-  const res = await pool().query(
-    "SELECT password_hash FROM users WHERE id = $1",
-    [id]
-  );
-  const row = res.rows[0];
-  if (!row || !verifyHash(password, row.password_hash)) return false;
-  await pool().query("DELETE FROM users WHERE id = $1", [id]);
-  return true;
-}
 
 // --------------------------- cloud connection store ---------------------------
 

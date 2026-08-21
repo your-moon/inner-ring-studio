@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth";
-import { getUserById } from "@/lib/cloud-db";
+import { getUserById } from "@/lib/cloud-users";
 import { IS_CLOUD } from "@/lib/mode";
 import { acceptInvite, getInvite } from "@/lib/workspaces";
 

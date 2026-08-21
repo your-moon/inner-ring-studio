@@ -1,14 +1,12 @@
 import { _resetKeyCache } from "./crypto";
+import { CloudConnectionStore, _closeCloudPool, ensureSchema } from "./cloud-db";
 import {
-  CloudConnectionStore,
-  _closeCloudPool,
   authenticateUser,
   changePassword,
   createUser,
   deleteUser,
-  ensureSchema,
   getUserById,
-} from "./cloud-db";
+} from "./cloud-users";
 import type { AuthContext } from "./connection-store";
 import { personalWorkspaceId } from "./workspaces";
 

@@ -1,5 +1,5 @@
 import { authRoute, HttpError } from "@/lib/route";
-import { changePassword } from "@/lib/cloud-db";
+import { changePassword } from "@/lib/cloud-users";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

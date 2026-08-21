@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { authRoute, HttpError } from "@/lib/route";
 import { SESSION_COOKIE } from "@/lib/auth";
-import { deleteUser } from "@/lib/cloud-db";
+import { deleteUser } from "@/lib/cloud-users";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
