@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "@phosphor-icons/react";
 import type { DashboardProps } from "@/components/board";
 
@@ -64,7 +65,11 @@ export default function BoardJsonDialog({
     }
   }
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  // Portal to <body>: mounted inside the board editor, this modal would otherwise
+  // be trapped under the editor's stacking context.
+  return createPortal(
     <>
       <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div
@@ -104,6 +109,7 @@ export default function BoardJsonDialog({
           </button>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

@@ -4,6 +4,7 @@ import { fuzzyRank } from "@/components/ui/fuzzy-rank";
 import { cn } from "@/lib/utils";
 import { LucideSearch } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 export { fuzzyRank, fuzzyScore } from "@/components/ui/fuzzy-rank";
 
@@ -78,14 +79,18 @@ export function QuickOpen<T>({
       ?.scrollIntoView({ block: "nearest" });
   }, [active]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const pick = (item: T) => {
     onPick(item);
     onClose();
   };
 
-  return (
+  // Portal to <body>: the palette is often mounted deep in a tab/panel subtree
+  // whose transforms + z-indexed layers would otherwise trap this fixed overlay
+  // (the editor and result grid would paint over it). At the body root it always
+  // covers the whole window.
+  return createPortal(
     <div
       className="fixed inset-0 z-[100] flex items-start justify-center bg-black/30 pt-[12vh] backdrop-blur-sm"
       onClick={onClose}
@@ -160,6 +165,7 @@ export function QuickOpen<T>({
 
         {footer}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

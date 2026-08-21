@@ -5,6 +5,7 @@ import { escapeSqlValue } from "@/drivers/sqlite/sql-helper";
 import { parseCsv } from "@/lib/csv";
 import { LucideUpload, LucideX } from "lucide-react";
 import { useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface Props {
   driver: BaseDriver;
@@ -98,7 +99,11 @@ export default function ImportCsvDialog({
   const select =
     "irs-select rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-950";
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  // Portal to <body> so the modal isn't trapped under the result grid's stacking
+  // context (this dialog is mounted deep in the table tab).
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center justify-between border-b border-neutral-200 p-4 dark:border-neutral-800">
@@ -191,6 +196,7 @@ export default function ImportCsvDialog({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
