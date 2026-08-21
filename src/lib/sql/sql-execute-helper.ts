@@ -1,72 +1,8 @@
-import OptimizeTableState, {
-  OptimizeTableRowValue,
-} from "@/components/gui/table-optimized/optimize-table-state";
-import {
-  BaseDriver,
-  DatabaseTableOperation,
-  DatabaseTableSchema,
-} from "@/drivers/base-driver";
+import OptimizeTableState from "@/components/gui/table-optimized/optimize-table-state";
+import { BaseDriver, DatabaseTableSchema } from "@/drivers/base-driver";
+import { generateTableChangePlan } from "./sql-change-plan";
 
-export interface ExecutePlan {
-  row: OptimizeTableRowValue;
-  plan: DatabaseTableOperation;
-}
-
-function generateTableChangePlan({
-  tableSchema,
-  data,
-}: {
-  tableSchema: DatabaseTableSchema;
-  data: OptimizeTableState;
-}): ExecutePlan[] {
-  const rowChangeList = data.getChangedRows();
-  const plans: ExecutePlan[] = [];
-
-  for (const row of rowChangeList) {
-    const rowChange = row.change;
-    if (rowChange) {
-      const pk = tableSchema.pk;
-
-      const wherePrimaryKey = pk.reduce<Record<string, unknown>>(
-        (condition, pkColumnName) => {
-          condition[pkColumnName] = row.raw[pkColumnName];
-          return condition;
-        },
-        {}
-      );
-
-      if (row.isNewRow) {
-        plans.push({
-          row,
-          plan: {
-            operation: "INSERT",
-            values: rowChange,
-            autoIncrementPkColumn: tableSchema.autoIncrement
-              ? tableSchema.pk[0]
-              : undefined,
-            pk: tableSchema.pk,
-          },
-        });
-      } else if (row.isRemoved) {
-        plans.push({
-          row,
-          plan: { operation: "DELETE", where: wherePrimaryKey },
-        });
-      } else {
-        plans.push({
-          row,
-          plan: {
-            operation: "UPDATE",
-            where: wherePrimaryKey,
-            values: rowChange,
-          },
-        });
-      }
-    }
-  }
-
-  return plans;
-}
+export type { ExecutePlan } from "./sql-change-plan";
 
 export async function commitChange({
   driver,
@@ -81,7 +17,7 @@ export async function commitChange({
 }): Promise<{ errorMessage?: string }> {
   const plans = generateTableChangePlan({
     tableSchema,
-    data,
+    rows: data.getChangedRows(),
   });
 
   try {
