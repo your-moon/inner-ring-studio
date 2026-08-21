@@ -21,11 +21,41 @@ exports[`generate table schema DDL — golden output across dialects alter: chan
   ],
   "postgres": [
     "ALTER TABLE "public"."users" ALTER COLUMN "age" TYPE bigint USING "age"::bigint",
-    "ALTER TABLE "public"."users" DROP CONSTRAINT IF EXISTS users_undefined_age_fkey",
-    "ALTER TABLE "public"."users" ADD CONSTRAINT users_undefined_age_fkey FOREIGN KEY ("age") REFERENCES "" (undefined)",
   ],
   "sqlite": [
     "ALTER TABLE "public"."users" ALTER COLUMN "age" TO "age" bigint",
+  ],
+}
+`;
+
+exports[`generate table schema DDL — golden output across dialects alter: change type of a foreign-key column (real constraint rewrite) 1`] = `
+{
+  "mysql": [
+    "ALTER TABLE \`public\`.\`orders\` MODIFY COLUMN \`user_id\` bigint REFERENCES \`users\`(\`id\`)",
+  ],
+  "postgres": [
+    "ALTER TABLE "public"."orders" ALTER COLUMN "user_id" TYPE bigint USING "user_id"::bigint",
+    "ALTER TABLE "public"."orders" DROP CONSTRAINT IF EXISTS orders_users_user_id_fkey",
+    "ALTER TABLE "public"."orders" ADD CONSTRAINT orders_users_user_id_fkey FOREIGN KEY ("user_id") REFERENCES "users" ("id")",
+  ],
+  "sqlite": [
+    "ALTER TABLE "public"."orders" ALTER COLUMN "user_id" TO "user_id" bigint REFERENCES "users"("id")",
+  ],
+}
+`;
+
+exports[`generate table schema DDL — golden output across dialects alter: change type of a primary-key column (real constraint rewrite) 1`] = `
+{
+  "mysql": [
+    "ALTER TABLE \`public\`.\`users\` MODIFY COLUMN \`id\` bigint PRIMARY KEY",
+  ],
+  "postgres": [
+    "ALTER TABLE "public"."users" ALTER COLUMN "id" TYPE bigint USING "id"::bigint",
+    "ALTER TABLE "public"."users" DROP CONSTRAINT IF EXISTS users_pkey",
+    "ALTER TABLE "public"."users" ADD CONSTRAINT users_pkey PRIMARY KEY ("id")",
+  ],
+  "sqlite": [
+    "ALTER TABLE "public"."users" ALTER COLUMN "id" TO "id" bigint PRIMARY KEY",
   ],
 }
 `;

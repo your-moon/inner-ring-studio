@@ -44,13 +44,26 @@ export function generatePostgresSchemaChange(
           true
         )}`,
       ];
-      if (col.constraint) {
+      // Only rewrite a constraint when there's a real one. Previously an empty
+      // `{}` (e.g. a plain type change) still ran this and emitted a garbage
+      // `..._undefined_..._fkey` line — invalid SQL. Also only attach a FK
+      // descriptor for an actual FK, so a PK/unique change isn't mis-keyed as
+      // `_fkey`.
+      const c = col.constraint;
+      const hasForeignKey = !!c?.foreignKey?.foreignTableName;
+      const hasRealConstraint = !!(
+        c &&
+        (c.primaryKey || c.unique || c.checkExpression !== undefined || hasForeignKey)
+      );
+      if (hasRealConstraint) {
         for (const s of pgConstraintModify(
           {
-            ...col.constraint,
+            ...c,
             primaryColumns: [col.name],
             uniqueColumns: [col.name],
-            foreignKey: { ...col.constraint.foreignKey, columns: [col.name] },
+            ...(hasForeignKey
+              ? { foreignKey: { ...c.foreignKey, columns: [col.name] } }
+              : {}),
           },
           tableNameOld,
           ctx

@@ -96,6 +96,40 @@ describe("generate table schema DDL — golden output across dialects", () => {
     expect(all(change)).toMatchSnapshot();
   });
 
+  test("alter: change type of a primary-key column (real constraint rewrite)", () => {
+    const change: DatabaseTableSchemaChange = {
+      name: { old: "users", new: "users" },
+      schemaName: "public",
+      columns: [
+        {
+          old: col("id", "integer", { primaryKey: true }),
+          new: col("id", "bigint", { primaryKey: true }),
+        },
+      ],
+      constraints: [],
+    };
+    expect(all(change)).toMatchSnapshot();
+  });
+
+  test("alter: change type of a foreign-key column (real constraint rewrite)", () => {
+    const change: DatabaseTableSchemaChange = {
+      name: { old: "orders", new: "orders" },
+      schemaName: "public",
+      columns: [
+        {
+          old: col("user_id", "integer", {
+            foreignKey: { foreignTableName: "users", foreignColumns: ["id"] },
+          }),
+          new: col("user_id", "bigint", {
+            foreignKey: { foreignTableName: "users", foreignColumns: ["id"] },
+          }),
+        },
+      ],
+      constraints: [],
+    };
+    expect(all(change)).toMatchSnapshot();
+  });
+
   test("alter: rename table", () => {
     const change: DatabaseTableSchemaChange = {
       name: { old: "users", new: "accounts" },
