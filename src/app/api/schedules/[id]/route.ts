@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
+import { withCloudForward } from "@/lib/cloud-link";
 import { IS_CLOUD } from "@/lib/mode";
 import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
 import { roleAtLeast } from "@/lib/workspaces";
@@ -23,11 +23,10 @@ async function guard(): Promise<WorkspaceContext | Response> {
   return requireWorkspace();
 }
 
-export async function GET(
+export const GET = withCloudForward(async (
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  if (IS_LINKED) return forwardToCloud(_req);
+) => {
   const g = await guard();
   if (g instanceof Response) return g;
   const { id } = await params;
@@ -35,13 +34,12 @@ export async function GET(
   if (!schedule) return NextResponse.json({ error: "not found" }, { status: 404 });
   const runs = await listRuns(g.workspaceId, id);
   return NextResponse.json({ schedule, runs });
-}
+});
 
-export async function PATCH(
+export const PATCH = withCloudForward(async (
   req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  if (IS_LINKED) return forwardToCloud(req);
+) => {
   const g = await guard();
   if (g instanceof Response) return g;
   if (!roleAtLeast(g.role, "editor"))
@@ -61,13 +59,12 @@ export async function PATCH(
   const schedule = await updateSchedule(g.workspaceId, id, body);
   if (!schedule) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ schedule });
-}
+});
 
-export async function DELETE(
+export const DELETE = withCloudForward(async (
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  if (IS_LINKED) return forwardToCloud(_req);
+) => {
   const g = await guard();
   if (g instanceof Response) return g;
   if (!roleAtLeast(g.role, "editor"))
@@ -75,4 +72,4 @@ export async function DELETE(
   const { id } = await params;
   const ok = await deleteSchedule(g.workspaceId, id);
   return NextResponse.json({ ok });
-}
+});

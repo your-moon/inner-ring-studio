@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
+import { withCloudForward } from "@/lib/cloud-link";
 import { IS_CLOUD } from "@/lib/mode";
 import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
 import { addComment, deleteComment, listComments } from "@/lib/comments";
@@ -16,8 +16,7 @@ async function guard(): Promise<WorkspaceContext | Response> {
   return requireWorkspace();
 }
 
-export async function GET(req: Request) {
-  if (IS_LINKED) return forwardToCloud(req);
+export const GET = withCloudForward(async (req: Request) => {
   const g = await guard();
   if (g instanceof Response) return g;
   const url = new URL(req.url);
@@ -28,10 +27,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ cloud: true, comments: [] });
   const comments = await listComments(g.workspaceId, g.userId, connectionId, table, rowKey);
   return NextResponse.json({ cloud: true, comments });
-}
+});
 
-export async function POST(req: Request) {
-  if (IS_LINKED) return forwardToCloud(req);
+export const POST = withCloudForward(async (req: Request) => {
   const g = await guard();
   if (g instanceof Response) return g;
   // Any member (viewer included) can comment — that's the collaboration point.
@@ -61,14 +59,13 @@ export async function POST(req: Request) {
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });
   }
-}
+});
 
-export async function DELETE(req: Request) {
-  if (IS_LINKED) return forwardToCloud(req);
+export const DELETE = withCloudForward(async (req: Request) => {
   const g = await guard();
   if (g instanceof Response) return g;
   const id = new URL(req.url).searchParams.get("id") ?? "";
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
   const ok = await deleteComment(g.userId, id);
   return NextResponse.json({ ok });
-}
+});

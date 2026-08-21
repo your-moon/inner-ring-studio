@@ -99,3 +99,19 @@ export async function forwardToCloud(req: Request): Promise<Response> {
     headers: { "content-type": res.headers.get("content-type") ?? "application/json" },
   });
 }
+
+/**
+ * Wrap a cloud-feature route handler so that, in linked (desktop) mode, the
+ * request is forwarded to the cloud instead of served locally — hoisting the
+ * `if (IS_LINKED) return forwardToCloud(req)` line that every such handler used
+ * to repeat. Passes the App Router args (req, { params }) through untouched.
+ * A cloud route that isn't wrapped runs locally, so wrap every one.
+ */
+export function withCloudForward<A extends unknown[]>(
+  handler: (req: Request, ...args: A) => Promise<Response>
+): (req: Request, ...args: A) => Promise<Response> {
+  return async (req, ...args) => {
+    if (IS_LINKED) return forwardToCloud(req);
+    return handler(req, ...args);
+  };
+}

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
+import { withCloudForward } from "@/lib/cloud-link";
 import { getAuthContext } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
 import { createWorkspace, listMyWorkspaces } from "@/lib/workspaces";
@@ -16,16 +16,14 @@ async function userId(): Promise<string | Response> {
   return auth.userId;
 }
 
-export async function GET(req: Request) {
-  if (IS_LINKED) return forwardToCloud(req);
+export const GET = withCloudForward(async (_req: Request) => {
   const uid = await userId();
   if (uid instanceof Response) return uid;
   const workspaces = await listMyWorkspaces(uid);
   return NextResponse.json({ workspaces });
-}
+});
 
-export async function POST(req: Request) {
-  if (IS_LINKED) return forwardToCloud(req);
+export const POST = withCloudForward(async (req: Request) => {
   const uid = await userId();
   if (uid instanceof Response) return uid;
   const body = (await req.json().catch(() => ({}))) as { name?: string };
@@ -33,4 +31,4 @@ export async function POST(req: Request) {
   if (!name) return NextResponse.json({ error: "Name is required." }, { status: 400 });
   const workspace = await createWorkspace(uid, name);
   return NextResponse.json({ workspace });
-}
+});

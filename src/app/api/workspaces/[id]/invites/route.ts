@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
+import { withCloudForward } from "@/lib/cloud-link";
 import { getAuthContext } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
 import { createInvite, type Role } from "@/lib/workspaces";
@@ -9,11 +9,10 @@ export const dynamic = "force-dynamic";
 
 const ROLES: Role[] = ["owner", "editor", "viewer"];
 
-export async function POST(
+export const POST = withCloudForward(async (
   req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  if (IS_LINKED) return forwardToCloud(req);
+) => {
   if (!IS_CLOUD)
     return NextResponse.json({ error: "Cloud feature." }, { status: 404 });
   const auth = await getAuthContext();
@@ -27,4 +26,4 @@ export async function POST(
   const r = await createInvite(auth.userId, id, email, role);
   if (!r.ok) return NextResponse.json({ error: r.error }, { status: 400 });
   return NextResponse.json({ token: r.token, addedDirectly: r.addedDirectly });
-}
+});

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
+import { withCloudForward } from "@/lib/cloud-link";
 import { IS_CLOUD } from "@/lib/mode";
 import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
 import { roleAtLeast } from "@/lib/workspaces";
@@ -14,16 +14,14 @@ async function guard(): Promise<WorkspaceContext | Response> {
   return requireWorkspace();
 }
 
-export async function GET(req: Request) {
-  if (IS_LINKED) return forwardToCloud(req);
+export const GET = withCloudForward(async (_req: Request) => {
   const g = await guard();
   if (g instanceof Response) return g;
   const boards = await listBoards(g.workspaceId);
   return NextResponse.json({ boards });
-}
+});
 
-export async function POST(req: Request) {
-  if (IS_LINKED) return forwardToCloud(req);
+export const POST = withCloudForward(async (req: Request) => {
   const g = await guard();
   if (g instanceof Response) return g;
   if (!roleAtLeast(g.role, "editor"))
@@ -38,4 +36,4 @@ export async function POST(req: Request) {
   const name = body.name?.trim() || embeddedName?.trim() || "Untitled board";
   const board = await createBoard(g.workspaceId, g.userId, name, body.data);
   return NextResponse.json({ board });
-}
+});

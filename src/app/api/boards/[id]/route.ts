@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
+import { withCloudForward } from "@/lib/cloud-link";
 import { IS_CLOUD } from "@/lib/mode";
 import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
 import { roleAtLeast } from "@/lib/workspaces";
@@ -14,24 +14,22 @@ async function guard(): Promise<WorkspaceContext | Response> {
   return requireWorkspace();
 }
 
-export async function GET(
+export const GET = withCloudForward(async (
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  if (IS_LINKED) return forwardToCloud(_req);
+) => {
   const g = await guard();
   if (g instanceof Response) return g;
   const { id } = await params;
   const board = await getBoard(g.workspaceId, id);
   if (!board) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ board });
-}
+});
 
-export async function PUT(
+export const PUT = withCloudForward(async (
   req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  if (IS_LINKED) return forwardToCloud(req);
+) => {
   const g = await guard();
   if (g instanceof Response) return g;
   if (!roleAtLeast(g.role, "editor"))
@@ -47,13 +45,12 @@ export async function PUT(
   });
   if (!board) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ board });
-}
+});
 
-export async function DELETE(
+export const DELETE = withCloudForward(async (
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  if (IS_LINKED) return forwardToCloud(_req);
+) => {
   const g = await guard();
   if (g instanceof Response) return g;
   if (!roleAtLeast(g.role, "editor"))
@@ -61,4 +58,4 @@ export async function DELETE(
   const { id } = await params;
   const ok = await deleteBoard(g.workspaceId, id);
   return NextResponse.json({ ok });
-}
+});

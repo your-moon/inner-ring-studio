@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { IS_LINKED, forwardToCloud } from "@/lib/cloud-link";
+import { withCloudForward } from "@/lib/cloud-link";
 import { getAuthContext } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
 import {
@@ -23,24 +23,22 @@ async function userId(): Promise<string | Response> {
   return auth.userId;
 }
 
-export async function GET(
+export const GET = withCloudForward(async (
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  if (IS_LINKED) return forwardToCloud(_req);
+) => {
   const uid = await userId();
   if (uid instanceof Response) return uid;
   const { id } = await params;
   const members = await listMembers(uid, id);
   if (!members) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ members });
-}
+});
 
-export async function PATCH(
+export const PATCH = withCloudForward(async (
   req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  if (IS_LINKED) return forwardToCloud(req);
+) => {
   const uid = await userId();
   if (uid instanceof Response) return uid;
   const { id } = await params;
@@ -50,13 +48,12 @@ export async function PATCH(
   const ok = await setMemberRole(uid, id, body.memberId, body.role as Role);
   if (!ok) return NextResponse.json({ error: "Not allowed." }, { status: 403 });
   return NextResponse.json({ ok });
-}
+});
 
-export async function DELETE(
+export const DELETE = withCloudForward(async (
   req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  if (IS_LINKED) return forwardToCloud(req);
+) => {
   const uid = await userId();
   if (uid instanceof Response) return uid;
   const { id } = await params;
@@ -65,4 +62,4 @@ export async function DELETE(
   const ok = await removeMember(uid, id, memberId);
   if (!ok) return NextResponse.json({ error: "Not allowed." }, { status: 403 });
   return NextResponse.json({ ok });
-}
+});
