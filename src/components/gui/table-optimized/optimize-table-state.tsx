@@ -1,8 +1,8 @@
 import { selectArrayFromIndexList } from "@/lib/export-helper";
 import { scopedStore, type ScopedStore } from "@/lib/scoped-store";
-import deepEqual from "deep-equal";
 import { OptimizeTableHeaderProps, TableCellDecorator } from ".";
 import * as SelectionRanges from "./selection-ranges";
+import { nextRowChange } from "./row-change";
 
 export interface OptimizeTableRowValue {
   raw: Record<string, unknown>;
@@ -182,32 +182,26 @@ export default class OptimizeTableState<HeaderMetadata = unknown> {
     if (this.readOnlyMode) return;
     if (this.headers[x]?.setting.readonly) return;
 
-    const oldValue = this.getOriginalValue(y, x);
-
     const row = this.data[y];
-    const headerName = this.headers[x]?.name ?? "";
-
     if (!row) return;
 
-    if (deepEqual(oldValue, newValue)) {
-      const rowChange = row.change;
-      if (rowChange && headerName in rowChange) {
-        delete rowChange[headerName];
-        if (Object.entries(rowChange).length === 0) {
-          if (row.changeKey) {
-            delete this.changeLogs[row.changeKey];
-            delete row.changeKey;
-          }
-          delete row.change;
-        }
+    const oldValue = this.getOriginalValue(y, x);
+    const headerName = this.headers[x]?.name ?? "";
+    const wasTracked = row.change !== undefined;
+
+    const next = nextRowChange(row.change, headerName, oldValue, newValue);
+
+    if (next === undefined) {
+      // Fully reverted — the row is clean again; drop it from the change log.
+      if (row.changeKey) {
+        delete this.changeLogs[row.changeKey];
+        delete row.changeKey;
       }
+      delete row.change;
     } else {
-      const rowChange = row.change;
-      if (rowChange) {
-        rowChange[headerName] = newValue;
-      } else {
+      row.change = next;
+      if (!wasTracked) {
         row.changeKey = ++this.changeCounter;
-        row.change = { [headerName]: newValue };
         this.changeLogs[row.changeKey] = row;
       }
     }
