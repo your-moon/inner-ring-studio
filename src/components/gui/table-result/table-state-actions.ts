@@ -4,7 +4,7 @@ import { TableHeaderMetadata } from "./type";
 export default class TableStateActions {
   static duplicateRow(state: OptimizeTableState<TableHeaderMetadata>) {
     const rowIndex = state.getFocus()?.y;
-    if (!rowIndex) return;
+    if (rowIndex === undefined) return; // row 0 is a valid focus, not "no focus"
 
     const currentRow = state.getRowByIndex(rowIndex);
 
@@ -26,7 +26,7 @@ export default class TableStateActions {
     state: OptimizeTableState<TableHeaderMetadata>
   ) {
     const rowIndex = state.getFocus()?.y;
-    if (!rowIndex) return;
+    if (rowIndex === undefined) return; // row 0 is a valid focus, not "no focus"
 
     const currentRow = state.getRowByIndex(rowIndex);
 

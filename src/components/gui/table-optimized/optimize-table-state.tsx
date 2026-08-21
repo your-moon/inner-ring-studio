@@ -2,6 +2,7 @@ import { selectArrayFromIndexList } from "@/lib/export-helper";
 import { scopedStore, type ScopedStore } from "@/lib/scoped-store";
 import deepEqual from "deep-equal";
 import { OptimizeTableHeaderProps, TableCellDecorator } from ".";
+import * as SelectionRanges from "./selection-ranges";
 
 export interface OptimizeTableRowValue {
   raw: Record<string, unknown>;
@@ -102,92 +103,24 @@ export default class OptimizeTableState<HeaderMetadata = unknown> {
   }
 
   protected broadcastChange(instant?: boolean) {
+    // Iterate a copy: listeners registered during a broadcast (or the array
+    // being reversed) must not perturb this pass. (Previously used
+    // `.reverse()`, which mutated the array in place and flip-flopped the
+    // listener order on every broadcast.)
+    const notify = () => this.changeCallback.slice().forEach((cb) => cb(this));
+
     if (instant) {
       if (this.changeDebounceTimerId) clearTimeout(this.changeDebounceTimerId);
-      this.changeCallback.reverse().forEach((cb) => cb(this));
+      notify();
     }
 
     if (this.changeDebounceTimerId) return false;
     this.changeDebounceTimerId = setTimeout(() => {
       this.changeDebounceTimerId = null;
-      this.changeCallback.reverse().forEach((cb) => cb(this));
+      notify();
     }, 5);
 
     return true;
-  }
-
-  protected mergeSelectionRanges() {
-    // Sort ranges to simplify merging
-    this.selectionRanges.sort((a, b) => a.y1 - b.y1 || a.x1 - b.x1);
-
-    const merged: TableSelectionRange[] = [];
-    let isLastMoveMerged = false;
-
-    for (const range of this.selectionRanges) {
-      const last = merged[merged.length - 1];
-      if (
-        last &&
-        ((last.y1 === range.y1 &&
-          last.y2 === range.y2 &&
-          last.x2 + 1 === range.x1) ||
-          (last.x1 === range.x1 &&
-            last.x2 === range.x2 &&
-            last.y2 + 1 === range.y1))
-      ) {
-        last.x2 = Math.max(last.x2, range.x2);
-        last.y2 = Math.max(last.y2, range.y2);
-        isLastMoveMerged = true;
-      } else {
-        merged.push({ ...range });
-        isLastMoveMerged = false;
-      }
-    }
-    this.selectionRanges = merged;
-    if (isLastMoveMerged) this.mergeSelectionRanges();
-  }
-
-  protected splitSelectionRange(
-    selection: TableSelectionRange,
-    deselection: TableSelectionRange
-  ): TableSelectionRange[] {
-    const result: TableSelectionRange[] = [];
-
-    if (deselection.y1 > selection.y1) {
-      result.push({
-        x1: selection.x1,
-        y1: selection.y1,
-        x2: selection.x2,
-        y2: deselection.y1 - 1,
-      });
-    }
-
-    if (deselection.y2 < selection.y2) {
-      result.push({
-        x1: selection.x1,
-        y1: deselection.y2 + 1,
-        x2: selection.x2,
-        y2: selection.y2,
-      });
-    }
-
-    if (deselection.x1 > selection.x1) {
-      result.push({
-        x1: selection.x1,
-        y1: Math.max(selection.y1, deselection.y1),
-        x2: deselection.x1 - 1,
-        y2: Math.min(selection.y2, deselection.y2),
-      });
-    }
-
-    if (deselection.x2 < selection.x2) {
-      result.push({
-        x1: deselection.x2 + 1,
-        y1: Math.max(selection.y1, deselection.y1),
-        x2: selection.x2,
-        y2: Math.min(selection.y2, deselection.y2),
-      });
-    }
-    return result;
   }
 
   // ------------------------------------------------
@@ -589,79 +522,41 @@ export default class OptimizeTableState<HeaderMetadata = unknown> {
   }
 
   getSelectedRowIndex() {
-    const selectedRows = new Set<number>();
-
-    for (const range of this.selectionRanges) {
-      for (let i = range.y1; i <= range.y2; i++) {
-        selectedRows.add(i);
-      }
-    }
-
-    return Array.from(selectedRows.values());
+    return SelectionRanges.selectedRowIndexes(this.selectionRanges);
   }
 
   getSelectedColIndex() {
-    const selectedCols = new Set<number>();
-
-    for (const range of this.selectionRanges) {
-      for (let i = range.x1; i <= range.x2; i++) {
-        selectedCols.add(i);
-      }
-    }
-
-    return Array.from(selectedCols.values());
+    return SelectionRanges.selectedColIndexes(this.selectionRanges);
   }
 
   isFullSelectionRow(y: number) {
-    for (const range of this.selectionRanges) {
-      if (
-        range.y1 <= y &&
-        range.y2 >= y &&
-        range.x1 === 0 &&
-        range.x2 === this.getHeaderCount() - 1
-      )
-        return true;
-    }
-    return false;
+    return SelectionRanges.isFullSelectionRow(
+      this.selectionRanges,
+      y,
+      this.getHeaderCount()
+    );
   }
 
   getFullSelectionRowsIndex() {
-    const selectedRows = new Set<number>();
-
-    for (const range of this.selectionRanges) {
-      if (range.x1 === 0 && range.x2 === this.getHeaderCount() - 1) {
-        for (let i = range.y1; i <= range.y2; i++) {
-          if (!selectedRows.has(i)) selectedRows.add(i);
-        }
-      }
-    }
-    return Array.from(selectedRows.values());
+    return SelectionRanges.fullSelectionRowIndexes(
+      this.selectionRanges,
+      this.getHeaderCount()
+    );
   }
 
   getFullSelectionColsIndex() {
-    const selectedCols = new Set<number>();
-
-    for (const range of this.selectionRanges) {
-      if (range.y1 === 0 && range.y2 === this.getRowsCount() - 1) {
-        for (let i = range.x1; i <= range.x2; i++) {
-          if (!selectedCols.has(i)) selectedCols.add(i);
-        }
-      }
-    }
-    return Array.from(selectedCols.values());
+    return SelectionRanges.fullSelectionColIndexes(
+      this.selectionRanges,
+      this.getRowsCount()
+    );
   }
 
   isFullSelectionCol(x: number) {
-    for (const range of this.selectionRanges) {
-      if (
-        range.x1 <= x &&
-        range.x2 >= x &&
-        range.y1 === 0 &&
-        range.y2 === this.getRowsCount() - 1
-      )
-        return true;
-    }
-    return false;
+    return SelectionRanges.isFullSelectionCol(
+      this.selectionRanges,
+      x,
+      this.getRowsCount()
+    );
   }
 
   selectRow(y: number) {
@@ -700,36 +595,14 @@ export default class OptimizeTableState<HeaderMetadata = unknown> {
   }
 
   findSelectionRange(range: TableSelectionRange) {
-    return this.selectionRanges.findIndex(
-      (r) =>
-        r.x1 <= range.x1 &&
-        r.x2 >= range.x2 &&
-        r.y1 <= range.y1 &&
-        r.y2 >= range.y2
-    );
+    return SelectionRanges.findContainingRangeIndex(this.selectionRanges, range);
   }
 
   addSelectionRange(y1: number, x1: number, y2: number, x2: number) {
-    const newRange = {
-      x1: Math.min(x1, x2),
-      y1: Math.min(y1, y2),
-      x2: Math.max(x1, x2),
-      y2: Math.max(y1, y2),
-    };
-
-    const selectedRangeIndex = this.findSelectionRange(newRange);
-    if (selectedRangeIndex < 0) {
-      this.selectionRanges.push(newRange);
-      this.mergeSelectionRanges();
-    } else {
-      const selectedRange = this.selectionRanges[selectedRangeIndex];
-      const splitedRanges = this.splitSelectionRange(selectedRange, newRange);
-      if (splitedRanges.length >= 0) {
-        this.selectionRanges.splice(selectedRangeIndex, 1);
-        this.selectionRanges = [...this.selectionRanges, ...splitedRanges];
-        this.mergeSelectionRanges();
-      }
-    }
+    this.selectionRanges = SelectionRanges.addRange(
+      this.selectionRanges,
+      SelectionRanges.normalizeRange(y1, x1, y2, x2)
+    );
     this.broadcastChange();
   }
 
@@ -778,49 +651,18 @@ export default class OptimizeTableState<HeaderMetadata = unknown> {
   }
 
   isRowSelected(y: number) {
-    for (const range of this.selectionRanges) {
-      if (y >= range.y1 && y <= range.y2) return true;
-    }
-    return false;
+    return SelectionRanges.isRowSelected(this.selectionRanges, y);
   }
 
   getSelectionRange(y: number, x: number) {
-    for (const range of this.selectionRanges) {
-      if (y >= range.y1 && y <= range.y2 && x >= range.x1 && x <= range.x2) {
-        return range;
-      }
-    }
-
-    return null;
+    return SelectionRanges.getContainingRange(this.selectionRanges, y, x);
   }
 
   getCellStatus(y: number, x: number) {
     const focus = this.getFocus();
     const isFocus = !!focus && focus.y === y && focus.x === x;
-
-    // Finding the selection range
-    let isSelected = false;
-    let isBorderRight = false;
-    let isBorderBottom = false;
-
-    for (const range of this.selectionRanges) {
-      if (y >= range.y1 && y <= range.y2) {
-        if (x >= range.x1 && x <= range.x2) {
-          isSelected = true;
-        }
-
-        if (x === range.x2 || x + 1 === range.x1) {
-          isBorderRight = true;
-        }
-      }
-
-      if (x >= range.x1 && x <= range.x2) {
-        if (y === range.y2 || y + 1 === range.y1) {
-          isBorderBottom = true;
-        }
-      }
-    }
-
+    const { isSelected, isBorderRight, isBorderBottom } =
+      SelectionRanges.cellSelectionStatus(this.selectionRanges, y, x);
     return { isFocus, isSelected, isBorderBottom, isBorderRight };
   }
 
