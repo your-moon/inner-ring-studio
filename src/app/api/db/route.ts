@@ -1,12 +1,7 @@
-import { NextResponse } from "next/server";
-import { requireStoreContext } from "@/lib/workspace-context";
+import { storeRoute, HttpError } from "@/lib/route";
 import { clickhouseQuery, closeClickhouse } from "@/lib/clickhouse";
 import { getConnectionStore } from "@/lib/mode";
-import {
-  closeMysqlPool,
-  mysqlPoolStatus,
-  testMysql,
-} from "@/lib/mysql-pool";
+import { closeMysqlPool, mysqlPoolStatus, testMysql } from "@/lib/mysql-pool";
 import {
   closePool,
   poolStatus,
@@ -70,10 +65,8 @@ async function closeOf(c: ConnLike) {
 }
 
 /** Connection-manager status: which connections have a live pool. */
-export async function GET() {
-  const auth = await requireStoreContext();
-  if (auth instanceof Response) return auth;
-  const connections = (await store.list(auth)).map((c) => ({
+export const GET = storeRoute({}, async ({ ctx }) => {
+  const connections = (await store.list(ctx)).map((c) => ({
     id: c.id,
     name: c.name,
     driver: c.driver,
@@ -81,35 +74,29 @@ export async function GET() {
     readOnly: !!c.readOnly,
     status: statusOf(c), // password not needed for the pool key
   }));
-  return NextResponse.json({ connections });
-}
+  return { connections };
+});
 
 /** Actions: disconnect (close pool) or test/retry (SELECT 1). */
-export async function POST(req: Request) {
-  const auth = await requireStoreContext();
-  if (auth instanceof Response) return auth;
-  const body = await req.json().catch(() => ({}));
-  const conn = body.connectionId
-    ? await store.get(auth, body.connectionId)
-    : undefined;
-  if (!conn) {
-    return NextResponse.json({ error: "unknown connection" }, { status: 400 });
-  }
+export const POST = storeRoute({}, async ({ ctx, body }) => {
+  const b = body as { connectionId?: string; action?: string; value?: unknown };
+  const conn = b.connectionId ? await store.get(ctx, b.connectionId) : undefined;
+  if (!conn) throw new HttpError(400, "unknown connection");
 
-  if (body.action === "disconnect") {
+  if (b.action === "disconnect") {
     await closeOf(conn);
-    return NextResponse.json({ ok: true, status: statusOf(conn) });
+    return { ok: true, status: statusOf(conn) };
   }
-  if (body.action === "test" || body.action === "retry") {
+  if (b.action === "test" || b.action === "retry") {
     const result = await testOf(conn);
-    return NextResponse.json({ ...result, status: statusOf(conn) });
+    return { ...result, status: statusOf(conn) };
   }
-  if (body.action === "readonly") {
+  if (b.action === "readonly") {
     // Close the current pool so the new read-only/read-write mode takes effect
     // (mode is applied at pool/connection setup).
     await closeOf(conn);
-    await store.update(auth, conn.id, { readOnly: !!body.value });
-    return NextResponse.json({ ok: true, readOnly: !!body.value });
+    await store.update(ctx, conn.id, { readOnly: !!b.value });
+    return { ok: true, readOnly: !!b.value };
   }
-  return NextResponse.json({ error: "unknown action" }, { status: 400 });
-}
+  throw new HttpError(400, "unknown action");
+});

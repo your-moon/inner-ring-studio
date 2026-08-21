@@ -98,13 +98,15 @@ export function makeRoute<Ctx>(
       // 3. resolve caller context; a Response means auth failed.
       const ctx = await resolve();
       if (ctx instanceof Response) return ctx;
-      // 4. role gate ("viewer" is the floor → no gate).
+      // 4. role gate ("viewer" is the floor → no gate). Roles only exist where
+      // the deploy mode has them: in single-tenant (local) mode there is no role
+      // and full access is intended, so an absent role skips the gate.
       if (config.minRole && config.minRole !== "viewer") {
         const role = (ctx as { role?: Role | string | null }).role as
           | Role
           | null
           | undefined;
-        if (!roleAtLeast(role ?? null, config.minRole))
+        if (role != null && !roleAtLeast(role, config.minRole))
           return json({ error: config.roleMessage ?? "Insufficient role." }, 403);
       }
       // 5. body: parsed for mutations, validated when a schema is given.

@@ -108,6 +108,15 @@ describe("makeRoute — the shared route core", () => {
     expect(res.status).toBe(200);
   });
 
+  test("4c. an absent role skips the gate (local mode has no roles)", async () => {
+    const route = makeRoute(async () => ({ userId: "u1", role: null }), {});
+    const res = await call(
+      route({ minRole: "editor" }, async () => ({ ok: true })),
+      req("POST", {})
+    );
+    expect(res.status).toBe(200);
+  });
+
   test("5. invalid body → 400 zod message; valid body reaches the handler typed", async () => {
     const schema = z.object({ name: z.string().min(1, "name required") });
     const route = makeRoute(async () => ({ userId: "u1" }), {});

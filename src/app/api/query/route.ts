@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import { requireStoreContext } from "@/lib/workspace-context";
+import { storeRoute, HttpError } from "@/lib/route";
 import { getConnectionStore } from "@/lib/mode";
 import type { AuthContext } from "@/lib/connection-store";
 import type { PgConnConfig } from "@/lib/pg-pool";
@@ -52,47 +51,37 @@ function assertConnectable(host: string): void {
   }
 }
 
-export async function POST(req: Request) {
-  const auth = await requireStoreContext();
-  if (auth instanceof Response) return auth;
+export const POST = storeRoute({}, async ({ ctx, body }) => {
   try {
-    const body = await req.json();
-    const conn = await resolveConnection(body, auth);
+    const b = body as { connectionId?: string; connection?: PgConnConfig };
+    const conn = await resolveConnection(b, ctx);
     assertConnectable(conn.host);
 
     // Decode the request protocol once, then dispatch to the per-dialect
     // executor. Each executor owns its dialect's execution quirks.
-    const request = decodeQueryRequest(body);
-    if (request.kind === "error") {
-      return NextResponse.json({ error: request.message }, { status: 400 });
-    }
+    const request = decodeQueryRequest(
+      body as Parameters<typeof decodeQueryRequest>[0]
+    );
+    if (request.kind === "error") throw new HttpError(400, request.message);
 
     const executor = executorFor(conn.driver);
     switch (request.kind) {
       case "close":
         await executor.closeCursor(conn, request.cursorId);
-        return NextResponse.json({ ok: true });
+        return { ok: true };
       case "fetchMore":
-        return NextResponse.json(
-          await executor.fetchMore(conn, request.cursorId, request.pageSize)
-        );
+        return await executor.fetchMore(conn, request.cursorId, request.pageSize);
       case "statements":
-        return NextResponse.json(
-          await executor.statements(conn, request.statements)
-        );
+        return await executor.statements(conn, request.statements);
       case "paginate":
-        return NextResponse.json(
-          await executor.paginate(conn, request.sql, request.pageSize)
-        );
+        return await executor.paginate(conn, request.sql, request.pageSize);
       case "single":
-        return NextResponse.json(
-          await executor.single(conn, request.sql)
-        );
+        return await executor.single(conn, request.sql);
     }
     // Unreachable: decodeQueryRequest returns one of the handled kinds.
-    return NextResponse.json({ error: "Unhandled request" }, { status: 400 });
+    throw new HttpError(400, "Unhandled request");
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    return NextResponse.json({ error: message }, { status: 400 });
+    if (e instanceof HttpError) throw e;
+    throw new HttpError(400, e instanceof Error ? e.message : String(e));
   }
-}
+});

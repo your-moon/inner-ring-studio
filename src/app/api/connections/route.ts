@@ -1,8 +1,6 @@
-import { NextResponse } from "next/server";
-import { requireStoreContext } from "@/lib/workspace-context";
+import { storeRoute, HttpError } from "@/lib/route";
 import { commitConfig } from "@/lib/config-repo";
-import { getConnectionStore } from "@/lib/mode";
-import { IS_CLOUD } from "@/lib/mode";
+import { getConnectionStore, IS_CLOUD } from "@/lib/mode";
 
 // Reads the vault / cloud DB (fs + crypto / pg) — needs the Node.js runtime.
 export const runtime = "nodejs";
@@ -20,100 +18,84 @@ function commitLocal(msg: string) {
  * List the caller's connections (passwords stripped). In cloud mode this is
  * scoped to the authenticated user; in local mode it's the single vault.
  */
-export async function GET() {
-  const auth = await requireStoreContext();
-  if (auth instanceof Response) return auth;
+export const GET = storeRoute({}, async ({ ctx }) => {
   try {
-    return NextResponse.json({ connections: await store.list(auth) });
+    return { connections: await store.list(ctx) };
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
     // Vault locked / passphrase missing is an expected state, not a 500.
-    return NextResponse.json({ connections: [], error: message }, { status: 200 });
+    return { connections: [], error: e instanceof Error ? e.message : String(e) };
   }
-}
+});
 
 /** Create a connection (used by the in-app "new connection" form). */
-export async function POST(req: Request) {
-  const auth = await requireStoreContext();
-  if (auth instanceof Response) return auth;
-  if (auth.role === "viewer")
-    return NextResponse.json({ error: "Viewers can't add connections." }, { status: 403 });
-  try {
-    const body = await req.json();
-    if (!body.name || !body.host || !body.port) {
-      return NextResponse.json(
-        { error: "name, host, port required" },
-        { status: 400 }
-      );
-    }
-    const driver = ["clickhouse", "mysql"].includes(body.driver)
-      ? body.driver
+export const POST = storeRoute(
+  { minRole: "editor", roleMessage: "Viewers can't add connections." },
+  async ({ ctx, body }) => {
+    const b = body as Record<string, unknown>;
+    if (!b.name || !b.host || !b.port)
+      throw new HttpError(400, "name, host, port required");
+    const driver = ["clickhouse", "mysql"].includes(b.driver as string)
+      ? (b.driver as string)
       : "postgres";
-    const safe = await store.add(auth, {
-      name: body.name,
-      driver,
-      host: body.host,
-      port: Number(body.port),
-      database: body.database,
-      user: body.user,
-      password: body.password,
-      ssl: !!body.ssl,
-      folder: body.folder || undefined,
-      timezone: body.timezone || undefined,
-      readOnly: !!body.readOnly,
-    });
-    commitLocal(`pmsql: add connection ${safe.name}`);
-    return NextResponse.json({ ok: true, connection: safe });
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : String(e) },
-      { status: 400 }
-    );
+    try {
+      const safe = await store.add(ctx, {
+        name: b.name as string,
+        driver: driver as "postgres" | "mysql" | "clickhouse",
+        host: b.host as string,
+        port: Number(b.port),
+        database: b.database as string,
+        user: b.user as string,
+        password: b.password as string,
+        ssl: !!b.ssl,
+        folder: (b.folder as string) || undefined,
+        timezone: (b.timezone as string) || undefined,
+        readOnly: !!b.readOnly,
+      });
+      commitLocal(`pmsql: add connection ${safe.name}`);
+      return { ok: true, connection: safe };
+    } catch (e) {
+      throw new HttpError(400, e instanceof Error ? e.message : String(e));
+    }
   }
-}
+);
 
 /** Edit a connection. Provided fields overwrite; an omitted password is kept. */
-export async function PUT(req: Request) {
-  const auth = await requireStoreContext();
-  if (auth instanceof Response) return auth;
-  if (auth.role === "viewer")
-    return NextResponse.json({ error: "Viewers can't edit connections." }, { status: 403 });
-  try {
-    const body = await req.json();
-    if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
-    const safe = await store.update(auth, body.id, {
-      name: body.name,
-      host: body.host,
-      port: body.port !== undefined ? Number(body.port) : undefined,
-      database: body.database,
-      user: body.user,
-      password: body.password, // "" or undefined = unchanged
-      ssl: body.ssl,
-      folder: body.folder,
-      timezone: body.timezone,
-      readOnly: body.readOnly,
-    });
-    if (!safe)
-      return NextResponse.json({ error: "unknown connection" }, { status: 404 });
-    commitLocal(`pmsql: update connection ${safe.name}`);
-    return NextResponse.json({ ok: true, connection: safe });
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : String(e) },
-      { status: 400 }
-    );
+export const PUT = storeRoute(
+  { minRole: "editor", roleMessage: "Viewers can't edit connections." },
+  async ({ ctx, body }) => {
+    const b = body as Record<string, unknown>;
+    if (!b.id) throw new HttpError(400, "id required");
+    try {
+      const safe = await store.update(ctx, b.id as string, {
+        name: b.name as string,
+        host: b.host as string,
+        port: b.port !== undefined ? Number(b.port) : undefined,
+        database: b.database as string,
+        user: b.user as string,
+        password: b.password as string, // "" or undefined = unchanged
+        ssl: b.ssl as boolean,
+        folder: b.folder as string,
+        timezone: b.timezone as string,
+        readOnly: b.readOnly as boolean,
+      });
+      if (!safe) throw new HttpError(404, "unknown connection");
+      commitLocal(`pmsql: update connection ${safe.name}`);
+      return { ok: true, connection: safe };
+    } catch (e) {
+      if (e instanceof HttpError) throw e;
+      throw new HttpError(400, e instanceof Error ? e.message : String(e));
+    }
   }
-}
+);
 
 /** Delete a connection. */
-export async function DELETE(req: Request) {
-  const auth = await requireStoreContext();
-  if (auth instanceof Response) return auth;
-  if (auth.role === "viewer")
-    return NextResponse.json({ error: "Viewers can't delete connections." }, { status: 403 });
-  const id = new URL(req.url).searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-  const removed = await store.remove(auth, id);
-  if (removed) commitLocal(`pmsql: remove connection ${id}`);
-  return NextResponse.json({ ok: removed });
-}
+export const DELETE = storeRoute(
+  { minRole: "editor", roleMessage: "Viewers can't delete connections." },
+  async ({ ctx, req }) => {
+    const id = new URL(req.url).searchParams.get("id");
+    if (!id) throw new HttpError(400, "id required");
+    const removed = await store.remove(ctx, id);
+    if (removed) commitLocal(`pmsql: remove connection ${id}`);
+    return { ok: removed };
+  }
+);
