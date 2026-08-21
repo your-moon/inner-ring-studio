@@ -22,6 +22,12 @@ _Avoid_: database type, engine, flavor.
 The live, reused set of network sockets to one running database, keyed by connection identity. Distinct from a Connection (which is only the saved target).
 _Avoid_: connection, client.
 
+### Schema editing
+
+**Schema change**:
+The in-progress edit to a table's structure — a `DatabaseTableSchemaChange` holding old/new pairs for the table name, each column, and each constraint. The schema-change module builds and mutates it (add/change/reorder column, add/change/remove constraint, rename, discard) as pure functions; a Dialect's generator then turns the finished change into DDL. Distinct from the generated SQL and from the live table.
+_Avoid_: diff, migration, patch, edit state.
+
 ### Connections & storage
 
 **Connection**:

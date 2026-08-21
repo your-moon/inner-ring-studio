@@ -7,13 +7,16 @@ import {
   DatabaseTableColumnConstraint,
   DatabaseTableSchemaChange,
 } from "@/drivers/base-driver";
-import { checkSchemaColumnChange } from "@/lib/sql/sql-generate.schema";
+import {
+  changeColumn,
+  checkSchemaColumnChange,
+  reorderColumn,
+} from "@/lib/sql/schema-change";
 import { cn } from "@/lib/utils";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   SortableContext,
-  arrayMove,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -57,42 +60,7 @@ function changeColumnOnIndex(
   value: Partial<DatabaseTableColumn> | null,
   onChange: Dispatch<SetStateAction<DatabaseTableSchemaChange>>
 ) {
-  onChange((prev) => {
-    if (prev) {
-      const columns = [...(prev?.columns ?? [])];
-      const currentCell = columns[idx] as DatabaseTableColumnChange;
-
-      if (currentCell.new) {
-        currentCell.new =
-          value === null
-            ? null
-            : {
-                ...currentCell.new,
-                ...value,
-                constraint: value?.constraint
-                  ? {
-                      ...currentCell.new?.constraint,
-                      ...value?.constraint,
-                    }
-                  : currentCell.new?.constraint,
-              };
-
-        if (!currentCell.new && !currentCell.old) {
-          // remove the column
-          return {
-            ...prev,
-            columns: columns.filter((_, colIdx) => colIdx !== idx),
-          };
-        }
-
-        return {
-          ...prev,
-          columns,
-        };
-      }
-    }
-    return prev;
-  });
+  onChange((prev) => changeColumn(prev, prev.columns[idx]?.key ?? "", value));
 }
 
 function ColumnItemType({
@@ -408,22 +376,13 @@ export default function SchemaEditorColumnList({
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      if (active.id !== over?.id) {
-        const oldIndex = columns.findIndex((c) => c.key === active.id);
-        const newIndex = columns.findIndex((c) => c.key === over?.id);
-
-        // You cannot change the order of existing column
-        if (columns[newIndex].old) return;
-
-        const newColumns = arrayMove(columns, oldIndex, newIndex);
-
-        onChange((prev) => ({
-          ...prev,
-          columns: newColumns,
-        }));
+      if (over && active.id !== over.id) {
+        onChange((prev) =>
+          reorderColumn(prev, String(active.id), String(over.id))
+        );
       }
     },
-    [columns, onChange]
+    [onChange]
   );
 
   const headerCounter = useMemo(() => {

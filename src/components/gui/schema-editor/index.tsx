@@ -1,7 +1,11 @@
 import { useStudioContext } from "@/context/driver-provider";
 import { DatabaseTableSchemaChange } from "@/drivers/base-driver";
-import { generateId } from "@/lib/generate-id";
-import { checkSchemaChange } from "@/lib/sql/sql-generate.schema";
+import {
+  addColumn,
+  checkSchemaChange,
+  renameTable,
+  setSchemaName,
+} from "@/lib/sql/schema-change";
 import { LucideCode, LucideCopy, LucidePlus, LucideSave } from "lucide-react";
 import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
 import { toast } from "sonner";
@@ -32,32 +36,12 @@ export default function SchemaEditor({
   const isCreateScript = value.name.old === "";
 
   const onAddColumn = useCallback(() => {
-    const newColumn =
-      value.columns.length === 0
-        ? {
-            name: "id",
-            type: databaseDriver.columnTypeSelector.idTypeName ?? "INTEGER",
-            constraint: {
-              primaryKey: true,
-            },
-          }
-        : {
-            name: "column",
-            type: databaseDriver.columnTypeSelector.textTypeName ?? "TEXT",
-            constraint: {},
-          };
-
-    onChange({
-      ...value,
-      columns: [
-        ...value.columns,
-        {
-          key: generateId(),
-          old: null,
-          new: newColumn,
-        },
-      ],
-    });
+    onChange(
+      addColumn(value, {
+        idType: databaseDriver.columnTypeSelector.idTypeName ?? "INTEGER",
+        textType: databaseDriver.columnTypeSelector.textTypeName ?? "TEXT",
+      })
+    );
   }, [value, onChange, databaseDriver]);
 
   const hasChange = checkSchemaChange(value);
@@ -165,13 +149,7 @@ export default function SchemaEditor({
               placeholder="Table Name"
               value={value.name.new ?? value.name.old ?? ""}
               onChange={(e) => {
-                onChange({
-                  ...value,
-                  name: {
-                    ...value.name,
-                    new: e.currentTarget.value,
-                  },
-                });
+                onChange(renameTable(value, e.currentTarget.value));
               }}
               className="w-[200px]"
             />
@@ -182,7 +160,7 @@ export default function SchemaEditor({
               readonly={!isCreateScript}
               value={value.schemaName}
               onChange={(selectedSchema) => {
-                onChange({ ...value, schemaName: selectedSchema });
+                onChange(setSchemaName(value, selectedSchema));
               }}
             />
           </div>

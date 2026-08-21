@@ -4,7 +4,11 @@ import {
   DatabaseTableConstraintChange,
   DatabaseTableSchemaChange,
 } from "@/drivers/base-driver";
-import { generateId } from "@/lib/generate-id";
+import {
+  addConstraint,
+  changeConstraint,
+  removeConstraint,
+} from "@/lib/sql/schema-change";
 import { cn } from "@/lib/utils";
 import {
   LucideArrowUpRight,
@@ -260,21 +264,7 @@ function RemovableConstraintItem({
   onChange: Dispatch<SetStateAction<DatabaseTableSchemaChange>>;
 }>) {
   const onRemoveClicked = useCallback(() => {
-    onChange((prev) => {
-      let newConstraint = [...prev.constraints];
-      const currentConstraint = newConstraint[idx];
-
-      if (!currentConstraint?.old) {
-        newConstraint = prev.constraints.filter((_, cIndex) => cIndex !== idx);
-      } else if (currentConstraint) {
-        currentConstraint.new = null;
-      }
-
-      return {
-        ...prev,
-        constraints: newConstraint,
-      };
-    });
+    onChange((prev) => removeConstraint(prev, prev.constraints[idx]?.id ?? ""));
   }, [onChange, idx]);
 
   return (
@@ -303,17 +293,7 @@ function ColumnItemBody({
 }>) {
   const onChangeConstraint = useCallback(
     (newConstraint: DatabaseTableColumnConstraint) => {
-      onChange((prev) => {
-        return {
-          ...prev,
-          constraints: prev.constraints.map((c) => {
-            if (c === constraint) {
-              return { ...c, new: newConstraint };
-            }
-            return c;
-          }),
-        };
-      });
+      onChange((prev) => changeConstraint(prev, constraint.id, newConstraint));
     },
     [onChange, constraint]
   );
@@ -406,17 +386,7 @@ export default function SchemaEditorConstraintList({
 
   const newConstraint = useCallback(
     (con: DatabaseTableColumnConstraint) => {
-      onChange((prev) => ({
-        ...prev,
-        constraints: [
-          ...prev.constraints,
-          {
-            id: generateId(),
-            new: con,
-            old: null,
-          },
-        ],
-      }));
+      onChange((prev) => addConstraint(prev, con));
     },
     [onChange]
   );
