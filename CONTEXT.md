@@ -64,6 +64,12 @@ _Avoid_: page token, offset, keyset (be specific only inside an executor).
 The zoxide-style ranking (frequency weighted by recency) that floats a user's most-used queries and tables to the top.
 _Avoid_: recents, MRU, most-used, history rank.
 
+### API surface
+
+**Route wrapper**:
+The server-side combinator (`workspaceRoute` / `storeRoute` / `authRoute`) that wraps an API handler with the shared request ceremony — linked-mode forwarding, cloud gating, context resolution, role gating, body validation, and error mapping — so a handler just receives a resolved context plus a parsed body and returns data (or throws an `HttpError`). The three variants differ only in which context they resolve; the depth lives in one shared core.
+_Avoid_: middleware, guard, controller, handler (the handler is the thing being wrapped, not the wrapper).
+
 ### Cloud collaboration features
 
 **Board**:

@@ -1,71 +1,73 @@
-import { NextResponse } from "next/server";
-import { withCloudForward } from "@/lib/cloud-link";
-import { IS_CLOUD } from "@/lib/mode";
-import { requireWorkspace, type WorkspaceContext } from "@/lib/workspace-context";
+import { workspaceRoute, HttpError } from "@/lib/route";
 import { addComment, deleteComment, listComments } from "@/lib/comments";
 import { getUserById } from "@/lib/cloud-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function guard(): Promise<WorkspaceContext | Response> {
-  if (!IS_CLOUD)
-    // Not an error: lets the client render nothing and treat comments as a
-    // Cloud-only capability without special-casing the request.
-    return NextResponse.json({ cloud: false, comments: [] });
-  return requireWorkspace();
-}
+// Off-cloud, comments are simply absent — the client renders nothing and treats
+// them as a Cloud-only capability without special-casing the request.
+const notCloud = () => Response.json({ cloud: false, comments: [] });
 
-export const GET = withCloudForward(async (req: Request) => {
-  const g = await guard();
-  if (g instanceof Response) return g;
-  const url = new URL(req.url);
-  const connectionId = url.searchParams.get("connectionId") ?? "";
-  const table = url.searchParams.get("table") ?? "";
-  const rowKey = url.searchParams.get("rowKey") ?? "";
-  if (!connectionId || !table || !rowKey)
-    return NextResponse.json({ cloud: true, comments: [] });
-  const comments = await listComments(g.workspaceId, g.userId, connectionId, table, rowKey);
-  return NextResponse.json({ cloud: true, comments });
-});
-
-export const POST = withCloudForward(async (req: Request) => {
-  const g = await guard();
-  if (g instanceof Response) return g;
-  // Any member (viewer included) can comment — that's the collaboration point.
-  const body = (await req.json().catch(() => ({}))) as {
-    connectionId?: string;
-    table?: string;
-    rowKey?: string;
-    columnName?: string | null;
-    body?: string;
-  };
-  const text = body.body?.trim();
-  if (!body.connectionId || !body.table || !body.rowKey || !text)
-    return NextResponse.json(
-      { error: "connectionId, table, rowKey, and body are required." },
-      { status: 400 }
+export const GET = workspaceRoute(
+  { whenNotCloud: notCloud },
+  async ({ ctx, req }) => {
+    const url = new URL(req.url);
+    const connectionId = url.searchParams.get("connectionId") ?? "";
+    const table = url.searchParams.get("table") ?? "";
+    const rowKey = url.searchParams.get("rowKey") ?? "";
+    if (!connectionId || !table || !rowKey)
+      return { cloud: true, comments: [] };
+    const comments = await listComments(
+      ctx.workspaceId,
+      ctx.userId,
+      connectionId,
+      table,
+      rowKey
     );
-  const user = await getUserById(g.userId);
-  try {
-    const comment = await addComment(g.workspaceId, g.userId, user?.email ?? null, {
-      connectionId: body.connectionId,
-      tableRef: body.table,
-      rowKey: body.rowKey,
-      columnName: body.columnName ?? null,
-      body: text,
-    });
-    return NextResponse.json({ comment });
-  } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 400 });
+    return { cloud: true, comments };
   }
-});
+);
 
-export const DELETE = withCloudForward(async (req: Request) => {
-  const g = await guard();
-  if (g instanceof Response) return g;
-  const id = new URL(req.url).searchParams.get("id") ?? "";
-  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-  const ok = await deleteComment(g.userId, id);
-  return NextResponse.json({ ok });
-});
+// Any member (viewer included) can comment — that's the collaboration point.
+export const POST = workspaceRoute(
+  { whenNotCloud: notCloud },
+  async ({ ctx, body }) => {
+    const b = body as {
+      connectionId?: string;
+      table?: string;
+      rowKey?: string;
+      columnName?: string | null;
+      body?: string;
+    };
+    const text = b.body?.trim();
+    if (!b.connectionId || !b.table || !b.rowKey || !text)
+      throw new HttpError(
+        400,
+        "connectionId, table, rowKey, and body are required."
+      );
+    const user = await getUserById(ctx.userId);
+    try {
+      const comment = await addComment(ctx.workspaceId, ctx.userId, user?.email ?? null, {
+        connectionId: b.connectionId,
+        tableRef: b.table,
+        rowKey: b.rowKey,
+        columnName: b.columnName ?? null,
+        body: text,
+      });
+      return { comment };
+    } catch (e) {
+      throw new HttpError(400, (e as Error).message);
+    }
+  }
+);
+
+export const DELETE = workspaceRoute(
+  { whenNotCloud: notCloud },
+  async ({ ctx, req }) => {
+    const id = new URL(req.url).searchParams.get("id") ?? "";
+    if (!id) throw new HttpError(400, "id required");
+    const ok = await deleteComment(ctx.userId, id);
+    return { ok };
+  }
+);
