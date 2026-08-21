@@ -34,6 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { sliceSelection } from "./table-result/copy-selection";
 import useTableResultContextMenu from "./table-result/context-menu";
 import tableResultCellRenderer from "./table-result/render-cell";
 import { TableHeaderMetadata } from "./table-result/type";
@@ -337,47 +338,30 @@ export default function ResultTable({
     e.stopPropagation();
   }, []);
 
-  const copyCallback = useCallback(
-    (state: OptimizeTableState) => {
-      const focus = state.getFocus();
-      if (focus) {
-        const y = focus.y;
-        const x = focus.x;
-        const selectedRange = state.getSelectionRange(y, x);
-        if (
-          selectedRange &&
-          (selectedRange.x1 !== selectedRange.x2 ||
-            selectedRange.y1 !== selectedRange.y2)
-        ) {
-          const headers = data
-            .getHeaders()
-            .filter(
-              (_, index) =>
-                index >= selectedRange.x1 && index <= selectedRange.x2
-            )
-            .map((header) => header.name);
-          const records = data
-            .getAllRows()
-            .filter(
-              (_, index) =>
-                index >= selectedRange.y1 && index <= selectedRange.y2
-            )
-            .map((row) => headers.map((header) => row.raw[header]));
-          exportDataAsDelimitedText(
-            [],
-            records,
-            "\t",
-            "\r\n",
-            '"',
-            "clipboard"
-          );
-        } else {
-          window.navigator.clipboard.writeText(state.getValue(y, x) as string);
-        }
-      }
-    },
-    [data]
-  );
+  const copyCallback = useCallback((state: OptimizeTableState) => {
+    const focus = state.getFocus();
+    if (!focus) return;
+    const { y, x } = focus;
+    const selectedRange = state.getSelectionRange(y, x);
+    if (
+      selectedRange &&
+      (selectedRange.x1 !== selectedRange.x2 ||
+        selectedRange.y1 !== selectedRange.y2)
+    ) {
+      // Read headers + rows from the SAME state the selection belongs to (the
+      // rendered `state`, which is the filtered view when a client-side column
+      // filter is active) — never the unfiltered source, or the indices refer to
+      // different rows and the wrong cells get copied.
+      const headerNames = state.getHeaders().map((header) => header.name);
+      const rows = state
+        .getAllRows()
+        .map((row) => row.raw as Record<string, unknown>);
+      const records = sliceSelection(headerNames, rows, selectedRange);
+      exportDataAsDelimitedText([], records, "\t", "\r\n", '"', "clipboard");
+    } else {
+      window.navigator.clipboard.writeText(state.getValue(y, x) as string);
+    }
+  }, []);
 
   const pasteCallback = useCallback((state: OptimizeTableState) => {
     const focus = state.getFocus();
