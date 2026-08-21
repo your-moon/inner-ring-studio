@@ -21,9 +21,13 @@ export function getVisibleCellRange(
   renderAhead: number,
   gutterWidth: number
 ) {
-  const currentRowStart = Math.max(
-    0,
-    Math.floor(e.scrollTop / rowHeight) - 1 - renderAhead
+  // Clamp the start to the row count as well as to 0: when the result shrinks
+  // (e.g. a new query returns fewer rows) while scrolled down, scrollTop can
+  // still point past the new end, which would put rowStart above rowEnd and
+  // make `new Array(rowEnd - rowStart)` throw "Invalid array length".
+  const currentRowStart = Math.min(
+    Math.max(0, Math.floor(e.scrollTop / rowHeight) - 1 - renderAhead),
+    totalRowCount
   );
   const currentRowEnd = Math.min(
     totalRowCount,

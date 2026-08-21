@@ -121,7 +121,9 @@ function renderCellList<HeaderMetadata = unknown>({
     onHeaderResize(headers[idx]?.index ?? 0, newWidth);
   };
 
-  const windowArray = new Array(rowEnd - rowStart)
+  // Guard against a transient inverted range (rowEnd < rowStart) so this can
+  // never throw "Invalid array length"; the visibility hook clamps it too.
+  const windowArray = new Array(Math.max(0, rowEnd - rowStart))
     .fill(false)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     .map(() => new Array(headers.length).fill(false));
