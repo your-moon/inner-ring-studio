@@ -103,4 +103,28 @@ describe("vault", () => {
     expect(removeConnection("missing")).toBe(false);
     expect(listConnections()).toHaveLength(0);
   });
+
+  it("stamps createdAt and updatedAt on add", () => {
+    const c = addConnection({ ...sample, name: "ts" });
+    const full = getConnection(c.id)!;
+    expect(typeof full.createdAt).toBe("number");
+    expect(typeof full.updatedAt).toBe("number");
+  });
+
+  it("bumps updatedAt on edit but keeps createdAt", () => {
+    const c = addConnection({ ...sample, name: "edit" });
+    const before = getConnection(c.id)!;
+    updateConnection(c.id, { host: "changed.example" });
+    const after = getConnection(c.id)!;
+    expect(after.createdAt).toBe(before.createdAt);
+    expect(after.updatedAt).toBeGreaterThanOrEqual(before.updatedAt);
+    expect(after.host).toBe("changed.example");
+  });
+
+  it("records a tombstone when a connection is removed", () => {
+    const c = addConnection({ ...sample, name: "gone" });
+    removeConnection(c.id);
+    const tombs = readVault().tombstones ?? [];
+    expect(tombs.some((t) => t.id === c.id)).toBe(true);
+  });
 });

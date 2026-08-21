@@ -2,6 +2,7 @@ import { randomBytes, scryptSync, createCipheriv, createDecipheriv } from "crypt
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { homedir } from "os";
 import { dirname, join } from "path";
+import type { Tombstone } from "./vault-merge";
 
 /**
  * pmsql encrypted connection vault.
@@ -29,6 +30,8 @@ export interface VaultConnection {
   folder?: string;
   readOnly?: boolean;
   createdAt: number;
+  /** Last add/edit time; drives last-writer-wins in a git-vault merge. */
+  updatedAt: number;
 }
 
 /** A connection with its secret stripped — safe to send to the browser. */
@@ -44,6 +47,17 @@ interface VaultFile {
 
 interface VaultData {
   connections: VaultConnection[];
+  /** Deletions, kept so a git-vault merge can propagate them across peers. */
+  tombstones?: Tombstone[];
+}
+
+/** Back-fill fields missing from an older vault so merges/writes stay consistent. */
+function normalize(data: VaultData): VaultData {
+  for (const c of data.connections) {
+    if (typeof c.updatedAt !== "number") c.updatedAt = c.createdAt ?? 0;
+  }
+  if (!data.tombstones) data.tombstones = [];
+  return data;
 }
 
 export function vaultPath(): string {
@@ -71,7 +85,7 @@ function deriveKey(passphrase: string, salt: Buffer): Buffer {
 
 export function readVault(): VaultData {
   const path = vaultPath();
-  if (!existsSync(path)) return { connections: [] };
+  if (!existsSync(path)) return normalize({ connections: [] });
 
   const file: VaultFile = JSON.parse(readFileSync(path, "utf8"));
   const key = deriveKey(getPassphrase(), Buffer.from(file.salt, "hex"));
@@ -91,7 +105,7 @@ export function readVault(): VaultData {
       "Failed to decrypt vault — wrong PMSQL_PASSPHRASE or corrupted file."
     );
   }
-  return JSON.parse(plaintext) as VaultData;
+  return normalize(JSON.parse(plaintext) as VaultData);
 }
 
 export function writeVault(data: VaultData): void {
@@ -132,16 +146,18 @@ export function getConnection(id: string): VaultConnection | undefined {
 }
 
 export function addConnection(
-  conn: Omit<VaultConnection, "id" | "createdAt">
+  conn: Omit<VaultConnection, "id" | "createdAt" | "updatedAt">
 ): SafeConnection {
   const data = readVault();
   if (data.connections.some((c) => c.name === conn.name)) {
     throw new Error(`A connection named "${conn.name}" already exists.`);
   }
+  const now = Date.now();
   const record: VaultConnection = {
     ...conn,
     id: newId(),
-    createdAt: Date.now(),
+    createdAt: now,
+    updatedAt: now,
   };
   data.connections.push(record);
   writeVault(data);
@@ -151,7 +167,7 @@ export function addConnection(
 
 export function updateConnection(
   id: string,
-  patch: Partial<Omit<VaultConnection, "id" | "createdAt">>
+  patch: Partial<Omit<VaultConnection, "id" | "createdAt" | "updatedAt">>
 ): SafeConnection | null {
   const data = readVault();
   const conn = data.connections.find((c) => c.id === id);
@@ -173,6 +189,7 @@ export function updateConnection(
   if (patch.password !== undefined && patch.password !== "") {
     conn.password = patch.password;
   }
+  conn.updatedAt = Date.now();
   writeVault(data);
   const { password: _pw, ...safe } = conn;
   return safe;
@@ -180,11 +197,20 @@ export function updateConnection(
 
 export function removeConnection(nameOrId: string): boolean {
   const data = readVault();
-  const before = data.connections.length;
+  const removed = data.connections.filter(
+    (c) => c.name === nameOrId || c.id === nameOrId
+  );
+  if (removed.length === 0) return false;
   data.connections = data.connections.filter(
     (c) => c.name !== nameOrId && c.id !== nameOrId
   );
-  if (data.connections.length === before) return false;
+  // Record a tombstone per removed id so the delete propagates through a
+  // git-vault merge instead of the row silently reappearing from a peer.
+  const now = Date.now();
+  const removedIds = new Set(removed.map((c) => c.id));
+  data.tombstones = (data.tombstones ?? [])
+    .filter((t) => !removedIds.has(t.id))
+    .concat(removed.map((c) => ({ id: c.id, deletedAt: now })));
   writeVault(data);
   return true;
 }
