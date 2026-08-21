@@ -1,5 +1,11 @@
 import mysql, { type Pool, type PoolConnection } from "mysql2/promise";
 import type { PgConnConfig } from "./pg-pool";
+import {
+  assembleResultSet,
+  normalizeCellJson,
+  type ColumnMeta,
+  type DatabaseResultSet,
+} from "./result-set";
 
 /**
  * MySQL access via mysql2. Same proxy model as Postgres/ClickHouse: the browser
@@ -84,66 +90,27 @@ interface Field {
   type: number;
 }
 
-function toHeaders(fields: Field[]) {
-  const seen = new Set<string>();
-  return fields.map((f) => {
-    let name = f.name;
-    let i = 0;
-    while (seen.has(name)) name = `__${f.name}_${i++}`;
-    seen.add(name);
-    return { name, displayName: f.name, originalType: null, type: columnType(f.type) };
-  });
-}
-
-function normalizeCell(v: unknown): unknown {
-  if (v === null || v === undefined) return v;
-  if (Buffer.isBuffer(v)) return v;
-  // mysql2 parses JSON columns to objects/arrays — render as JSON text.
-  if (Array.isArray(v) || typeof v === "object") return JSON.stringify(v);
-  return v;
-}
-
-interface DatabaseResultSet {
-  rows: Record<string, unknown>[];
-  headers: {
-    name: string;
-    displayName: string;
-    originalType: string | null;
-    type: number;
-  }[];
-  stat: {
-    rowsAffected: number;
-    rowsRead: number | null;
-    rowsWritten: number | null;
-    queryDurationMs: number | null;
-  };
-  lastInsertRowid?: number;
+// mysql supplies only its type-map; header dedup + row assembly live in
+// @/lib/result-set. originalType is always null (mysql2 gives numeric codes).
+function mysqlColumns(fields: Field[]): ColumnMeta[] {
+  return fields.map((f) => ({
+    name: f.name,
+    originalType: null,
+    type: columnType(f.type),
+  }));
 }
 
 function build(rows: unknown, fields: Field[] | undefined): DatabaseResultSet {
-  const headers = toHeaders(fields ?? []);
   // Writes (INSERT/UPDATE/DDL) return a ResultSetHeader object, not an array.
   const dataRows = Array.isArray(rows) ? (rows as unknown[][]) : [];
-  const objRows = dataRows.map((arr) =>
-    headers.reduce<Record<string, unknown>>((o, h, i) => {
-      o[h.name] = normalizeCell(arr[i]);
-      return o;
-    }, {})
-  );
   const affected =
     !Array.isArray(rows) && rows && typeof rows === "object"
       ? ((rows as { affectedRows?: number }).affectedRows ?? 0)
-      : objRows.length;
-  return {
-    rows: objRows,
-    headers,
-    stat: {
-      rowsAffected: affected,
-      rowsRead: null,
-      rowsWritten: null,
-      queryDurationMs: null,
-    },
-  };
+      : dataRows.length;
+  return assembleResultSet(mysqlColumns(fields ?? []), dataRows, {
+    normalizeCell: normalizeCellJson,
+    rowsAffected: affected,
+  });
 }
 
 async function withConn<T>(

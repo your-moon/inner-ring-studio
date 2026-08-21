@@ -4,6 +4,7 @@ import {
   type ClickHouseSettings,
 } from "@clickhouse/client";
 import type { PgConnConfig } from "./pg-pool";
+import { assembleResultSet, type DatabaseResultSet } from "./result-set";
 
 /**
  * ClickHouse access over its HTTP interface (@clickhouse/client). Read-focused:
@@ -73,23 +74,6 @@ function columnType(chType: string): number {
   return 1;
 }
 
-interface DatabaseResultSet {
-  rows: Record<string, unknown>[];
-  headers: {
-    name: string;
-    displayName: string;
-    originalType: string | null;
-    type: number;
-  }[];
-  stat: {
-    rowsAffected: number;
-    rowsRead: number | null;
-    rowsWritten: number | null;
-    queryDurationMs: number | null;
-  };
-  lastInsertRowid?: number;
-}
-
 export async function clickhouseQuery(
   c: PgConnConfig,
   sql: string,
@@ -101,16 +85,7 @@ export async function clickhouseQuery(
   if (!isSelectLike) {
     // DDL / commands: use command() (no result set).
     await client.command({ query: sql });
-    return {
-      rows: [],
-      headers: [],
-      stat: {
-        rowsAffected: 0,
-        rowsRead: null,
-        rowsWritten: null,
-        queryDurationMs: null,
-      },
-    };
+    return assembleResultSet([], [], { rowsAffected: 0 });
   }
 
   // Paginate via the outermost `limit`/`offset` settings rather than editing the
@@ -127,34 +102,13 @@ export async function clickhouseQuery(
     meta?: { name: string; type: string }[];
     data?: unknown[][];
   };
-  const meta = json.meta ?? [];
-  const seen = new Set<string>();
-  const headers = meta.map((m) => {
-    let name = m.name;
-    let i = 0;
-    while (seen.has(name)) name = `__${m.name}_${i++}`;
-    seen.add(name);
-    return {
-      name,
-      displayName: m.name,
-      originalType: m.type,
-      type: columnType(m.type),
-    };
-  });
-  const rows = (json.data ?? []).map((arr) =>
-    headers.reduce<Record<string, unknown>>((o, h, i) => {
-      o[h.name] = arr[i];
-      return o;
-    }, {})
-  );
-  return {
-    rows,
-    headers,
-    stat: {
-      rowsAffected: rows.length,
-      rowsRead: null,
-      rowsWritten: null,
-      queryDurationMs: null,
-    },
-  };
+  // ClickHouse supplies its type-map + the raw type string as originalType;
+  // header dedup + row assembly live in @/lib/result-set. No cell normalizer —
+  // JSONCompact values are already grid-ready.
+  const columns = (json.meta ?? []).map((m) => ({
+    name: m.name,
+    originalType: m.type,
+    type: columnType(m.type),
+  }));
+  return assembleResultSet(columns, json.data ?? []);
 }
