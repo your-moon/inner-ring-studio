@@ -92,7 +92,11 @@ export function QuickOpen<T>({
   // covers the whole window.
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center bg-black/30 pt-[12vh] backdrop-blur-sm"
+      // zIndex + top padding as inline styles, not Tailwind arbitrary classes:
+      // they must always apply (a positioned z-50 tab strip was painting over the
+      // palette, and the panel sat flush to the top).
+      style={{ zIndex: 1000, paddingTop: "12vh" }}
+      className="fixed inset-0 flex items-start justify-center bg-black/30 backdrop-blur-sm"
       onClick={onClose}
       onKeyDown={(e) => {
         // Esc closes even when focus has left the input (e.g. after a mouse move).
