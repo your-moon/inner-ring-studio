@@ -1,7 +1,8 @@
 // Per-connection SQL query history with zoxide-style frecency ranking
-// (frequently + recently run queries surface first). Stored in localStorage.
+// (frequently + recently run queries surface first). Persisted via scopedStore.
 
 import { frecencyScore } from "./frecency";
+import { scopedStore } from "./scoped-store";
 
 export interface QueryHistoryEntry {
   sql: string;
@@ -11,21 +12,14 @@ export interface QueryHistoryEntry {
 
 const MAX = 200;
 
-function key(scope: string): string {
-  return `pmsql.history:${scope}`;
-}
+const store = (scope: string) =>
+  scopedStore<QueryHistoryEntry[]>(`history:${scope}`, []);
 
 function read(scope: string): QueryHistoryEntry[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(key(scope));
-    if (!raw) return [];
-    const list = JSON.parse(raw) as QueryHistoryEntry[];
-    // Back-compat with entries saved before `count` existed.
-    return list.map((e) => ({ ...e, count: e.count ?? 1 }));
-  } catch {
-    return [];
-  }
+  // Back-compat with entries saved before `count` existed.
+  return store(scope)
+    .read()
+    .map((e) => ({ ...e, count: e.count ?? 1 }));
 }
 
 // Frecency ranking shared with the table-usage sort (src/lib/frecency.ts), so
@@ -41,45 +35,28 @@ export function getHistory(scope: string): QueryHistoryEntry[] {
 }
 
 export function addHistory(scope: string, sql: string): void {
-  if (typeof window === "undefined") return;
   const trimmed = sql.trim();
   if (!trimmed) return;
-  try {
-    const list = read(scope);
-    const existing = list.find((e) => e.sql === trimmed);
-    if (existing) {
-      existing.count += 1;
-      existing.at = Date.now();
-    } else {
-      list.push({ sql: trimmed, at: Date.now(), count: 1 });
-    }
-    // Cap by keeping the highest-frecency entries.
-    const now = Date.now();
-    const capped = list
-      .sort((a, b) => frecency(b, now) - frecency(a, now))
-      .slice(0, MAX);
-    window.localStorage.setItem(key(scope), JSON.stringify(capped));
-  } catch {
-    /* ignore quota errors */
+  const list = read(scope);
+  const existing = list.find((e) => e.sql === trimmed);
+  if (existing) {
+    existing.count += 1;
+    existing.at = Date.now();
+  } else {
+    list.push({ sql: trimmed, at: Date.now(), count: 1 });
   }
+  // Cap by keeping the highest-frecency entries.
+  const now = Date.now();
+  store(scope).write(
+    list.sort((a, b) => frecency(b, now) - frecency(a, now)).slice(0, MAX)
+  );
 }
 
 /** Remove a single query from history by its exact SQL. */
 export function deleteHistory(scope: string, sql: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    const kept = read(scope).filter((e) => e.sql !== sql);
-    window.localStorage.setItem(key(scope), JSON.stringify(kept));
-  } catch {
-    /* ignore */
-  }
+  store(scope).update((list) => list.filter((e) => e.sql !== sql));
 }
 
 export function clearHistory(scope: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.removeItem(key(scope));
-  } catch {
-    /* ignore */
-  }
+  store(scope).clear();
 }

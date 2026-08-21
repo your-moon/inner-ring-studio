@@ -1,4 +1,5 @@
 import { selectArrayFromIndexList } from "@/lib/export-helper";
+import { scopedStore, type ScopedStore } from "@/lib/scoped-store";
 import deepEqual from "deep-equal";
 import { OptimizeTableHeaderProps, TableCellDecorator } from ".";
 
@@ -50,9 +51,9 @@ export default class OptimizeTableState<HeaderMetadata = unknown> {
   protected sql: string = "";
 
   // When set (via enableWidthPersistence), column widths are saved to and
-  // restored from localStorage, keyed by column name so they survive schema
+  // restored from a scoped store, keyed by column name so they survive schema
   // changes / reordering. Only the table browser opts in; query results don't.
-  protected widthPersistKey?: string;
+  protected widthStore?: ScopedStore<Record<string, number>>;
 
   constructor(
     headers: OptimizeTableHeaderProps<HeaderMetadata>[],
@@ -495,36 +496,25 @@ export default class OptimizeTableState<HeaderMetadata = unknown> {
     return this.headerWidth;
   }
 
-  /** Persist this table's column widths to localStorage under `key`, and
+  /** Persist this table's column widths under the scoped store `name`, and
    *  restore any previously-saved widths onto the current columns (by name).
    *  Call once, right after construction, before the first render. */
-  enableWidthPersistence(key: string) {
-    this.widthPersistKey = key;
-    if (typeof window === "undefined") return;
-    try {
-      const saved = JSON.parse(
-        window.localStorage.getItem(key) || "{}"
-      ) as Record<string, number>;
-      this.headers.forEach((h, i) => {
-        const w = saved[h.name];
-        if (typeof w === "number" && w > 0) this.headerWidth[i] = w;
-      });
-    } catch {
-      /* ignore malformed / disabled storage */
-    }
+  enableWidthPersistence(name: string) {
+    this.widthStore = scopedStore<Record<string, number>>(name, {});
+    const saved = this.widthStore.read();
+    this.headers.forEach((h, i) => {
+      const w = saved[h.name];
+      if (typeof w === "number" && w > 0) this.headerWidth[i] = w;
+    });
   }
 
   protected persistWidths() {
-    if (!this.widthPersistKey || typeof window === "undefined") return;
-    try {
-      const map: Record<string, number> = {};
-      this.headers.forEach((h, i) => {
-        map[h.name] = this.headerWidth[i];
-      });
-      window.localStorage.setItem(this.widthPersistKey, JSON.stringify(map));
-    } catch {
-      /* ignore quota / disabled storage */
-    }
+    if (!this.widthStore) return;
+    const map: Record<string, number> = {};
+    this.headers.forEach((h, i) => {
+      map[h.name] = this.headerWidth[i];
+    });
+    this.widthStore.write(map);
   }
 
   scrollToCell(

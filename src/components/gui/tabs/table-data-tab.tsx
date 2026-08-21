@@ -149,7 +149,7 @@ export default function TableDataWindow({
 
         // Remember per-table column widths (keyed by connection + table).
         tableState.enableWidthPersistence(
-          `pmsql.colwidth:${pathname}:${schemaName}.${tableName}`
+          `colwidth:${pathname}:${schemaName}.${tableName}`
         );
 
         setData(tableState);
