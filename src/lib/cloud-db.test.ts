@@ -10,6 +10,7 @@ import {
   getUserById,
 } from "./cloud-db";
 import type { AuthContext } from "./connection-store";
+import { personalWorkspaceId } from "./workspaces";
 
 /**
  * Integration test for cloud mode against a real Postgres (the seeded sample DB
@@ -45,6 +46,13 @@ const maybe = (name: string, fn: () => Promise<void>) =>
     await fn();
   });
 
+// The cloud connection store is scoped to the active workspace; in the real app
+// that's resolved from the session, here we use the user's personal workspace.
+const ctxFor = async (userId: string): Promise<AuthContext> => ({
+  userId,
+  workspaceId: (await personalWorkspaceId(userId)) ?? undefined,
+});
+
 const sampleConn = {
   name: "prod",
   driver: "postgres" as const,
@@ -78,8 +86,8 @@ describe("cloud-db accounts + isolation", () => {
   maybe("isolates connections per user (A cannot see or get B's)", async () => {
     const a = await createUser(`iso_a_${suffix}@t.co`, "password123");
     const b = await createUser(`iso_b_${suffix}@t.co`, "password123");
-    const ctxA: AuthContext = { userId: a.id };
-    const ctxB: AuthContext = { userId: b.id };
+    const ctxA = await ctxFor(a.id);
+    const ctxB = await ctxFor(b.id);
 
     const added = await store.add(ctxA, sampleConn);
 
@@ -114,7 +122,7 @@ describe("cloud-db accounts + isolation", () => {
 
   maybe("deleteUser needs the password and cascades to connections", async () => {
     const u = await createUser(`del_${suffix}@t.co`, "password123");
-    const ctx: AuthContext = { userId: u.id };
+    const ctx = await ctxFor(u.id);
     await store.add(ctx, sampleConn);
     expect(await deleteUser(u.id, "wrong")).toBe(false);
     expect(await deleteUser(u.id, "password123")).toBe(true);
@@ -124,7 +132,7 @@ describe("cloud-db accounts + isolation", () => {
 
   maybe("update keeps the password when omitted, replaces when given", async () => {
     const u = await createUser(`upd_${suffix}@t.co`, "password123");
-    const ctx: AuthContext = { userId: u.id };
+    const ctx = await ctxFor(u.id);
     const c = await store.add(ctx, sampleConn);
     await store.update(ctx, c.id, { host: "new.example.com" });
     expect((await store.get(ctx, c.id))?.password).toBe("s3cr3t"); // kept
