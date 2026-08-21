@@ -24,6 +24,12 @@ import {
 import { KEY_BINDING } from "@/lib/key-matcher";
 import { commitChange } from "@/lib/sql/sql-execute-helper";
 import { buildFilterWhere } from "@/lib/sql/filter-where";
+import {
+  canGoPrev,
+  nextOffset,
+  parsePageValue,
+  prevOffset,
+} from "@/lib/table-pagination";
 import { escapeSqlValue } from "@/drivers/sqlite/sql-helper";
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import {
@@ -474,10 +480,11 @@ export default function TableDataWindow({
             <Button
               variant={"secondary"}
               size={"sm"}
-              disabled={finalOffset === 0 || loading}
+              disabled={!canGoPrev(finalOffset) || loading}
               onClick={() => {
-                setFinalOffset(finalOffset - finalLimit);
-                setOffset((finalOffset - finalLimit).toString());
+                const o = prevOffset(finalOffset, finalLimit);
+                setFinalOffset(o);
+                setOffset(o.toString());
               }}
               style={{ width: 32, height: 32 }}
             >
@@ -491,17 +498,12 @@ export default function TableDataWindow({
                     value={limit}
                     onChange={(e) => setLimit(e.currentTarget.value)}
                     onBlur={(e) => {
-                      try {
-                        const finalValue = Math.max(
-                          0,
-                          parseInt(e.currentTarget.value)
-                        );
-                        if (finalValue !== finalLimit) {
-                          setFinalLimit(finalValue);
-                        }
-                      } catch (e) {
-                        setLimit(finalLimit.toString());
-                      }
+                      const v = parsePageValue(
+                        e.currentTarget.value,
+                        finalLimit
+                      );
+                      if (v !== finalLimit) setFinalLimit(v);
+                      setLimit(v.toString());
                     }}
                     style={{ width: 50 }}
                     className="h-8 rounded bg-neutral-200 p-1 pr-2 pl-2 text-xs dark:bg-neutral-900"
@@ -517,18 +519,12 @@ export default function TableDataWindow({
                     value={offset}
                     onChange={(e) => setOffset(e.currentTarget.value)}
                     onBlur={(e) => {
-                      try {
-                        const finalValue = Math.max(
-                          0,
-                          parseInt(e.currentTarget.value)
-                        );
-                        if (finalValue !== finalOffset) {
-                          setFinalOffset(finalValue);
-                        }
-                        setOffset(finalValue.toString());
-                      } catch (e) {
-                        setOffset(finalOffset.toString());
-                      }
+                      const v = parsePageValue(
+                        e.currentTarget.value,
+                        finalOffset
+                      );
+                      if (v !== finalOffset) setFinalOffset(v);
+                      setOffset(v.toString());
                     }}
                     style={{ width: 50 }}
                     className="h-full rounded bg-neutral-200 p-1 pr-2 pl-2 text-xs dark:bg-neutral-900"
@@ -548,8 +544,9 @@ export default function TableDataWindow({
               <LucideArrowRight
                 className="h-4 w-4"
                 onClick={() => {
-                  setFinalOffset(finalOffset + finalLimit);
-                  setOffset((finalOffset + finalLimit).toString());
+                  const o = nextOffset(finalOffset, finalLimit);
+                  setFinalOffset(o);
+                  setOffset(o.toString());
                 }}
               />
             </Button>
