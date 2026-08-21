@@ -5,6 +5,8 @@ import {
 } from "@/components/sidebar-menu";
 import { WEBSITE_NAME } from "@/const";
 import { cn } from "@/lib/utils";
+import { groupByFolder } from "@/lib/folder-grouping";
+import { scopedStore } from "@/lib/scoped-store";
 import {
   CaretDown,
   CaretRight,
@@ -19,7 +21,7 @@ import {
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { PropsWithChildren, useCallback, useState } from "react";
+import { PropsWithChildren, useCallback, useMemo, useState } from "react";
 import { SignOut, User } from "@phosphor-icons/react";
 import useSWR from "swr";
 import NavConnectionItem, { NavConnection } from "./nav-connection-item";
@@ -121,43 +123,29 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
     [mutateConns]
   );
 
-  const connFolders = new Map<string, NavConnection[]>();
-  for (const c of connData?.connections ?? []) {
-    const k = c.folder?.trim() || "";
-    if (!connFolders.has(k)) connFolders.set(k, []);
-    connFolders.get(k)!.push(c);
-  }
-  const connFolderKeys = [...connFolders.keys()].sort((a, b) => {
-    if (a === "") return -1;
-    if (b === "") return 1;
-    return a.localeCompare(b);
-  });
+  const { keys: connFolderKeys, groups: connFolders } = groupByFolder(
+    connData?.connections ?? []
+  );
 
-  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    try {
-      const raw = window.localStorage.getItem("pmsql.sidebarFolders");
-      return raw ? new Set<string>(JSON.parse(raw)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
-  const toggleFolder = useCallback((f: string) => {
-    setCollapsedFolders((prev) => {
-      const next = new Set(prev);
-      if (next.has(f)) next.delete(f);
-      else next.add(f);
-      try {
-        window.localStorage.setItem(
-          "pmsql.sidebarFolders",
-          JSON.stringify([...next])
-        );
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  }, []);
+  const folderStore = useMemo(
+    () => scopedStore<string[]>("sidebarFolders", []),
+    []
+  );
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(
+    () => new Set(folderStore.read())
+  );
+  const toggleFolder = useCallback(
+    (f: string) => {
+      setCollapsedFolders((prev) => {
+        const next = new Set(prev);
+        if (next.has(f)) next.delete(f);
+        else next.add(f);
+        folderStore.write([...next]);
+        return next;
+      });
+    },
+    [folderStore]
+  );
 
   return (
     <div className="flex w-screen flex-col lg:h-screen lg:flex-row">
