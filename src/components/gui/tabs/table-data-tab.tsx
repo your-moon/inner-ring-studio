@@ -23,6 +23,7 @@ import {
 } from "@/drivers/base-driver";
 import { KEY_BINDING } from "@/lib/key-matcher";
 import { commitChange } from "@/lib/sql/sql-execute-helper";
+import { buildFilterWhere } from "@/lib/sql/filter-where";
 import { escapeSqlValue } from "@/drivers/sqlite/sql-helper";
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import {
@@ -77,26 +78,16 @@ export default function TableDataWindow({
   // just loaded rows). Combined with the manual `where` filter below.
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
 
-  const effectiveWhere = useMemo(() => {
-    const dialect = databaseDriver.getFlags().dialect;
-    const clause = (col: string, term: string): string => {
-      const val = escapeSqlValue(`%${term}%`);
-      if (dialect === "mysql") {
-        return "`" + col.replace(/`/g, "``") + "` LIKE " + val;
-      }
-      const q = '"' + col.replace(/"/g, '""') + '"';
-      // CAST(... AS TEXT) ILIKE works on both Postgres and ClickHouse.
-      return dialect === "postgres"
-        ? `CAST(${q} AS TEXT) ILIKE ${val}`
-        : `${q} LIKE ${val}`;
-    };
-    const parts: string[] = [];
-    if (where.trim()) parts.push(`(${where})`);
-    for (const [col, term] of Object.entries(columnFilters)) {
-      if (term.trim()) parts.push(clause(col, term.trim()));
-    }
-    return parts.join(" AND ");
-  }, [where, columnFilters, databaseDriver]);
+  const effectiveWhere = useMemo(
+    () =>
+      buildFilterWhere(
+        databaseDriver.getFlags().dialect,
+        where,
+        columnFilters,
+        escapeSqlValue
+      ),
+    [where, columnFilters, databaseDriver]
+  );
 
   const onColumnFilterChange = useCallback((col: string, term: string) => {
     setColumnFilters((prev) => {
