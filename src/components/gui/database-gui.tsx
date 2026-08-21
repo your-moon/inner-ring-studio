@@ -206,12 +206,12 @@ export default function DatabaseGui() {
 
   return (
     <div className={cn("flex h-screen w-screen flex-col", containerClassName)}>
-      <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel minSize={5} defaultSize={defaultWidthPercentage}>
+      <ResizablePanelGroup direction="horizontal" autoSaveId="pmsql.layout.sidebar">
+        <ResizablePanel id="sidebar" order={1} minSize={5} defaultSize={defaultWidthPercentage}>
           <SidebarTab tabs={sidebarTabs} />
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={100 - defaultWidthPercentage}>
+        <ResizablePanel id="main" order={2} defaultSize={100 - defaultWidthPercentage}>
           <WindowTabs
             menu={tabSideMenu}
             tabs={tabs}

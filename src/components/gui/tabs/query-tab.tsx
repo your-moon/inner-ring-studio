@@ -330,8 +330,8 @@ export default function QueryWindow({
   );
 
   return (
-    <ResizablePanelGroup direction="vertical">
-      <ResizablePanel style={{ position: "relative" }}>
+    <ResizablePanelGroup direction="vertical" autoSaveId="pmsql.layout.query">
+      <ResizablePanel id="editor" order={1} style={{ position: "relative" }}>
         <div className="absolute top-0 right-0 bottom-0 left-0 flex flex-col">
           <div className="flex border-b bg-neutral-50 py-3 pr-1 pl-3 dark:bg-neutral-950">
             <div className="text-secondary-foreground flex shrink-0 items-center p-1 text-sm">
@@ -505,7 +505,7 @@ export default function QueryWindow({
         </div>
       </ResizablePanel>
       <ResizableHandle orientation="horizontal" withHandle />
-      <ResizablePanel defaultSize={50} style={{ position: "relative" }}>
+      <ResizablePanel id="results" order={2} defaultSize={50} style={{ position: "relative" }}>
         {isRunning && <OpacityLoading />}
         {windowTab}
       </ResizablePanel>

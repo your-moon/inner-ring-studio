@@ -147,6 +147,11 @@ export default function TableDataWindow({
 
         tableState.setSql("SELECT * FROM " + tableName + ";");
 
+        // Remember per-table column widths (keyed by connection + table).
+        tableState.enableWidthPersistence(
+          `pmsql.colwidth:${pathname}:${schemaName}.${tableName}`
+        );
+
         setData(tableState);
 
         setStat(dataResult.stat);

@@ -49,6 +49,11 @@ export default class OptimizeTableState<HeaderMetadata = unknown> {
   protected changeLogs: Record<number, OptimizeTableRowValue> = {};
   protected sql: string = "";
 
+  // When set (via enableWidthPersistence), column widths are saved to and
+  // restored from localStorage, keyed by column name so they survive schema
+  // changes / reordering. Only the table browser opts in; query results don't.
+  protected widthPersistKey?: string;
+
   constructor(
     headers: OptimizeTableHeaderProps<HeaderMetadata>[],
     data: Record<string, unknown>[]
@@ -483,10 +488,43 @@ export default class OptimizeTableState<HeaderMetadata = unknown> {
 
   setHeaderWidth(idx: number, newWidth: number) {
     this.headerWidth[idx] = newWidth;
+    this.persistWidths();
   }
 
   getHeaderWidth() {
     return this.headerWidth;
+  }
+
+  /** Persist this table's column widths to localStorage under `key`, and
+   *  restore any previously-saved widths onto the current columns (by name).
+   *  Call once, right after construction, before the first render. */
+  enableWidthPersistence(key: string) {
+    this.widthPersistKey = key;
+    if (typeof window === "undefined") return;
+    try {
+      const saved = JSON.parse(
+        window.localStorage.getItem(key) || "{}"
+      ) as Record<string, number>;
+      this.headers.forEach((h, i) => {
+        const w = saved[h.name];
+        if (typeof w === "number" && w > 0) this.headerWidth[i] = w;
+      });
+    } catch {
+      /* ignore malformed / disabled storage */
+    }
+  }
+
+  protected persistWidths() {
+    if (!this.widthPersistKey || typeof window === "undefined") return;
+    try {
+      const map: Record<string, number> = {};
+      this.headers.forEach((h, i) => {
+        map[h.name] = this.headerWidth[i];
+      });
+      window.localStorage.setItem(this.widthPersistKey, JSON.stringify(map));
+    } catch {
+      /* ignore quota / disabled storage */
+    }
   }
 
   scrollToCell(
