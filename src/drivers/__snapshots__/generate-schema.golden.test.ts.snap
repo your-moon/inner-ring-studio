@@ -1,0 +1,154 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generate table schema DDL — golden output across dialects alter: add column 1`] = `
+{
+  "mysql": [
+    "ALTER TABLE \`public\`.\`users\` ADD \`age\` integer",
+  ],
+  "postgres": [
+    "ALTER TABLE "public"."users" ADD "age" integer",
+  ],
+  "sqlite": [
+    "ALTER TABLE "public"."users" ADD "age" integer",
+  ],
+}
+`;
+
+exports[`generate table schema DDL — golden output across dialects alter: change column type (the divergent path) 1`] = `
+{
+  "mysql": [
+    "ALTER TABLE \`public\`.\`users\` MODIFY COLUMN \`age\` bigint",
+  ],
+  "postgres": [
+    "ALTER TABLE "public"."users" ALTER COLUMN "age" TYPE bigint USING "age"::bigint",
+    "ALTER TABLE "public"."users" DROP CONSTRAINT IF EXISTS users_undefined_age_fkey",
+    "ALTER TABLE "public"."users" ADD CONSTRAINT users_undefined_age_fkey FOREIGN KEY ("age") REFERENCES "" (undefined)",
+  ],
+  "sqlite": [
+    "ALTER TABLE "public"."users" ALTER COLUMN "age" TO "age" bigint",
+  ],
+}
+`;
+
+exports[`generate table schema DDL — golden output across dialects alter: drop column 1`] = `
+{
+  "mysql": [
+    "ALTER TABLE \`public\`.\`users\` DROP COLUMN age",
+  ],
+  "postgres": [
+    "ALTER TABLE "public"."users" DROP COLUMN age",
+  ],
+  "sqlite": [
+    "ALTER TABLE "public"."users" DROP COLUMN age",
+  ],
+}
+`;
+
+exports[`generate table schema DDL — golden output across dialects alter: rename column 1`] = `
+{
+  "mysql": [
+    "ALTER TABLE \`public\`.\`users\` RENAME COLUMN \`email\` TO \`email_address\`",
+  ],
+  "postgres": [
+    "ALTER TABLE "public"."users" RENAME COLUMN "email" TO "email_address"",
+  ],
+  "sqlite": [
+    "ALTER TABLE "public"."users" RENAME COLUMN "email" TO "email_address"",
+  ],
+}
+`;
+
+exports[`generate table schema DDL — golden output across dialects alter: rename table 1`] = `
+{
+  "mysql": [
+    "ALTER TABLE \`public\`.\`users\` RENAME TO \`public\`.\`accounts\`",
+  ],
+  "postgres": [
+    "ALTER TABLE "public"."users" RENAME TO "public"."accounts"",
+  ],
+  "sqlite": [
+    "ALTER TABLE "public"."users" RENAME TO "accounts"",
+  ],
+}
+`;
+
+exports[`generate table schema DDL — golden output across dialects create table: foreign key column + check + collate 1`] = `
+{
+  "mysql": [
+    "CREATE TABLE \`public\`.\`orders\`(
+  \`id\` integer PRIMARY KEY,
+  \`user_id\` integer REFERENCES \`users\`(\`id\`),
+  \`code\` text COLLATE 'NOCASE' CHECK (length(code) > 0)
+)",
+  ],
+  "postgres": [
+    "CREATE TABLE "public"."orders"(
+  "id" integer PRIMARY KEY,
+  "user_id" integer FOREIGN KEY REFERENCES "users"("id"),
+  "code" text COLLATE 'NOCASE' CHECK (length(code) > 0)
+)",
+  ],
+  "sqlite": [
+    "CREATE TABLE "public"."orders"(
+  "id" integer PRIMARY KEY,
+  "user_id" integer REFERENCES "users"("id"),
+  "code" text CHECK (length(code) > 0)
+)",
+  ],
+}
+`;
+
+exports[`generate table schema DDL — golden output across dialects create table: pk+autoincrement, not null, default, unique 1`] = `
+{
+  "mysql": [
+    "CREATE TABLE \`public\`.\`users\`(
+  \`id\` integer PRIMARY KEY AUTO_INCREMENT,
+  \`email\` text UNIQUE NOT NULL,
+  \`role\` text DEFAULT 'member'
+)",
+  ],
+  "postgres": [
+    "CREATE TABLE "public"."users"(
+  "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  "email" text UNIQUE NOT NULL,
+  "role" text DEFAULT 'member'
+)",
+  ],
+  "sqlite": [
+    "CREATE TABLE "public"."users"(
+  "id" integer PRIMARY KEY AUTOINCREMENT,
+  "email" text UNIQUE NOT NULL,
+  "role" text DEFAULT 'member'
+)",
+  ],
+}
+`;
+
+exports[`generate table schema DDL — golden output across dialects create table: table-level constraints (pk, unique, fk) 1`] = `
+{
+  "mysql": [
+    "CREATE TABLE \`public\`.\`membership\`(
+  \`user_id\` integer,
+  \`team_id\` integer,
+  PRIMARY KEY (\`user_id\`, \`team_id\`),
+  FOREIGN KEY (\`team_id\`) REFERENCES \`teams\` (\`id\`)
+)",
+  ],
+  "postgres": [
+    "CREATE TABLE "public"."membership"(
+  "user_id" integer,
+  "team_id" integer,
+  PRIMARY KEY ("user_id", "team_id"),
+  FOREIGN KEY ("team_id") REFERENCES "teams" ("id")
+)",
+  ],
+  "sqlite": [
+    "CREATE TABLE "public"."membership"(
+  "user_id" integer,
+  "team_id" integer,
+  PRIMARY KEY ("user_id", "team_id"),
+  FOREIGN KEY ("team_id") REFERENCES "teams" ("id")
+)",
+  ],
+}
+`;
