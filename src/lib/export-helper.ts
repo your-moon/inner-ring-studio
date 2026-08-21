@@ -5,7 +5,7 @@ import {
   ExportTarget,
 } from "@/components/gui/export/export-result-button";
 import OptimizeTableState from "@/components/gui/table-optimized/optimize-table-state";
-import { getSingleTableName } from "@/components/gui/tabs/query-tab";
+import { getSingleTableName } from "@/lib/sql/single-table-name";
 import {
   escapeDelimitedValue,
   escapeIdentity,
