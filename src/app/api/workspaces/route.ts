@@ -1,34 +1,20 @@
-import { NextResponse } from "next/server";
-import { withCloudForward } from "@/lib/cloud-link";
-import { getAuthContext } from "@/lib/auth";
-import { IS_CLOUD } from "@/lib/mode";
+import { authRoute, HttpError } from "@/lib/route";
 import { createWorkspace, listMyWorkspaces } from "@/lib/workspaces";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function userId(): Promise<string | Response> {
-  if (!IS_CLOUD)
-    return NextResponse.json({ error: "Workspaces are a Cloud feature." }, { status: 404 });
-  const auth = await getAuthContext();
-  if (!auth?.userId)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  return auth.userId;
-}
-
-export const GET = withCloudForward(async (_req: Request) => {
-  const uid = await userId();
-  if (uid instanceof Response) return uid;
-  const workspaces = await listMyWorkspaces(uid);
-  return NextResponse.json({ workspaces });
+export const GET = authRoute({ forward: true, cloudOnly: true }, async ({ ctx }) => {
+  const workspaces = await listMyWorkspaces(ctx.userId!);
+  return { workspaces };
 });
 
-export const POST = withCloudForward(async (req: Request) => {
-  const uid = await userId();
-  if (uid instanceof Response) return uid;
-  const body = (await req.json().catch(() => ({}))) as { name?: string };
-  const name = body.name?.trim();
-  if (!name) return NextResponse.json({ error: "Name is required." }, { status: 400 });
-  const workspace = await createWorkspace(uid, name);
-  return NextResponse.json({ workspace });
-});
+export const POST = authRoute(
+  { forward: true, cloudOnly: true },
+  async ({ ctx, body }) => {
+    const name = (body as { name?: string }).name?.trim();
+    if (!name) throw new HttpError(400, "Name is required.");
+    const workspace = await createWorkspace(ctx.userId!, name);
+    return { workspace };
+  }
+);
