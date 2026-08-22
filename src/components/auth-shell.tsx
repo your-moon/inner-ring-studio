@@ -165,4 +165,4 @@ export const authInput =
 // Brand CTA: Mercury yellow fill with black label (yellow is too light for white
 // text — matches fms `onBrand = black`).
 export const authButton =
-  "w-full rounded-lg bg-[#FFEB02] py-2.5 text-[15px] font-semibold text-black transition-colors hover:bg-[#f2df00] disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded-lg bg-[#FFEB02] py-2.5 text-[15px] font-semibold text-black transition-colors hover:bg-[#f2df00] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:hover:bg-neutral-200 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-500 dark:disabled:hover:bg-neutral-800";

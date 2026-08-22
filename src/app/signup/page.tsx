@@ -9,8 +9,11 @@ export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const mismatch = confirm.length > 0 && password !== confirm;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -65,13 +68,34 @@ export default function SignupPage() {
             className={authInput}
             placeholder="At least 8 characters"
           />
+          <p className="mt-1.5 text-xs text-neutral-400">
+            Use at least 8 characters.
+          </p>
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            Confirm password
+          </label>
+          <input
+            type="password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            className={authInput}
+            placeholder="Re-enter your password"
+          />
+          {mismatch && (
+            <p className="mt-1.5 text-xs text-red-600">
+              Passwords don&apos;t match.
+            </p>
+          )}
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"
-          disabled={loading || !email || password.length < 8}
+          disabled={loading || !email || password.length < 8 || password !== confirm}
           className={authButton}
         >
           {loading ? "Creating account…" : "Create account"}

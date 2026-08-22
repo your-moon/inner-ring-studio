@@ -17,7 +17,13 @@ import OptimizeTableState, {
 } from "../table-optimized/optimize-table-state";
 
 export type ExportTarget = "clipboard" | "file";
-export type ExportFormat = "csv" | "delimited" | "json" | "sql" | "xlsx";
+export type ExportFormat =
+  | "csv"
+  | "delimited"
+  | "json"
+  | "sql"
+  | "markdown"
+  | "xlsx";
 export type ExportSelection =
   | "complete"
   | "selected_row"
@@ -153,7 +159,7 @@ export default function ExportResultButton({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `export.${exportSetting.format === "delimited" ? "csv" : exportSetting.format}`;
+    a.download = `export.${exportSetting.format === "delimited" ? "csv" : exportSetting.format === "markdown" ? "md" : exportSetting.format}`;
     a.click();
     URL.revokeObjectURL(url);
   }, [
@@ -308,6 +314,15 @@ export default function ExportResultButton({
                     className="flex-1 font-normal"
                   >
                     SQL
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="markdown" id="export-format-markdown" />
+                  <Label
+                    htmlFor="export-format-markdown"
+                    className="flex-1 font-normal"
+                  >
+                    Markdown
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">

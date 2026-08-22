@@ -50,6 +50,29 @@ export function exportRowsToSqlInsert(
   return content;
 }
 
+export function exportRowsToMarkdown(
+  headers: string[],
+  records: unknown[][],
+  exportTarget?: ExportTarget,
+  nullValue: string = "NULL"
+): string {
+  const esc = (v: unknown) => {
+    if (v === null || v === undefined) return nullValue;
+    // Pipes break table cells; newlines collapse to a space.
+    return String(v).replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+  };
+  const headerLine = `| ${headers.map(esc).join(" | ")} |`;
+  const separator = `| ${headers.map(() => "---").join(" | ")} |`;
+  const rows = records.map((record) => `| ${record.map(esc).join(" | ")} |`);
+  const content = [headerLine, separator, ...rows].join("\n");
+
+  if (exportTarget === "clipboard") {
+    copyToClipboard(content);
+    return "";
+  }
+  return content;
+}
+
 function cellToExcelValue(value: unknown, nullValue: string = "NULL") {
   if (value === undefined) return "";
   if (value === null) return parseUserInput(nullValue);
@@ -260,6 +283,13 @@ export function getFormatHandlers(
         exportTarget,
         exportOptions?.nullValue || "NULL"
       ),
+    markdown: () =>
+      exportRowsToMarkdown(
+        headers,
+        records,
+        exportTarget,
+        exportOptions?.nullValue || "NULL"
+      ),
     xlsx: () =>
       exportToExcel(
         records,
@@ -363,6 +393,7 @@ export async function exportTableData(
       exportDataAsDelimitedText(headers, records, ",", "\n", '"', exportTarget),
     json: () => exportRowsToJson(headers, records, exportTarget),
     sql: () => exportRowsToSqlInsert(tableName, headers, records, exportTarget),
+    markdown: () => exportRowsToMarkdown(headers, records, exportTarget),
     xlsx: () => exportToExcel(records, headers, tableName, exportTarget),
     delimited: () =>
       exportDataAsDelimitedText(

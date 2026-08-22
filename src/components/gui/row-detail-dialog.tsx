@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { LucideX } from "lucide-react";
+import { copyToClipboard } from "@/lib/export-helper";
 import RowComments from "./row-comments";
 
 export interface RowDetailField {
@@ -75,12 +76,8 @@ export default function RowDetailDialog({
                     {f.name}
                   </td>
                   <td
-                    className="px-4 py-2 align-top font-mono text-xs"
-                    onClick={() =>
-                      navigator.clipboard
-                        ?.writeText(String(f.value ?? ""))
-                        .catch(() => {})
-                    }
+                    className="cursor-pointer px-4 py-2 align-top font-mono text-xs hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+                    onClick={() => copyToClipboard(String(f.value ?? ""))}
                     title="Click to copy"
                   >
                     {/* Cap tall values so a huge cell (e.g. JSON) doesn't push

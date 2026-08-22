@@ -203,6 +203,15 @@ export default function GenericCell({
     return null;
   }, [header, value]);
 
+  // Hovering a cell reveals its full value — so a truncated string/number is
+  // readable without opening the row detail.
+  const titleText = useMemo(() => {
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "bigint")
+      return value.toString();
+    return undefined;
+  }, [value]);
+
   const content = useMemo(() => {
     if (header.decorator) {
       const decoratorContent = header.decorator(value);
@@ -276,6 +285,7 @@ export default function GenericCell({
       className={className}
       onMouseDown={onFocus}
       onDoubleClick={onDoubleClick}
+      title={titleText}
     >
       <div className="flex grow overflow-hidden">{content}</div>
       {fkContent}

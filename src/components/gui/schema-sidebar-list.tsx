@@ -176,7 +176,7 @@ async function downloadExportTable(
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `export.${format === "delimited" ? "csv" : format}`;
+    a.download = `export.${format === "delimited" ? "csv" : format === "markdown" ? "md" : format}`;
     a.click();
     URL.revokeObjectURL(url);
   } catch (error) {
@@ -255,6 +255,7 @@ export default function SchemaList({
       { title: "Export as Excel", format: "xlsx" },
       { title: "Export as JSON", format: "json" },
       { title: "Export as SQL INSERT", format: "sql" },
+      { title: "Export as Markdown", format: "markdown" },
     ];
   }, []);
 
@@ -405,6 +406,57 @@ export default function SchemaList({
     [search]
   );
 
+  // key -> item, so a single click (which gives us only the key) can resolve
+  // the item and open it.
+  const byKey = useMemo(() => {
+    const m = new Map<string, ListViewItem<DatabaseSchemaItem>>();
+    const walk = (items: ListViewItem<DatabaseSchemaItem>[]) =>
+      items.forEach((i) => {
+        m.set(i.key, i);
+        if (i.children) walk(i.children as ListViewItem<DatabaseSchemaItem>[]);
+      });
+    walk(listViewItems);
+    return m;
+  }, [listViewItems]);
+
+  // Open a schema item: a table/view opens its data tab, a trigger its editor,
+  // a schema switches the active database.
+  const openItem = useCallback(
+    (item: ListViewItem<DatabaseSchemaItem>) => {
+      if (item.data.type === "table" || item.data.type === "view") {
+        bumpTable(pathname, item.data.name);
+        setScores(frecencyScores(pathname));
+        scc.tabs.openBuiltinTable({
+          schemaName: item.data.schemaName ?? "",
+          tableName: item.data.name,
+        });
+      } else if (item.data.type === "trigger") {
+        triggerEditorExtensionTab.open({
+          schemaName: item.data.schemaName ?? "",
+          name: item.name ?? "",
+          tableName: item.data.tableName ?? "",
+        });
+      } else if (item.data.type === "schema") {
+        if (databaseDriver.getFlags().supportUseStatement) {
+          const dialect = databaseDriver.getFlags().dialect;
+          const switch_keyword =
+            dialect === "postgres" ? "SET search_path TO " : "USE ";
+          const name = [databaseDriver.escapeId(item.name)];
+          if (dialect === "postgres") {
+            name.push(databaseDriver.escapeId("$user"));
+            if (item.name !== "public") {
+              name.push(databaseDriver.escapeId("public"));
+            }
+          }
+          databaseDriver.query(switch_keyword + name.join(",")).then(() => {
+            refresh();
+          });
+        }
+      }
+    },
+    [pathname, databaseDriver, refresh]
+  );
+
   return (
     <>
       {editSchema && (
@@ -424,39 +476,17 @@ export default function SchemaList({
         onCollapsedChange={setCollapsed}
         onContextMenu={(item) => prepareContextMenu(item?.data)}
         selectedKey={selected}
-        onSelectChange={setSelected}
-        onDoubleClick={(item) => {
-          if (item.data.type === "table" || item.data.type === "view") {
-            bumpTable(pathname, item.data.name);
-            setScores(frecencyScores(pathname));
-            scc.tabs.openBuiltinTable({
-              schemaName: item.data.schemaName ?? "",
-              tableName: item.data.name,
-            });
-          } else if (item.data.type === "trigger") {
-            triggerEditorExtensionTab.open({
-              schemaName: item.data.schemaName ?? "",
-              name: item.name ?? "",
-              tableName: item.data.tableName ?? "",
-            });
-          } else if (item.data.type === "schema") {
-            if (databaseDriver.getFlags().supportUseStatement) {
-              const dialect = databaseDriver.getFlags().dialect;
-              const switch_keyword =
-                dialect === "postgres" ? "SET search_path TO " : "USE ";
-              const name = [databaseDriver.escapeId(item.name)];
-              if (dialect === "postgres") {
-                name.push(databaseDriver.escapeId("$user"));
-                if (item.name !== "public") {
-                  name.push(databaseDriver.escapeId("public"));
-                }
-              }
-              databaseDriver.query(switch_keyword + name.join(",")).then(() => {
-                refresh();
-              });
-            }
+        onSelectChange={(key) => {
+          setSelected(key);
+          // Single click opens a table/view immediately (the tab opener dedupes,
+          // so re-clicking just focuses it). Schemas/triggers stay double-click
+          // so a stray click doesn't switch the active database.
+          const item = byKey.get(key);
+          if (item && (item.data.type === "table" || item.data.type === "view")) {
+            openItem(item);
           }
         }}
+        onDoubleClick={openItem}
       />
     </>
   );

@@ -396,7 +396,7 @@ export default function TableDataWindow({
                   disabled={!changeNumber || isExecuting}
                 >
                   <div className="text-sm">
-                    Save {changeNumber ? changeNumber.toString() : ""} changes
+                    Save {changeNumber} {changeNumber === 1 ? "change" : "changes"}
                   </div>
                 </Button>
 

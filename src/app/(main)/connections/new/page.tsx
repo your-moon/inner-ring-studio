@@ -32,6 +32,34 @@ const DEFAULT_PORT: Record<Driver, string> = {
   clickhouse: "8123",
 };
 
+/** Turn a raw driver error into something a person can act on. */
+function humanizeConnError(raw: string, host: string, port: string): string {
+  const m = (raw || "").toLowerCase();
+  const at = `${host || "the host"}${port ? ":" + port : ""}`;
+  if (m.includes("econnrefused"))
+    return `Couldn't reach the database at ${at} — is it running and accepting connections from here?`;
+  if (m.includes("enotfound") || m.includes("eai_again") || m.includes("getaddrinfo"))
+    return `Host "${host}" not found — check the host name.`;
+  if (m.includes("etimedout") || m.includes("timeout"))
+    return `Connection to ${at} timed out — the host may be unreachable or behind a firewall.`;
+  if (
+    m.includes("password authentication failed") ||
+    m.includes("access denied") ||
+    m.includes("authentication failed")
+  )
+    return "Authentication failed — check the user name and password.";
+  if (m.includes("does not exist") && m.includes("database"))
+    return "That database doesn't exist — check the database name.";
+  if (
+    m.includes("self-signed") ||
+    m.includes("self signed") ||
+    m.includes("certificate") ||
+    m.includes("ssl")
+  )
+    return "SSL/certificate error — try toggling “Use SSL”.";
+  return raw || "Connection failed.";
+}
+
 export default function NewConnectionPage() {
   const router = useRouter();
   const [f, setF] = useState<Fields>({
@@ -120,10 +148,16 @@ export default function NewConnectionPage() {
       if (res.ok && !j.error) {
         setTestResult({ ok: true, msg: "Connected successfully." });
       } else {
-        setTestResult({ ok: false, msg: j.error || `Failed (${res.status})` });
+        setTestResult({
+          ok: false,
+          msg: humanizeConnError(j.error || `Failed (${res.status})`, f.host, f.port),
+        });
       }
     } catch (e) {
-      setTestResult({ ok: false, msg: (e as Error).message });
+      setTestResult({
+        ok: false,
+        msg: humanizeConnError((e as Error).message, f.host, f.port),
+      });
     } finally {
       setBusy(false);
     }
@@ -153,12 +187,49 @@ export default function NewConnectionPage() {
       if (res.ok && j.connection) {
         router.push(`/vault/${j.connection.id}`);
       } else {
-        setError(j.error || "Failed to save");
+        setError(humanizeConnError(j.error || "Failed to save", f.host, f.port));
       }
     } catch (e) {
-      setError((e as Error).message);
+      setError(humanizeConnError((e as Error).message, f.host, f.port));
     } finally {
       setBusy(false);
+    }
+  }
+
+  /** Parse a `postgres://user:pass@host:port/db` URL and fill the form. */
+  function applyConnectionString(raw: string) {
+    const s = raw.trim();
+    if (!s) return;
+    try {
+      const u = new URL(s.replace(/^jdbc:/, ""));
+      const proto = u.protocol.replace(":", "").toLowerCase();
+      const driver: Driver | null =
+        proto.startsWith("postgres")
+          ? "postgres"
+          : proto.startsWith("mysql")
+            ? "mysql"
+            : proto.startsWith("clickhouse") || proto.startsWith("http")
+              ? "clickhouse"
+              : null;
+      setF((prev) => {
+        const nextDriver = driver ?? prev.driver;
+        return {
+          ...prev,
+          driver: nextDriver,
+          host: u.hostname || prev.host,
+          port: u.port || DEFAULT_PORT[nextDriver],
+          database: decodeURIComponent(u.pathname.replace(/^\//, "")) || prev.database,
+          user: decodeURIComponent(u.username) || prev.user,
+          password: decodeURIComponent(u.password) || prev.password,
+          ssl:
+            u.searchParams.get("sslmode") === "require" ||
+            u.searchParams.get("ssl") === "true" ||
+            prev.ssl,
+        };
+      });
+      setError("");
+    } catch {
+      setError("That doesn't look like a valid connection URL.");
     }
   }
 
@@ -232,6 +303,34 @@ export default function NewConnectionPage() {
         )}
 
         <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Paste a connection URL{" "}
+              <span className="font-normal text-neutral-400">(optional)</span>
+            </label>
+            <input
+              className={input}
+              placeholder="postgres://user:pass@host:5432/dbname"
+              onPaste={(e) => {
+                const text = e.clipboardData.getData("text");
+                if (/^\w+:\/\//.test(text.trim())) {
+                  e.preventDefault();
+                  applyConnectionString(text);
+                  e.currentTarget.value = "";
+                }
+              }}
+              onChange={(e) => {
+                if (/^\w+:\/\//.test(e.target.value.trim())) {
+                  applyConnectionString(e.target.value);
+                  e.currentTarget.value = "";
+                }
+              }}
+            />
+            <p className="mt-1 text-xs text-neutral-400">
+              Paste a database URL and we&apos;ll fill in the fields below.
+            </p>
+          </div>
+
           <div>
             <label className="mb-1 block text-sm font-medium">Database type</label>
             <div className="flex gap-2">
@@ -355,7 +454,7 @@ export default function NewConnectionPage() {
             <button
               onClick={save}
               disabled={busy || !canSave}
-              className="rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50"
+              className="rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:hover:bg-neutral-200 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-500"
             >
               Save & connect
             </button>
