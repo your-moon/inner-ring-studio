@@ -1,8 +1,8 @@
 import { randomBytes, scryptSync, createCipheriv, createDecipheriv } from "crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
-import { homedir } from "os";
 import { dirname, join } from "path";
 import type { Tombstone } from "./vault-merge";
+import { activeVaultDir } from "./vault-registry-store";
 
 /**
  * pmsql encrypted connection vault.
@@ -61,10 +61,12 @@ function normalize(data: VaultData): VaultData {
 }
 
 export function vaultPath(): string {
-  return (
-    process.env.PMSQL_VAULT ??
-    join(homedir(), ".config", "pmsql", "vault.enc")
-  );
+  // A pinned single vault wins outright (tests, single-vault power users).
+  if (process.env.PMSQL_VAULT) return process.env.PMSQL_VAULT;
+  // Otherwise resolve the active vault from the multi-vault registry. With no
+  // `vaults.json` this is the implicit "default" vault at <config-root>/vault.enc,
+  // i.e. the historical `~/.config/pmsql/vault.enc`.
+  return join(activeVaultDir(), "vault.enc");
 }
 
 function getPassphrase(): string {
