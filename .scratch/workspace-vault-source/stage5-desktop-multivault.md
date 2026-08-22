@@ -19,9 +19,14 @@ single vault, unchanged.
 
 1. ✅ **Registry core** (this slice): pure `addVault / removeVault / setActive /
    renameVault / activeEntry`, tested. The load-bearing state logic.
-2. ⬜ **File layer + path resolution**: read/write vaults.json; `vaultPath()`
-   resolves to the active entry's `<dir>/vault.enc` (PMSQL_VAULT still overrides,
-   for tests/single-vault). Desktop main.js stops pinning PMSQL_VAULT.
+2. ✅ **File layer + path resolution** (`vault-registry-store.ts`): load/save
+   `vaults.json` at `<config-root>/vaults.json`; `configRoot()` = `PMSQL_CONFIG_ROOT`
+   ?? `~/.config/pmsql`. `vaultPath()` resolves to the active entry's
+   `<dir>/vault.enc` (PMSQL_VAULT still pins a single vault, bypassing the
+   registry — tests/single-vault). No `vaults.json` = implicit "default" entry in
+   the config root, i.e. today's layout unchanged. Desktop `main.js` stops pinning
+   PMSQL_VAULT and sets PMSQL_CONFIG_ROOT to its userData dir (keeps the existing
+   `<userData>/vault.enc`). A corrupt/malformed registry falls back to default.
 3. ⬜ **API**: list / add (link repo or create) / switch / remove vault.
 4. ⬜ **UI**: a workspace switcher (sidebar) + manage screen.
 

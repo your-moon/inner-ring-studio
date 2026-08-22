@@ -48,10 +48,14 @@ function startServer(passphrase) {
     NODE_ENV: "production",
     PORT: String(port),
     HOSTNAME: "127.0.0.1",
-    // Local, encrypted vault (overridable for testing); defaults to the app's
-    // user-data directory.
-    PMSQL_VAULT:
-      process.env.PMSQL_VAULT || path.join(app.getPath("userData"), "vault.enc"),
+    // Multi-vault: the registry (vaults.json) and the default vault live under
+    // the app's user-data dir. We no longer pin a single PMSQL_VAULT, so the
+    // active vault is resolved from the registry — the default entry keeps the
+    // historical <userData>/vault.enc location, and extra vaults are subdirs.
+    // A user-set PMSQL_VAULT still flows through (via ...process.env) and pins
+    // a single vault, bypassing the registry.
+    PMSQL_CONFIG_ROOT:
+      process.env.PMSQL_CONFIG_ROOT || app.getPath("userData"),
     PMSQL_PASSPHRASE: passphrase,
     PMSQL_TZ: process.env.PMSQL_TZ || "Asia/Ulaanbaatar",
     // No app-level login on the local desktop app — it's your own machine.
