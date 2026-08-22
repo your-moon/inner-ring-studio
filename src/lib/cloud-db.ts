@@ -366,6 +366,8 @@ function rowToSafe(r: ConnRow): SafeConnection {
     folder: r.folder ?? undefined,
     timezone: r.timezone ?? undefined,
     createdAt: new Date(r.created_at).getTime(),
+    // Cloud connections aren't git-vault-merged; updatedAt is nominal (= created).
+    updatedAt: new Date(r.created_at).getTime(),
   };
 }
 
