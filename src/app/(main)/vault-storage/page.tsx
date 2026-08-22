@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { Check, Vault } from "@phosphor-icons/react";
 import NavigationLayout from "../nav-layout";
 
 interface ConfigStatus {
@@ -11,12 +12,26 @@ interface ConfigStatus {
   remote: string | null;
 }
 
+interface VaultRow {
+  id: string;
+  name: string;
+  dir: string;
+  repoUrl?: string;
+  active: boolean;
+}
+
 export default function VaultStoragePage() {
   const router = useRouter();
   const [status, setStatus] = useState<ConfigStatus | null>(null);
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+
+  // Vaults on this machine (the registry) + the "add vault" form.
+  const [vaults, setVaults] = useState<VaultRow[]>([]);
+  const [newName, setNewName] = useState("");
+  const [newMode, setNewMode] = useState<"create" | "link">("create");
+  const [newUrl, setNewUrl] = useState("");
 
   // The file-backed vault is a self-hosted/desktop concept — in cloud mode
   // connections live in the database, so send cloud users back to their list.
@@ -36,6 +51,10 @@ export default function VaultStoragePage() {
         setStatus(s);
         if (s.remote) setUrl(s.remote);
       })
+      .catch(() => {});
+    fetch("/api/vaults")
+      .then((r) => r.json())
+      .then((j: { vaults?: VaultRow[] }) => setVaults(j.vaults ?? []))
       .catch(() => {});
   }, []);
 
@@ -63,13 +82,173 @@ export default function VaultStoragePage() {
     [refresh]
   );
 
+  const vaultPost = useCallback(
+    async (body: Record<string, unknown>, reloadOnOk = false) => {
+      setBusy(true);
+      setMessage("");
+      try {
+        const res = await fetch("/api/vaults", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const j = await res.json();
+        if (res.ok && reloadOnOk) {
+          // Switched the active vault — reload so every vault-scoped fetch re-runs.
+          window.location.reload();
+          return;
+        }
+        setMessage(j.message || j.error || (res.ok ? "Done" : "Failed"));
+        refresh();
+      } catch {
+        setMessage("Something went wrong");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [refresh]
+  );
+
+  const addVault = useCallback(async () => {
+    const name = newName.trim();
+    if (!name) return;
+    await vaultPost({
+      action: "add",
+      name,
+      mode: newMode,
+      url: newMode === "link" ? newUrl.trim() : undefined,
+    });
+    setNewName("");
+    setNewUrl("");
+    setNewMode("create");
+  }, [newName, newMode, newUrl, vaultPost]);
+
+  const forget = useCallback(
+    (v: VaultRow) => {
+      if (
+        !window.confirm(
+          `Remove "${v.name}" from this machine's vault list?\n\n` +
+            `Its encrypted files stay on disk at:\n${v.dir}`
+        )
+      )
+        return;
+      vaultPost({ action: "remove", id: v.id });
+    },
+    [vaultPost]
+  );
+
   return (
     <NavigationLayout>
       <div className="mx-auto w-full max-w-2xl p-8">
-        <h1 className="mb-1 text-xl font-bold">Vault storage</h1>
+        <h1 className="mb-1 text-xl font-bold">Vaults</h1>
         <p className="mb-6 text-sm text-neutral-500">
-          Your connections are stored in a single encrypted file. Back it up and
-          sync it across devices with any git provider, or a synced folder.
+          Each vault is a separate encrypted store of connections on this machine.
+          Switch between them, and back each one up by linking it to a git repo.
+        </p>
+
+        {/* ---- Vaults on this machine ---- */}
+        <div className="mb-4 overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800">
+          {vaults.map((v) => (
+            <div
+              key={v.id}
+              className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3 text-sm last:border-b-0 dark:border-neutral-800/60"
+            >
+              <Vault size={16} className="shrink-0 text-neutral-400" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="truncate font-medium">{v.name}</span>
+                  {v.active && (
+                    <span className="flex items-center gap-1 rounded bg-[#FFEB02]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#a07a00] dark:text-[#FFEB02]">
+                      <Check size={10} weight="bold" /> active
+                    </span>
+                  )}
+                  {v.repoUrl && (
+                    <span className="text-[10px] text-neutral-400">synced</span>
+                  )}
+                </div>
+                <div className="truncate font-mono text-xs text-neutral-400">
+                  {v.repoUrl ?? v.dir}
+                </div>
+              </div>
+              {!v.active && (
+                <button
+                  disabled={busy}
+                  onClick={() => vaultPost({ action: "switch", id: v.id }, true)}
+                  className="shrink-0 rounded-md border border-neutral-300 px-2.5 py-1 text-xs font-medium hover:border-neutral-400 disabled:opacity-50 dark:border-neutral-700"
+                >
+                  Switch
+                </button>
+              )}
+              {!v.active && vaults.length > 1 && (
+                <button
+                  disabled={busy}
+                  onClick={() => forget(v)}
+                  className="shrink-0 rounded-md px-2 py-1 text-xs text-neutral-400 hover:text-red-600 disabled:opacity-50"
+                  title="Remove from the list (keeps files on disk)"
+                >
+                  Forget
+                </button>
+              )}
+            </div>
+          ))}
+          {vaults.length === 0 && (
+            <div className="px-4 py-3 text-xs text-neutral-400">Loading…</div>
+          )}
+        </div>
+
+        {/* ---- Add a vault ---- */}
+        <div className="mb-8 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+          <div className="mb-3 text-sm font-medium">Add a vault</div>
+          <div className="mb-3 flex gap-2">
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Name (e.g. Team, Client X)"
+              className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950"
+            />
+            <div className="flex overflow-hidden rounded-lg border border-neutral-300 text-sm dark:border-neutral-700">
+              {(["create", "link"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setNewMode(m)}
+                  className={
+                    "px-3 py-2 " +
+                    (newMode === m
+                      ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
+                      : "hover:bg-neutral-100 dark:hover:bg-neutral-800")
+                  }
+                >
+                  {m === "create" ? "New" : "Link repo"}
+                </button>
+              ))}
+            </div>
+          </div>
+          {newMode === "link" && (
+            <input
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+              placeholder="git@github.com:you/db-config.git"
+              className="mb-3 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 font-mono text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950"
+            />
+          )}
+          <button
+            disabled={busy || !newName.trim() || (newMode === "link" && !newUrl.trim())}
+            onClick={addVault}
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-blue-500 disabled:opacity-50 dark:border-neutral-700"
+          >
+            {newMode === "link" ? "Clone & add" : "Create vault"}
+          </button>
+          <p className="mt-2 text-xs text-neutral-400">
+            All vaults on this machine share the same passphrase. Linking clones an
+            existing vault repo; it only opens if it used that passphrase.
+          </p>
+        </div>
+
+        {/* ---- Git storage for the ACTIVE vault ---- */}
+        <h2 className="mb-1 text-sm font-bold">Active vault storage</h2>
+        <p className="mb-4 text-sm text-neutral-500">
+          Back up the active vault and sync it across devices with any git
+          provider, or a synced folder.
         </p>
 
         <div className="mb-6 rounded-lg border border-neutral-200 p-4 text-sm dark:border-neutral-800">

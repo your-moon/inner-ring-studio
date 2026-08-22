@@ -35,6 +35,7 @@ import useSWR from "swr";
 import NavConnectionItem, { NavConnection } from "./nav-connection-item";
 import NotificationsBell from "./notifications-bell";
 import WorkspaceSwitcher from "./workspace-switcher";
+import VaultSwitcher from "./vault-switcher";
 import CommandPalette from "./command-palette";
 
 export default function NavigationLayout({ children }: PropsWithChildren) {
@@ -209,6 +210,9 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
             activeName={me?.workspaceName ?? null}
           />
         )}
+
+        {/* Desktop / self-hosted: pick among local git-vaults on this machine. */}
+        {me && !isCloud && <VaultSwitcher />}
 
         <button
           onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}

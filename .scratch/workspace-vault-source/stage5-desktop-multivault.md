@@ -32,7 +32,11 @@ single vault, unchanged.
    unregisters but leaves files on disk; can't forget the last/only vault. Linking
    clones the remote into a fresh dir (`linkRepoInto`, split out of `linkRepo`).
    All vaults share the one machine passphrase. Route is cloud-guarded + auth'd.
-4. ⬜ **UI**: a workspace switcher (sidebar) + manage screen.
+4. ✅ **UI**: `vault-switcher.tsx` — active-vault picker under the logo (desktop/
+   self-hosted only, mirrors the cloud `WorkspaceSwitcher`): list, switch (reload),
+   quick "New vault", link to manage. `/vault-storage` extended into the manage
+   screen: vault list with active badge + Switch + Forget (keeps files on disk),
+   an add form (create or link-repo), above the existing active-vault git sync.
 
 ## Notes
 
