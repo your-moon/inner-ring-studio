@@ -130,6 +130,68 @@ export default function DatabaseGui() {
     return tabReplaceChannel.listen(replaceTabInternal);
   }, [replaceTabInternal]);
 
+  // Keyboard tab control (desktop-first). A stack of recently-closed tabs keeps
+  // the live tab object so ⌘⇧T re-inserts it intact — a re-mounted query tab
+  // reloads its SQL from its per-key draft, so content survives. Refs let the
+  // window handler read the latest tabs/selection without re-binding.
+  const tabsRef = useRef(tabs);
+  tabsRef.current = tabs;
+  const selectedIndexRef = useRef(selectedTabIndex);
+  selectedIndexRef.current = selectedTabIndex;
+  const closedTabsRef = useRef<{ tab: WindowTabItemProps; index: number }[]>([]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+      const key = e.key.toLowerCase();
+
+      // ⌘⇧T — reopen the last closed tab at its original position.
+      if (e.shiftKey && key === "t") {
+        const last = closedTabsRef.current.pop();
+        if (!last) return;
+        e.preventDefault();
+        const at = Math.min(last.index, tabsRef.current.length);
+        setTabs((prev) => [...prev.slice(0, at), last.tab, ...prev.slice(at)]);
+        setSelectedTabIndex(at);
+        return;
+      }
+      if (e.shiftKey) return;
+
+      // ⌘T — new query tab.
+      if (key === "t") {
+        e.preventDefault();
+        scc.tabs.openBuiltinQuery({});
+        return;
+      }
+
+      // ⌘W — close the current tab (pushed onto the reopen stack).
+      if (key === "w") {
+        const idx = selectedIndexRef.current;
+        const closing = tabsRef.current[idx];
+        if (!closing) return;
+        e.preventDefault();
+        closedTabsRef.current.push({ tab: closing, index: idx });
+        setTabs((prev) => prev.filter((_, i) => i !== idx));
+        setSelectedTabIndex(Math.max(0, Math.min(idx, tabsRef.current.length - 2)));
+        return;
+      }
+
+      // ⌘1–9 — jump to the nth tab (9 = last).
+      if (/^[1-9]$/.test(e.key)) {
+        const n = Number(e.key);
+        const count = tabsRef.current.length;
+        const target = n === 9 ? count - 1 : Math.min(n - 1, count - 1);
+        if (target >= 0) {
+          e.preventDefault();
+          setSelectedTabIndex(target);
+        }
+        return;
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const sidebarTabs = useMemo(() => {
     return [
       {

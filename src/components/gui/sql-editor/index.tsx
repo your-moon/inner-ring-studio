@@ -29,6 +29,7 @@ import sqliteFunctionList from "@/drivers/sqlite/function-tooltip.json";
 import { sqliteDialect } from "@/drivers/sqlite/sqlite-dialect";
 import { KEY_BINDING } from "@/lib/key-matcher";
 import { defaultKeymap, insertTab } from "@codemirror/commands";
+import { search, searchKeymap } from "@codemirror/search";
 import { keymap } from "@codemirror/view";
 import { toast } from "sonner";
 import { functionTooltip } from "./function-tooltips";
@@ -53,6 +54,7 @@ interface SqlEditorProps {
   value: string;
   dialect: SupportedDialect;
   readOnly?: boolean;
+  lineWrap?: boolean;
   onChange?: (value: string) => void;
   schema?: SQLNamespace;
   onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
@@ -81,6 +83,7 @@ const SqlEditor = forwardRef<ReactCodeMirrorRef, SqlEditorProps>(
       variableList,
       highlightVariable,
       onPrompt,
+      lineWrap,
     }: SqlEditorProps,
     ref
   ) {
@@ -161,6 +164,9 @@ const SqlEditor = forwardRef<ReactCodeMirrorRef, SqlEditorProps>(
             return true;
           },
         },
+        // Find/replace: ⌘F opens the search panel (with replace), ⌘G / ⇧⌘G
+        // cycle matches. Placed before defaultKeymap so its bindings win.
+        ...searchKeymap,
         ...defaultKeymap,
       ]);
     }, [fontSize, onFontSizeChanged]);
@@ -198,6 +204,8 @@ const SqlEditor = forwardRef<ReactCodeMirrorRef, SqlEditorProps>(
           },
         }),
         keyExtensions,
+        search({ top: true }),
+        lineWrap ? EditorView.lineWrapping : undefined,
         indentUnit.of("  "),
         highlightVariable
           ? createVariableHighlightPlugin({
@@ -222,6 +230,7 @@ const SqlEditor = forwardRef<ReactCodeMirrorRef, SqlEditorProps>(
       dialect,
       onCursorChange,
       keyExtensions,
+      lineWrap,
       schema,
       tableNameHighlightPlugin,
       variableList,

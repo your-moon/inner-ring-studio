@@ -79,4 +79,10 @@ export const KEY_BINDING = {
   format: new KeyMatcher({ ctrl: true, shift: true, key: "i" }),
   commit: new KeyMatcher({ ctrl: true, key: "s" }),
   discard: new KeyMatcher({ ctrl: true, shift: true, key: "Delete" }),
+  // Tab control (desktop-first — the browser reserves ⌘T/⌘W/⌘1-9, so these
+  // are captured by the Electron shell; in a browser they fall back to the
+  // mouse affordances). Display-only here; the handler lives in database-gui.
+  newTab: new KeyMatcher({ ctrl: true, key: "t" }),
+  closeTab: new KeyMatcher({ ctrl: true, key: "w" }),
+  reopenTab: new KeyMatcher({ ctrl: true, shift: true, key: "t" }),
 };

@@ -49,6 +49,7 @@ import {
   LucideMessageSquareWarning,
   LucideHistory,
   LucidePlay,
+  LucideWrapText,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -132,6 +133,22 @@ export default function QueryWindow({
   }, [code, persistKey]);
 
   const [fontSize, setFontSize] = useState(0.875);
+  // Soft-wrap long lines in the editor. Global editor preference, persisted.
+  const [lineWrap, setLineWrap] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("pmsql.editor.lineWrap") === "1";
+  });
+  const toggleLineWrap = useCallback(() => {
+    setLineWrap((v) => {
+      const next = !v;
+      try {
+        window.localStorage.setItem("pmsql.editor.lineWrap", next ? "1" : "0");
+      } catch {
+        /* ignore quota errors */
+      }
+      return next;
+    });
+  }, []);
   const [lineNumber, setLineNumber] = useState(0);
   const [columnNumber, setColumnNumber] = useState(0);
 
@@ -453,6 +470,7 @@ export default function QueryWindow({
               schema={autoCompleteSchema}
               fontSize={fontSize}
               onFontSizeChanged={setFontSize}
+              lineWrap={lineWrap}
               onCursorChange={onCursorChange}
               onKeyDown={(e) => {
                 if (KEY_BINDING.run.match(e)) {
@@ -480,6 +498,28 @@ export default function QueryWindow({
                   />
                 )}
               </div>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={"ghost"}
+                    size="sm"
+                    onClick={toggleLineWrap}
+                    aria-pressed={lineWrap}
+                    className={cn(
+                      "px-2",
+                      lineWrap
+                        ? "text-foreground bg-secondary"
+                        : "text-neutral-500 dark:text-neutral-500"
+                    )}
+                  >
+                    <LucideWrapText className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="p-4">
+                  <p>{lineWrap ? "Disable" : "Enable"} soft line wrap</p>
+                </TooltipContent>
+              </Tooltip>
 
               <Tooltip>
                 <TooltipTrigger asChild>
