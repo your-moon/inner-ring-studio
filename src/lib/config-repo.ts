@@ -23,10 +23,10 @@ interface GitResult {
   err: string;
 }
 
-function git(args: string[]): GitResult {
+function git(args: string[], cwd: string = configDir()): GitResult {
   try {
     const out = execFileSync("git", args, {
-      cwd: configDir(),
+      cwd,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -50,26 +50,34 @@ export function remoteUrl(): string | null {
   return r.ok ? r.out : null;
 }
 
-/** Initialize the config dir as a git repo tracking `url`, pulling any existing config. */
-export function linkRepo(url: string): { message: string } {
-  mkdirSync(configDir(), { recursive: true });
-  if (!isRepo()) {
-    const init = git(["init", "-q", "-b", "main"]);
+/**
+ * Initialize `dir` as a git repo tracking `url`, pulling any existing config.
+ * Used to link a specific vault dir; `linkRepo` below links the active vault.
+ */
+export function linkRepoInto(dir: string, url: string): { message: string } {
+  mkdirSync(dir, { recursive: true });
+  if (!git(["rev-parse", "--is-inside-work-tree"], dir).ok) {
+    const init = git(["init", "-q", "-b", "main"], dir);
     if (!init.ok) return { message: `git init failed: ${init.err}` };
   }
-  git(["remote", "remove", "origin"]); // ignore if absent
-  const add = git(["remote", "add", "origin", url]);
+  git(["remote", "remove", "origin"], dir); // ignore if absent
+  const add = git(["remote", "add", "origin", url], dir);
   if (!add.ok) return { message: `failed to set origin: ${add.err}` };
 
   // Try to pull existing config from the remote's main branch.
-  const fetch = git(["fetch", "--depth", "1", "origin", "main"]);
+  const fetch = git(["fetch", "--depth", "1", "origin", "main"], dir);
   if (fetch.ok) {
-    git(["checkout", "-B", "main", "origin/main"]);
+    git(["checkout", "-B", "main", "origin/main"], dir);
     return { message: `linked ${url} — pulled existing config` };
   }
   // Empty remote: just make a local main branch.
-  git(["checkout", "-B", "main"]);
+  git(["checkout", "-B", "main"], dir);
   return { message: `linked ${url} — remote is empty, will publish on next sync` };
+}
+
+/** Initialize the active config dir as a git repo tracking `url`. */
+export function linkRepo(url: string): { message: string } {
+  return linkRepoInto(configDir(), url);
 }
 
 /** Commit vault changes locally (no-op if nothing changed or not a repo). */

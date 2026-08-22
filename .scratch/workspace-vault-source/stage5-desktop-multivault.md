@@ -27,7 +27,11 @@ single vault, unchanged.
    the config root, i.e. today's layout unchanged. Desktop `main.js` stops pinning
    PMSQL_VAULT and sets PMSQL_CONFIG_ROOT to its userData dir (keeps the existing
    `<userData>/vault.enc`). A corrupt/malformed registry falls back to default.
-3. ⬜ **API**: list / add (link repo or create) / switch / remove vault.
+3. ✅ **API** (`vault-manager.ts` + `/api/vaults`): `listVaults` / `addVault`
+   (create or link a remote repo) / `switchVault` / `forgetVault`. Forgetting
+   unregisters but leaves files on disk; can't forget the last/only vault. Linking
+   clones the remote into a fresh dir (`linkRepoInto`, split out of `linkRepo`).
+   All vaults share the one machine passphrase. Route is cloud-guarded + auth'd.
 4. ⬜ **UI**: a workspace switcher (sidebar) + manage screen.
 
 ## Notes
