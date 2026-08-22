@@ -1,5 +1,6 @@
 import { storeRoute, HttpError } from "@/lib/route";
 import { commitConfig } from "@/lib/config-repo";
+import { scheduleBackgroundSync } from "@/lib/vault-sync";
 import { getConnectionStore, IS_CLOUD } from "@/lib/mode";
 
 // Reads the vault / cloud DB (fs + crypto / pg) — needs the Node.js runtime.
@@ -11,7 +12,11 @@ const store = getConnectionStore();
 // Vault-git-sync only applies to the single-tenant vault store; cloud persists
 // directly in its database.
 function commitLocal(msg: string) {
-  if (!IS_CLOUD) commitConfig(msg);
+  if (!IS_CLOUD) {
+    commitConfig(msg);
+    // Auto-sync the git-vault out of band (no-op unless a repo is linked).
+    scheduleBackgroundSync();
+  }
 }
 
 /**
@@ -19,6 +24,8 @@ function commitLocal(msg: string) {
  * scoped to the authenticated user; in local mode it's the single vault.
  */
 export const GET = storeRoute({}, async ({ ctx }) => {
+  // Pull remote vault changes in the background (throttled; no-op unless linked).
+  if (!IS_CLOUD) scheduleBackgroundSync();
   try {
     return { connections: await store.list(ctx) };
   } catch (e) {

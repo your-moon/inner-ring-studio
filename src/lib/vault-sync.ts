@@ -109,22 +109,29 @@ export function syncVaultNow(branch = "main"): { ok: boolean; message: string } 
 }
 
 let syncTimer: NodeJS.Timeout | null = null;
+let lastSyncAt = 0;
 
 /**
- * Debounced background sync — safe to fire after every connection mutation. Runs
- * the full pull→merge→push out of band, so edits are auto-synced without blocking
- * the request. No-op when the vault isn't a linked git repo.
+ * Throttled background sync — safe to fire after every connection mutation AND on
+ * every list read (for the pull direction). Runs the full pull→merge→push out of
+ * band, at most once per `minIntervalMs`, so frequent triggers coalesce. No-op
+ * when the vault isn't a linked git repo.
  */
-export function scheduleBackgroundSync(delayMs = 1500): void {
+export function scheduleBackgroundSync(
+  delayMs = 1500,
+  minIntervalMs = 15000
+): void {
   if (!isRepo() || !remoteUrl()) return;
-  if (syncTimer) clearTimeout(syncTimer);
+  if (syncTimer) return; // a run is already scheduled
+  const wait = Math.max(delayMs, minIntervalMs - (Date.now() - lastSyncAt));
   syncTimer = setTimeout(() => {
     syncTimer = null;
+    lastSyncAt = Date.now();
     try {
       syncVaultNow();
     } catch {
       /* best-effort; a failed background sync must never crash the app */
     }
-  }, delayMs);
+  }, wait);
   syncTimer.unref?.();
 }

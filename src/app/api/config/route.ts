@@ -1,13 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { IS_CLOUD } from "@/lib/mode";
-import {
-  configDir,
-  isRepo,
-  linkRepo,
-  remoteUrl,
-  sync,
-} from "@/lib/config-repo";
+import { configDir, isRepo, linkRepo, remoteUrl } from "@/lib/config-repo";
+import { syncVaultNow } from "@/lib/vault-sync";
 import { vaultPath } from "@/lib/vault";
 
 // git + fs operations — Node runtime.
@@ -48,7 +43,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, message: res.message });
     }
     if (body.action === "sync") {
-      const res = sync();
+      // Conflict-free merge sync (decrypt both sides, merge, push) instead of the
+      // old `git pull --rebase`, which conflicts on the re-encrypted vault blob.
+      const res = syncVaultNow();
       return NextResponse.json({ ok: res.ok, message: res.message });
     }
     return NextResponse.json({ error: "unknown action" }, { status: 400 });
