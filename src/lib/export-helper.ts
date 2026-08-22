@@ -290,11 +290,46 @@ export function parseUserInput(input: string): string {
     .replace(/\\r/g, "\r");
 }
 
-function copyToClipboard(content: string) {
-  navigator.clipboard
-    .writeText(content)
-    .then(() => toast.success("Copied to clipboard"))
-    .catch(() => toast.error("Failed to copy to clipboard"));
+/**
+ * Copy text to the clipboard, working in Electron as well as the browser.
+ * `navigator.clipboard.writeText` frequently rejects (or no-ops) inside the
+ * desktop app — focus/permission quirks — so we fall back to a hidden-textarea
+ * `execCommand("copy")`, which is reliable there.
+ */
+export function copyToClipboard(content: string) {
+  const fallback = (): boolean => {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = content;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-1000px";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  };
+
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard
+      .writeText(content)
+      .then(() => toast.success("Copied to clipboard"))
+      .catch(() =>
+        fallback()
+          ? toast.success("Copied to clipboard")
+          : toast.error("Failed to copy to clipboard")
+      );
+    return;
+  }
+  fallback()
+    ? toast.success("Copied to clipboard")
+    : toast.error("Failed to copy to clipboard");
 }
 
 export function convertExcelStringToArray(data: string): string[][] {

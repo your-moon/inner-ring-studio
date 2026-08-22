@@ -8,7 +8,7 @@ import RowDetailDialog, {
 import { useStudioContext } from "@/context/driver-provider";
 import { usePathname } from "next/navigation";
 import { ColumnSortOption } from "@/drivers/base-driver";
-import { exportDataAsDelimitedText } from "@/lib/export-helper";
+import { copyToClipboard, exportDataAsDelimitedText } from "@/lib/export-helper";
 import { KEY_BINDING } from "@/lib/key-matcher";
 import { cn } from "@/lib/utils";
 import {
@@ -359,7 +359,7 @@ export default function ResultTable({
       const records = sliceSelection(headerNames, rows, selectedRange);
       exportDataAsDelimitedText([], records, "\t", "\r\n", '"', "clipboard");
     } else {
-      window.navigator.clipboard.writeText(state.getValue(y, x) as string);
+      copyToClipboard(String(state.getValue(y, x) ?? ""));
     }
   }, []);
 
