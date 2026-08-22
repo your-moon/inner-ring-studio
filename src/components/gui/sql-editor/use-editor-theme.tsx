@@ -28,20 +28,22 @@ export default function useCodeEditorTheme({
           fontFamily:
             'Menlo, Monaco, Consolas, "Andale Mono", "Ubuntu Mono", "Courier New", monospace',
         },
+        // VS Code Light+ palette — familiar and readable, replacing the old
+        // garish set (hot-pink numbers, clashing blues).
         styles: [
-          { tag: [t.meta, t.comment], color: "#804000" },
-          { tag: [t.keyword, t.strong, t.standard(t.name)], color: "#0000FF" },
-          { tag: [t.number], color: "#FF0080" },
-          { tag: [t.string], color: "#e17055" },
-          { tag: [t.variableName], color: "#006600" },
-          { tag: [t.escape], color: "#33CC33" },
-          { tag: [t.tagName], color: "#1C02FF" },
-          { tag: [t.heading], color: "#0C07FF" },
-          { tag: [t.quote], color: "#000000" },
-          { tag: [t.list], color: "#B90690" },
-          { tag: [t.documentMeta], color: "#888888" },
-          { tag: [t.function(t.variableName)], color: "#0000A2" },
-          { tag: [t.definition(t.typeName), t.typeName], color: "#6D79DE" },
+          { tag: [t.meta, t.comment], color: "#008000" },
+          { tag: [t.keyword, t.strong, t.standard(t.name)], color: "#0000ff" },
+          { tag: [t.number], color: "#098658" },
+          { tag: [t.string], color: "#a31515" },
+          { tag: [t.variableName], color: "#001080" },
+          { tag: [t.escape], color: "#a31515" },
+          { tag: [t.tagName], color: "#267f99" },
+          { tag: [t.heading], color: "#0000ff" },
+          { tag: [t.quote], color: "#333333" },
+          { tag: [t.list], color: "#0000ff" },
+          { tag: [t.documentMeta], color: "#808080" },
+          { tag: [t.function(t.variableName)], color: "#795e26" },
+          { tag: [t.definition(t.typeName), t.typeName], color: "#267f99" },
         ],
       });
     } else {
