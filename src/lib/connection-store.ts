@@ -23,7 +23,10 @@ export interface AuthContext {
 }
 
 /** Fields accepted when creating a connection (no id/createdAt — the store sets those). */
-export type NewConnection = Omit<VaultConnection, "id" | "createdAt">;
+export type NewConnection = Omit<
+  VaultConnection,
+  "id" | "createdAt" | "updatedAt"
+>;
 
 /**
  * Where connections live. The local implementation is the encrypted vault file
