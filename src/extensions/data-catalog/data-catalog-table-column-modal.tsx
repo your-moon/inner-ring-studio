@@ -12,6 +12,7 @@ import { MagicWand } from "@phosphor-icons/react";
 import { produce } from "immer";
 import { LucideLoader } from "lucide-react";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { useDataCatalogContext } from "./data-model-tab";
 import { DataCatalogColumnInput } from "./driver";
 
@@ -68,11 +69,9 @@ export default function DataCatalogTableColumnModal({
 
     driver
       .updateColumn(schemaName, tableName, columnName, data)
-      .then()
-      .finally(() => {
-        setLoading(false);
-        onClose();
-      });
+      .then(() => onClose())
+      .catch((e) => toast.error((e as Error).message))
+      .finally(() => setLoading(false));
   }, [driver, column, columnName, onClose, schemaName, tableName]);
 
   return (

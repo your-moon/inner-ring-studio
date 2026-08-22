@@ -250,7 +250,7 @@ export default function QueryWindow({
           refreshSchema();
         }
       })
-      .catch(console.error)
+      .catch((e) => toast.error((e as Error).message))
       .finally(() => setIsRunning(false));
   };
 

@@ -40,13 +40,26 @@ function SnippetRow({
 }: SneakpeakProps) {
   const { databaseDriver } = useStudioContext();
   const [data, setData] = useState<DatabaseResultSet>();
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    setFailed(false);
     databaseDriver
       .findFirst(fkSchemaName, fkTableName, { [fkColumnName]: value })
       .then(setData)
-      .catch(console.error);
+      .catch((e) => {
+        console.error(e);
+        setFailed(true);
+      });
   }, [databaseDriver, fkSchemaName, fkTableName, fkColumnName, value]);
+
+  if (failed) {
+    return (
+      <div className="p-4 text-sm text-neutral-500">
+        Couldn&apos;t load the referenced row.
+      </div>
+    );
+  }
 
   if (!data) {
     return (

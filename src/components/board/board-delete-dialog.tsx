@@ -44,6 +44,8 @@ export const deleteChartDialog = createDialog<
               close(newValue);
             })
             .finally(() => setLoading(false));
+        } else {
+          setLoading(false);
         }
       } else {
         setLoading(false);
