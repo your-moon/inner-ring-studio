@@ -15,10 +15,12 @@
  * peers must converge on the same result regardless of who pulls whom.
  */
 
+// Only id + updatedAt are read; any other fields ride along untouched (the merge
+// carries whole connection objects, it never inspects their contents). Kept free
+// of an index signature so a concrete VaultConnection is structurally assignable.
 export interface MergeableConnection {
   id: string;
   updatedAt: number;
-  [field: string]: unknown;
 }
 
 export interface Tombstone {

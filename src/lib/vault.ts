@@ -83,11 +83,9 @@ function deriveKey(passphrase: string, salt: Buffer): Buffer {
   return scryptSync(passphrase, salt, 32, { N: 16384, r: 8, p: 1 });
 }
 
-export function readVault(): VaultData {
-  const path = vaultPath();
-  if (!existsSync(path)) return normalize({ connections: [] });
-
-  const file: VaultFile = JSON.parse(readFileSync(path, "utf8"));
+/** Decrypt a vault file's JSON text (e.g. read from disk or `git show <ref>:`). */
+export function decryptVaultFile(fileJson: string): VaultData {
+  const file: VaultFile = JSON.parse(fileJson);
   const key = deriveKey(getPassphrase(), Buffer.from(file.salt, "hex"));
   const decipher = createDecipheriv(
     "aes-256-gcm",
@@ -106,6 +104,12 @@ export function readVault(): VaultData {
     );
   }
   return normalize(JSON.parse(plaintext) as VaultData);
+}
+
+export function readVault(): VaultData {
+  const path = vaultPath();
+  if (!existsSync(path)) return normalize({ connections: [] });
+  return decryptVaultFile(readFileSync(path, "utf8"));
 }
 
 export function writeVault(data: VaultData): void {
