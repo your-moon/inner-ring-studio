@@ -1,6 +1,6 @@
 import { execFileSync } from "child_process";
 import { mergeVaults, type MergeableVault } from "./vault-merge";
-import { configDir } from "./config-repo";
+import { configDir, isRepo, remoteUrl } from "./config-repo";
 import { decryptVaultFile, readVault, writeVault } from "./vault";
 
 /**
@@ -91,4 +91,40 @@ export function defaultVaultPorts(branch = "main"): VaultSyncPorts {
     },
     push: () => runOk(["push", "origin", `HEAD:${branch}`]),
   };
+}
+
+/** Run a conflict-free sync now (pull → merge → push). Replaces the old naive
+ *  `git pull --rebase`, which conflicts on the re-encrypted vault blob. */
+export function syncVaultNow(branch = "main"): { ok: boolean; message: string } {
+  if (!isRepo()) return { ok: false, message: "vault is not a git repo" };
+  if (!remoteUrl())
+    return { ok: false, message: "no 'origin' remote — link a repo first" };
+  const r = syncVault(defaultVaultPorts(branch));
+  return {
+    ok: r.pushed,
+    message: r.pushed
+      ? `synced${r.merged ? " (merged remote changes)" : ""}`
+      : `push failed after ${r.attempts} attempts (check git auth)`,
+  };
+}
+
+let syncTimer: NodeJS.Timeout | null = null;
+
+/**
+ * Debounced background sync — safe to fire after every connection mutation. Runs
+ * the full pull→merge→push out of band, so edits are auto-synced without blocking
+ * the request. No-op when the vault isn't a linked git repo.
+ */
+export function scheduleBackgroundSync(delayMs = 1500): void {
+  if (!isRepo() || !remoteUrl()) return;
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    syncTimer = null;
+    try {
+      syncVaultNow();
+    } catch {
+      /* best-effort; a failed background sync must never crash the app */
+    }
+  }, delayMs);
+  syncTimer.unref?.();
 }
