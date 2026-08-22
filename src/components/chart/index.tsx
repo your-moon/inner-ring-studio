@@ -3,7 +3,8 @@ import { cn } from "@/lib/utils";
 import * as echarts from "echarts";
 import { EChartsOption } from "echarts";
 import { useTheme } from "next-themes";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChartData, ChartValue, chartAssetBaseUrl } from "./chart-type";
 import EchartOptionsBuilder from "./echart-options-builder";
 
@@ -107,32 +108,64 @@ const SingleValueComponent = ({ value, data }: ChartProps) => {
 };
 
 const TableComponent = ({ data }: ChartProps) => {
+  // Full-value preview for a clicked cell (cells clamp to 2 lines; long values
+  // are cut off, so clicking one opens the whole thing).
+  const [preview, setPreview] = useState<string | null>(null);
   if (data?.length === 0) return;
   return (
-    <div className="h-full w-full overflow-hidden overflow-x-auto overflow-y-auto rounded border">
-      <table className="border-separate border-spacing-0 text-sm">
-        <thead>
-          <tr className="bg-secondary sticky top-0 h-[35px] text-xs">
-            {Object.keys(data[0]).map((key) => (
-              <th key={key} className="border-r px-2 text-left">
-                {key}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, index) => (
-            <tr key={index}>
-              {Object.keys(row).map((key) => (
-                <td className="border px-4 py-2" key={key}>
-                  {row[key] || ""}
-                </td>
+    <>
+      <div className="h-full w-full overflow-hidden overflow-x-auto overflow-y-auto rounded border">
+        <table className="border-separate border-spacing-0 text-sm">
+          <thead>
+            <tr className="bg-secondary sticky top-0 h-[35px] text-xs">
+              {Object.keys(data[0]).map((key) => (
+                <th key={key} className="border-r px-2 text-left">
+                  {key}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {data.map((row, index) => (
+              <tr key={index}>
+                {Object.keys(row).map((key) => {
+                  const text = row[key] == null ? "" : String(row[key]);
+                  return (
+                    <td className="border px-4 py-2 align-top" key={key}>
+                      <div
+                        style={{ maxWidth: 320 }}
+                        className="line-clamp-2 cursor-pointer break-words"
+                        title={text}
+                        onClick={() => text && setPreview(text)}
+                      >
+                        {text}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {preview !== null &&
+        createPortal(
+          <div
+            style={{ zIndex: 1000 }}
+            className="fixed inset-0 flex items-center justify-center bg-black/40 p-6"
+            onClick={() => setPreview(null)}
+          >
+            <div
+              style={{ maxHeight: "70vh", maxWidth: "42rem" }}
+              className="w-full overflow-auto rounded-lg border border-neutral-200 bg-white p-4 text-sm break-words whitespace-pre-wrap shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {preview}
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 };
 
