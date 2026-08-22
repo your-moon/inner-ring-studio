@@ -123,20 +123,31 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
     [mutateConns]
   );
 
-  const { keys: connFolderKeys, groups: connFolders } = groupByFolder(
-    connData?.connections ?? []
+  // Filter the connection list live (by name or folder), so a long list stays
+  // usable — matching folders are force-opened below.
+  const [connFilter, setConnFilter] = useState("");
+  const filtering = connFilter.trim().length > 0;
+  const filterQuery = connFilter.trim().toLowerCase();
+  const visibleConnections = (connData?.connections ?? []).filter(
+    (c) =>
+      !filterQuery ||
+      c.name.toLowerCase().includes(filterQuery) ||
+      (c.folder ?? "").toLowerCase().includes(filterQuery)
   );
+  const { keys: connFolderKeys, groups: connFolders } =
+    groupByFolder(visibleConnections);
 
+  // Folders default to collapsed; persist the set the user has EXPANDED.
   const folderStore = useMemo(
-    () => scopedStore<string[]>("sidebarFolders", []),
+    () => scopedStore<string[]>("sidebarExpanded", []),
     []
   );
-  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     () => new Set(folderStore.read())
   );
   const toggleFolder = useCallback(
     (f: string) => {
-      setCollapsedFolders((prev) => {
+      setExpandedFolders((prev) => {
         const next = new Set(prev);
         if (next.has(f)) next.delete(f);
         else next.add(f);
@@ -146,6 +157,9 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
     },
     [folderStore]
   );
+  // While filtering, every matching folder shows open regardless of collapse.
+  const isFolderOpen = (folder: string) =>
+    filtering || expandedFolders.has(folder);
 
   return (
     <div className="flex w-screen flex-col lg:h-screen lg:flex-row">
@@ -206,6 +220,22 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
             {(connData?.connections?.length ?? 0) > 0 && (
               <>
                 <SidebarMenuHeader text="Databases" />
+                <div className="px-3 pt-1 pb-1">
+                  <input
+                    value={connFilter}
+                    onChange={(e) => setConnFilter(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setConnFilter("");
+                    }}
+                    placeholder="Filter connections…"
+                    className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs outline-none placeholder:text-neutral-400 focus:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-950"
+                  />
+                </div>
+                {filtering && connFolderKeys.length === 0 && (
+                  <div className="px-4 py-2 text-xs text-neutral-400">
+                    No connections match “{connFilter.trim()}”.
+                  </div>
+                )}
                 {connFolderKeys.map((folder) => (
                   <div key={folder || "_ungrouped"}>
                     {folder && (
@@ -213,15 +243,18 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
                         onClick={() => toggleFolder(folder)}
                         className="flex w-full items-center gap-1 px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-neutral-500 uppercase hover:text-neutral-700 dark:hover:text-neutral-300"
                       >
-                        {collapsedFolders.has(folder) ? (
-                          <CaretRight size={10} weight="bold" />
-                        ) : (
+                        {isFolderOpen(folder) ? (
                           <CaretDown size={10} weight="bold" />
+                        ) : (
+                          <CaretRight size={10} weight="bold" />
                         )}
                         {folder}
+                        <span className="ml-1 font-normal normal-case opacity-60">
+                          {connFolders.get(folder)!.length}
+                        </span>
                       </button>
                     )}
-                    {(!folder || !collapsedFolders.has(folder)) &&
+                    {(!folder || isFolderOpen(folder)) &&
                       connFolders.get(folder)!.map((conn) => (
                         <NavConnectionItem
                           key={conn.id}
