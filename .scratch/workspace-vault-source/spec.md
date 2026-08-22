@@ -50,11 +50,11 @@ Workspace settings → **Connection storage: Cloud | Git vault** (repo URL · br
 
 ## Stages
 
-1. **Merge core** (this stage): pure `mergeVaults(a, b)` implementing LWW-by-id + tombstones, fully tested. The load-bearing conflict logic, built and de-risked first.
-2. **Vault model**: add `updatedAt` + tombstones to `vault.ts` (add/update/remove), keeping the file format back-compatible.
-3. **Git-vault sync engine**: clone/pull → `mergeVaults` → write → commit → push, with the auto triggers.
-4. **Per-workspace store resolver**: `getConnectionStore(workspace)`; workspace schema + migration.
-5. **UI**: workspace settings storage picker.
+1. ✅ **Merge core**: pure `mergeVaults(a, b)` (LWW-by-id + tombstones), tested.
+2. ✅ **Vault model**: `updatedAt` + tombstones in `vault.ts`, back-compatible.
+3. ✅ **Git-vault sync engine**: `syncVault` fetch→merge→write→push with retry, injectable ports, tested.
+4. ✅ **Auto-sync wiring**: connection mutations + list reads trigger a throttled background `syncVaultNow`; the config `sync` action uses it too (replacing `git pull --rebase`). Delivers the desktop "auto push/pull" end-to-end.
+5. ⬜ **Per-workspace source resolver + UI** (deferred): `getConnectionStore(workspace)` keyed on a workspace `connectionSource: "cloud" | "vault"`, plus the settings picker. **Blocked on a design decision**: a *cloud* workspace backing onto a git-vault means the cloud server clones/manages a repo and holds the vault passphrase per workspace — a security-sensitive infra subsystem that needs its own design. The desktop already *is* a git-vault, so stages 1–4 give it auto-sync today; this stage is the cloud-side + the per-workspace picker.
 
 ## Decisions
 
