@@ -1,6 +1,10 @@
 import { storeRoute, HttpError } from "@/lib/route";
 import { clickhouseQuery, closeClickhouse } from "@/lib/clickhouse";
-import { getConnectionStore } from "@/lib/mode";
+import { getConnectionStore, IS_CLOUD } from "@/lib/mode";
+import {
+  getLastRemoteChangeAt,
+  scheduleBackgroundSync,
+} from "@/lib/vault-sync";
 import { closeMysqlPool, mysqlPoolStatus, testMysql } from "@/lib/mysql-pool";
 import {
   closePool,
@@ -66,6 +70,9 @@ async function closeOf(c: ConnLike) {
 
 /** Connection-manager status: which connections have a live pool. */
 export const GET = storeRoute({}, async ({ ctx }) => {
+  // The nav polls this every 5s — piggyback the throttled git-vault pull here,
+  // and report syncedAt so the client can toast when remote changes land.
+  if (!IS_CLOUD) scheduleBackgroundSync();
   const connections = (await store.list(ctx)).map((c) => ({
     id: c.id,
     name: c.name,
@@ -74,7 +81,7 @@ export const GET = storeRoute({}, async ({ ctx }) => {
     readOnly: !!c.readOnly,
     status: statusOf(c), // password not needed for the pool key
   }));
-  return { connections };
+  return { connections, syncedAt: IS_CLOUD ? 0 : getLastRemoteChangeAt() };
 });
 
 /** Actions: disconnect (close pool) or test/retry (SELECT 1). */

@@ -82,4 +82,29 @@ describe("syncVault orchestration", () => {
     expect(r).toMatchObject({ pushed: false, attempts: 3 });
     expect(state.pushes).toBe(3);
   });
+
+  test("changed=true when the remote brings a new/different connection", () => {
+    const { ports } = fakePorts({
+      local: { connections: [conn("a", 1)], tombstones: [] },
+      remote: { connections: [conn("b", 1)], tombstones: [] },
+    });
+    expect(syncVault(ports).changed).toBe(true);
+  });
+
+  test("changed=false when the remote matches local (no-op merge)", () => {
+    const { ports } = fakePorts({
+      local: { connections: [conn("a", 1)], tombstones: [] },
+      remote: { connections: [conn("a", 1)], tombstones: [] },
+    });
+    expect(syncVault(ports).changed).toBe(false);
+  });
+
+  test("changed still reflects the original diff across a push retry", () => {
+    const { ports } = fakePorts({
+      local: { connections: [conn("a", 1)], tombstones: [] },
+      remote: { connections: [conn("b", 1)], tombstones: [] },
+      pushFailsTimes: 1,
+    });
+    expect(syncVault(ports)).toMatchObject({ pushed: true, attempts: 2, changed: true });
+  });
 });

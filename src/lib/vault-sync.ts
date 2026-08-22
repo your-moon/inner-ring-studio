@@ -30,6 +30,17 @@ export interface VaultSyncResult {
   merged: boolean;
   pushed: boolean;
   attempts: number;
+  /** True when the remote actually brought new/changed connections (as opposed
+   *  to a no-op merge) — used to notify the user that their list updated. */
+  changed: boolean;
+}
+
+/** Order-independent signature of the connection set (id + version). */
+function connSignature(v: MergeableVault): string {
+  return v.connections
+    .map((c) => `${c.id}:${c.updatedAt}`)
+    .sort()
+    .join(",");
 }
 
 export function syncVault(
@@ -37,19 +48,32 @@ export function syncVault(
   maxAttempts = 3
 ): VaultSyncResult {
   let mergedRemote = false;
+  let changed = false;
+  // Signature of where we started, so `changed` reflects the whole sync (not just
+  // the last retry, whose local was already merged by an earlier attempt).
+  let originalSig: string | null = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     ports.fetch();
     const local = ports.readLocal();
+    if (originalSig === null) originalSig = connSignature(local);
     const remote = ports.readRemote();
     mergedRemote = remote !== null;
     const merged = remote
       ? mergeVaults(local, remote)
       : { connections: local.connections, tombstones: local.tombstones ?? [] };
+    changed = mergedRemote && connSignature(merged) !== originalSig;
     ports.writeMerged(merged);
     if (ports.push())
-      return { merged: mergedRemote, pushed: true, attempts: attempt };
+      return { merged: mergedRemote, pushed: true, attempts: attempt, changed };
   }
-  return { merged: mergedRemote, pushed: false, attempts: maxAttempts };
+  return { merged: mergedRemote, pushed: false, attempts: maxAttempts, changed };
+}
+
+// Timestamp of the last sync that pulled in real remote changes; the client polls
+// this (via /api/connections) to toast "connections updated" once.
+let lastRemoteChangeAt = 0;
+export function getLastRemoteChangeAt(): number {
+  return lastRemoteChangeAt;
 }
 
 // --- real git wiring for the config-dir vault (per-workspace clones come later) ---
@@ -100,6 +124,7 @@ export function syncVaultNow(branch = "main"): { ok: boolean; message: string } 
   if (!remoteUrl())
     return { ok: false, message: "no 'origin' remote — link a repo first" };
   const r = syncVault(defaultVaultPorts(branch));
+  if (r.changed) lastRemoteChangeAt = Date.now();
   return {
     ok: r.pushed,
     message: r.pushed

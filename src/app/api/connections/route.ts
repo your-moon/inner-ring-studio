@@ -1,6 +1,9 @@
 import { storeRoute, HttpError } from "@/lib/route";
 import { commitConfig } from "@/lib/config-repo";
-import { scheduleBackgroundSync } from "@/lib/vault-sync";
+import {
+  getLastRemoteChangeAt,
+  scheduleBackgroundSync,
+} from "@/lib/vault-sync";
 import { getConnectionStore, IS_CLOUD } from "@/lib/mode";
 
 // Reads the vault / cloud DB (fs + crypto / pg) — needs the Node.js runtime.
@@ -26,11 +29,18 @@ function commitLocal(msg: string) {
 export const GET = storeRoute({}, async ({ ctx }) => {
   // Pull remote vault changes in the background (throttled; no-op unless linked).
   if (!IS_CLOUD) scheduleBackgroundSync();
+  // syncedAt bumps when a background sync pulls in remote changes — the client
+  // watches it to notify the user their connection list updated.
+  const syncedAt = IS_CLOUD ? 0 : getLastRemoteChangeAt();
   try {
-    return { connections: await store.list(ctx) };
+    return { connections: await store.list(ctx), syncedAt };
   } catch (e) {
     // Vault locked / passphrase missing is an expected state, not a 500.
-    return { connections: [], error: e instanceof Error ? e.message : String(e) };
+    return {
+      connections: [],
+      syncedAt,
+      error: e instanceof Error ? e.message : String(e),
+    };
   }
 });
 

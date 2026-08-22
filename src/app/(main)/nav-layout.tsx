@@ -21,7 +21,15 @@ import {
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { PropsWithChildren, useCallback, useMemo, useState } from "react";
+import {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { toast } from "sonner";
 import { SignOut, User } from "@phosphor-icons/react";
 import useSWR from "swr";
 import NavConnectionItem, { NavConnection } from "./nav-connection-item";
@@ -89,9 +97,21 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
   // Vault connections for the sidebar navigator, with live pool status.
   const { data: connData, mutate: mutateConns } = useSWR<{
     connections: NavConnection[];
+    syncedAt?: number;
   }>("/api/db", (u: string) => fetch(u).then((r) => r.json()), {
     refreshInterval: 5000,
   });
+
+  // Toast once when a background git-vault sync pulls in remote connection
+  // changes (e.g. an edit pushed from another device).
+  const lastSyncRef = useRef(0);
+  useEffect(() => {
+    const s = connData?.syncedAt ?? 0;
+    if (s > 0 && lastSyncRef.current > 0 && s > lastSyncRef.current) {
+      toast("Connections updated — synced from another device");
+    }
+    if (s > lastSyncRef.current) lastSyncRef.current = s;
+  }, [connData?.syncedAt]);
 
   const actOnConn = useCallback(
     async (id: string, action: "test" | "disconnect") => {
