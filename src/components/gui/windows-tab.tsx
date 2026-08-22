@@ -31,6 +31,18 @@ import {
 } from "../ui/dropdown-menu";
 import { SortableTab } from "./sortable-tab";
 
+/**
+ * A serializable snapshot of a tab, enough to recreate it after a reload.
+ * `options` is whatever the tab's builtin opener took; `key`/`title` carry the
+ * tab's stable identity so a restored query tab reconnects its SQL draft.
+ */
+export interface TabRestoreDescriptor {
+  type: string;
+  key: string;
+  title: string;
+  options: unknown;
+}
+
 export interface WindowTabItemProps {
   component: JSX.Element;
   icon: LucideIcon;
@@ -38,6 +50,7 @@ export interface WindowTabItemProps {
   identifier: string;
   key: string;
   type?: string;
+  restore?: TabRestoreDescriptor;
 }
 
 interface WindowTabsProps {

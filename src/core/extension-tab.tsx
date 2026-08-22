@@ -1,5 +1,4 @@
 import { WindowTabItemProps } from "@/components/gui/windows-tab";
-import { scc } from "./command";
 import { CommunicationChannel } from "./channel";
 
 interface TabExtensionConfig<T> {
@@ -22,42 +21,43 @@ export const tabCloseChannel = new CommunicationChannel<string[]>();
 export function createTabExtension<T>(
   config: TabExtensionConfig<T>
 ): TabExtensionCommand<T> {
-  return Object.freeze({
-    generate: (options: T) => {
+    const build = (options: T): WindowTabItemProps => {
       const key = [config.name, config.key(options)].filter(Boolean).join("-");
+      const generated = config.generate(options);
       return {
-        ...config.generate(options),
+        ...generated,
         key,
         identifier: key,
         type: config.name,
+        // Serializable snapshot for session restore. `options` is what the
+        // opener consumed; `key`/`title` preserve the tab's identity so a
+        // restored query tab reconnects its SQL draft (keyed by title).
+        restore: {
+          type: config.name,
+          key,
+          title: generated.title,
+          options,
+        },
       };
-    },
+    };
+
+  return Object.freeze({
+    generate: (options: T) => build(options),
 
     replace(options: T) {
-      const key = [config.name, config.key(options)].filter(Boolean).join("-");
-
-      tabReplaceChannel.send({
-        ...config.generate(options),
-        key,
-        identifier: key,
-        type: config.name,
-      });
+      tabReplaceChannel.send(build(options));
     },
 
     open(options: T) {
-      const key = [config.name, config.key(options)].filter(Boolean).join("-");
-
-      tabOpenChannel.send({
-        ...config.generate(options),
-        key,
-        identifier: key,
-        type: config.name,
-      });
+      tabOpenChannel.send(build(options));
     },
 
     close(options: T) {
       const key = [config.name, config.key(options)].filter(Boolean).join("-");
-      scc.tabs.close([key]);
+      // Send directly on the channel (rather than via scc.tabs.close) so this
+      // module doesn't import ./command — that edge closes a require cycle
+      // (command → openers → extension-tab) and triggers a TDZ at load.
+      tabCloseChannel.send([key]);
     },
   });
 }

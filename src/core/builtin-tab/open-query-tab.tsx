@@ -5,9 +5,20 @@ import { createTabExtension } from "../extension-tab";
 
 let QUERY_COUNTER = 2;
 
+/**
+ * Keep auto-numbering of new unsaved queries above any tabs already restored
+ * from a previous session, so a fresh ⌘T doesn't collide with a restored
+ * "Query N" (whose SQL draft is keyed by that name).
+ */
+export function ensureQueryCounterAtLeast(n: number) {
+  if (n > QUERY_COUNTER) QUERY_COUNTER = n;
+}
+
 export const builtinOpenQueryTab = createTabExtension<
   | {
       name?: string;
+      /** Reuse a specific tab id (session restore) instead of a random one. */
+      restoreId?: string;
       saved?: {
         namespaceName?: string;
         key: string;
@@ -21,12 +32,14 @@ export const builtinOpenQueryTab = createTabExtension<
     if (options?.saved) {
       return options.saved.key;
     }
-    return generateId();
+    return options?.restoreId ?? generateId();
   },
   generate: (options) => {
+    // An explicit `name` (session restore) is honored verbatim and does not
+    // advance the counter; otherwise a fresh unsaved query auto-numbers.
     const title = options?.saved
       ? (options.name ?? "Query")
-      : "Query " + (QUERY_COUNTER++).toString();
+      : (options?.name ?? "Query " + (QUERY_COUNTER++).toString());
 
     const component = options?.saved ? (
       <QueryWindow
@@ -40,7 +53,7 @@ export const builtinOpenQueryTab = createTabExtension<
     );
 
     return {
-      title: options?.name ?? "Query",
+      title,
       component,
       icon: Binoculars,
     };

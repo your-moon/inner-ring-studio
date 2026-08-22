@@ -1,15 +1,27 @@
 "use client";
-import QueryWindow from "@/components/gui/tabs/query-tab";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import {
+  builtinOpenQueryTab,
+  ensureQueryCounterAtLeast,
+} from "@/core/builtin-tab/open-query-tab";
+import {
+  nextQueryCounter,
+  queryRestoreArgs,
+  serializeQueryTabs,
+} from "@/core/tab-restore";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SchemaView from "./schema-sidebar";
 import SidebarTab, { SidebarTabItem } from "./sidebar-tab";
 import ToolSidebar from "./sidebar/tools-sidebar";
-import WindowTabs, { WindowTabItemProps } from "./windows-tab";
+import WindowTabs, {
+  TabRestoreDescriptor,
+  WindowTabItemProps,
+} from "./windows-tab";
 
 import { useStudioContext } from "@/context/driver-provider";
 import { useSchema } from "@/context/schema-provider";
@@ -25,8 +37,50 @@ import { Binoculars, GearSix, StackSimple, Table } from "@phosphor-icons/react";
 import ConnectionsSidebar from "./sidebar/connections-sidebar";
 import SavedDocTab from "./sidebar/saved-doc-tab";
 
+/**
+ * The tab set to start with: restore the query tabs from the previous session
+ * for this connection, or fall back to a single default query tab. Runs once
+ * per mount (SSR-safe). Non-query tabs are not persisted, so they don't return.
+ */
+function buildInitialTabs(restoreKey: string): {
+  tabs: WindowTabItemProps[];
+  selected: number;
+} {
+  const fallback = (): WindowTabItemProps[] => [
+    builtinOpenQueryTab.generate({ restoreId: "default", name: "Query" }),
+  ];
+
+  if (typeof window === "undefined") return { tabs: fallback(), selected: 0 };
+
+  try {
+    const raw = window.localStorage.getItem(restoreKey);
+    if (raw) {
+      const parsed = JSON.parse(raw) as {
+        descriptors?: TabRestoreDescriptor[];
+        selectedKey?: string;
+      };
+      const descriptors = parsed.descriptors ?? [];
+      const restored = descriptors.map((d) =>
+        builtinOpenQueryTab.generate(queryRestoreArgs(d))
+      );
+      if (restored.length > 0) {
+        ensureQueryCounterAtLeast(nextQueryCounter(descriptors));
+        const idx = restored.findIndex((t) => t.key === parsed.selectedKey);
+        return { tabs: restored, selected: idx < 0 ? 0 : idx };
+      }
+    }
+  } catch {
+    /* ignore malformed persistence — fall back to the default tab */
+  }
+
+  return { tabs: fallback(), selected: 0 };
+}
+
 export default function DatabaseGui() {
   const DEFAULT_WIDTH = 300;
+  const pathname = usePathname();
+  // Open tabs persist per connection (pathname carries the connection id).
+  const restoreKey = `pmsql.tabs:${pathname}`;
 
   const [defaultWidthPercentage, setDefaultWidthPercentage] = useState(25);
 
@@ -37,18 +91,19 @@ export default function DatabaseGui() {
   const { databaseDriver, docDriver, extensions, containerClassName } =
     useStudioContext();
 
-  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  // Restore the previous session's tabs (or a default) exactly once per mount.
+  const initialRef = useRef<ReturnType<typeof buildInitialTabs> | null>(null);
+  if (initialRef.current === null) {
+    initialRef.current = buildInitialTabs(restoreKey);
+  }
+
+  const [selectedTabIndex, setSelectedTabIndex] = useState(
+    initialRef.current.selected
+  );
   const { currentSchemaName } = useSchema();
-  const [tabs, setTabs] = useState<WindowTabItemProps[]>(() => [
-    {
-      title: "Query",
-      identifier: "query",
-      key: "query",
-      component: <QueryWindow initialName="Query" />,
-      icon: Binoculars,
-      type: "query",
-    },
-  ]);
+  const [tabs, setTabs] = useState<WindowTabItemProps[]>(
+    initialRef.current.tabs
+  );
 
   const openTabInternal = useCallback((tabOption: WindowTabItemProps) => {
     setTabs((prev) => {
@@ -129,6 +184,26 @@ export default function DatabaseGui() {
   useEffect(() => {
     return tabReplaceChannel.listen(replaceTabInternal);
   }, [replaceTabInternal]);
+
+  // Persist the open query tabs (+ which one is active) so they come back on
+  // the next reload. Debounced; query tabs only (see tab-restore).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const id = setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          restoreKey,
+          JSON.stringify({
+            descriptors: serializeQueryTabs(tabs),
+            selectedKey: tabs[selectedTabIndex]?.key,
+          })
+        );
+      } catch {
+        /* ignore quota errors */
+      }
+    }, 300);
+    return () => clearTimeout(id);
+  }, [tabs, selectedTabIndex, restoreKey]);
 
   // Keyboard tab control (desktop-first). A stack of recently-closed tabs keeps
   // the live tab object so ⌘⇧T re-inserts it intact — a re-mounted query tab
