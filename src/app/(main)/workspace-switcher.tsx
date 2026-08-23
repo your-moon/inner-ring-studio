@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretUpDown, Check, Gear, Plus, UsersThree } from "@phosphor-icons/react";
+import { CaretUpDown, Check, Plus, UsersThree } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
@@ -24,11 +24,13 @@ export default function WorkspaceSwitcher({
   activeName: string | null;
 }) {
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
   const { data } = useSWR<{ workspaces: Ws[] }>(open ? "/api/workspaces" : null, fetcher);
   const workspaces = data?.workspaces ?? [];
 
   async function switchTo(id: string) {
     if (id === activeId) return setOpen(false);
+    setBusy(true);
     await fetch("/api/workspaces/switch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -41,12 +43,14 @@ export default function WorkspaceSwitcher({
   async function create() {
     const name = window.prompt("New workspace name")?.trim();
     if (!name) return;
+    setBusy(true);
     const r = await fetch("/api/workspaces", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     }).then((x) => x.json());
     if (r.workspace?.id) await switchTo(r.workspace.id);
+    else setBusy(false);
   }
 
   return (
@@ -71,7 +75,8 @@ export default function WorkspaceSwitcher({
                 <button
                   key={w.id}
                   onClick={() => switchTo(w.id)}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  disabled={busy}
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-neutral-100 disabled:opacity-60 dark:hover:bg-neutral-800"
                 >
                   <span className="min-w-0 flex-1 truncate">
                     {w.name}
@@ -93,9 +98,10 @@ export default function WorkspaceSwitcher({
             <div className="border-t border-neutral-100 dark:border-neutral-800">
               <button
                 onClick={create}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                disabled={busy}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-neutral-100 disabled:opacity-60 dark:hover:bg-neutral-800"
               >
-                <Plus size={14} /> New workspace
+                <Plus size={14} /> {busy ? "Switching…" : "New workspace"}
               </button>
               <Link
                 href="/workspace"

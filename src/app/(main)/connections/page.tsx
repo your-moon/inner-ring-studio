@@ -2,6 +2,7 @@
 
 import {
   ArrowClockwise,
+  CircleNotch,
   Database,
   DotsThreeVertical,
   Lightning,
@@ -11,7 +12,7 @@ import {
   Trash,
 } from "@phosphor-icons/react";
 import Link from "next/link";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import useSWR from "swr";
 import {
   DropdownMenu,
@@ -44,12 +45,25 @@ export default function ConnectionManagerPage() {
     { refreshInterval: 4000 }
   );
 
+  // Connections with an action in flight — drives the per-row spinner so
+  // Retry/Disconnect (which open/close a remote pool) don't look dead.
+  const [busy, setBusy] = useState<Set<string>>(new Set());
+  const mark = useCallback((id: string, on: boolean) => {
+    setBusy((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
   const act = useCallback(
     async (
       connectionId: string,
       action: "test" | "disconnect" | "readonly",
       value?: boolean
     ) => {
+      mark(connectionId, true);
       await fetch("/api/db", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,9 +71,10 @@ export default function ConnectionManagerPage() {
       })
         .then((r) => r.json())
         .catch(() => {});
+      mark(connectionId, false);
       mutate();
     },
-    [mutate]
+    [mutate, mark]
   );
 
   const del = useCallback(
@@ -141,10 +156,19 @@ export default function ConnectionManagerPage() {
               <div className="flex shrink-0 items-center gap-1">
                 <button
                   onClick={() => act(c.id, "test")}
+                  disabled={busy.has(c.id)}
                   title="Retry / reconnect"
-                  className="flex items-center gap-1.5 rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-medium hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  className="flex items-center gap-1.5 rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-medium hover:bg-neutral-50 disabled:opacity-60 dark:border-neutral-700 dark:hover:bg-neutral-800"
                 >
-                  <ArrowClockwise size={13} /> Retry
+                  {busy.has(c.id) ? (
+                    <>
+                      <CircleNotch size={13} className="animate-spin" /> Connecting…
+                    </>
+                  ) : (
+                    <>
+                      <ArrowClockwise size={13} /> Retry
+                    </>
+                  )}
                 </button>
 
                 <DropdownMenu>
@@ -169,7 +193,7 @@ export default function ConnectionManagerPage() {
                       )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      disabled={!c.status.connected}
+                      disabled={!c.status.connected || busy.has(c.id)}
                       onClick={() => act(c.id, "disconnect")}
                     >
                       <PlugsConnected className="mr-2 h-4 w-4" /> Disconnect

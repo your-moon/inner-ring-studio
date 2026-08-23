@@ -75,6 +75,7 @@ export default function NewConnectionPage() {
     folder: "",
   });
   const [busy, setBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [testResult, setTestResult] = useState<null | { ok: boolean; msg: string }>(
     null
@@ -165,6 +166,7 @@ export default function NewConnectionPage() {
 
   async function save() {
     setBusy(true);
+    setSaving(true);
     setError("");
     try {
       const res = await fetch("/api/connections", {
@@ -193,6 +195,7 @@ export default function NewConnectionPage() {
       setError(humanizeConnError((e as Error).message, f.host, f.port));
     } finally {
       setBusy(false);
+      setSaving(false);
     }
   }
 
@@ -456,7 +459,7 @@ export default function NewConnectionPage() {
               disabled={busy || !canSave}
               className="rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:hover:bg-neutral-200 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-500"
             >
-              Save & connect
+              {saving ? "Saving…" : "Save & connect"}
             </button>
             <button
               onClick={() => router.push("/local")}
