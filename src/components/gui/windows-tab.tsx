@@ -54,6 +54,8 @@ export interface WindowTabItemProps {
 }
 
 interface WindowTabsProps {
+  /** Rendered before the tabs — the breadcrumb (connection name › ). */
+  leading?: React.ReactNode;
   menu?: { text: string; onClick: () => void }[];
   tabs: WindowTabItemProps[];
   selected: number;
@@ -87,6 +89,7 @@ export function useCurrentTab() {
 }
 
 export default function WindowTabs({
+  leading,
   menu,
   tabs,
   selected,
@@ -208,11 +211,16 @@ export default function WindowTabs({
         modifiers={[restrictToHorizontalAxis]}
       >
         <div className="flex h-full w-full flex-col">
-          <div className="no-scrollbar shrink-0 grow-0 overflow-x-auto bg-muted">
+          <div className="no-scrollbar shrink-0 grow-0 overflow-x-auto bg-canvas">
             <div
               className="window-tab-scrollbar flex h-[40px]"
               ref={tabContainerRef}
             >
+              {leading && (
+                <div className="flex h-[40px] shrink-0 items-center border-b border-border/60">
+                  {leading}
+                </div>
+              )}
               <SortableContext
                 items={tabs.map((tab) => tab.key)}
                 strategy={horizontalListSortingStrategy}
@@ -252,7 +260,7 @@ export default function WindowTabs({
                 <div
                   ref={tabMenuRef}
                   style={{ zIndex: 50, position: "sticky" }}
-                  className={`right-0 flex h-[40px] items-center border-b bg-muted`}
+                  className={`right-0 flex h-[40px] items-center border-b border-border/60 bg-canvas`}
                 >
                   <DropdownMenu modal={false}>
                     <DropdownMenuTrigger>
@@ -276,7 +284,7 @@ export default function WindowTabs({
                 </div>
               )}
 
-              <div className="flex h-[40px] flex-1 border-b"></div>
+              <div className="flex h-[40px] flex-1 border-b border-border/60"></div>
             </div>
           </div>
           <div className="relative grow">

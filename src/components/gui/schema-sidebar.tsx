@@ -5,7 +5,6 @@ import { StudioExtensionMenuItem } from "@/core/extension-manager";
 import { cn } from "@/lib/utils";
 import { Plus } from "@phosphor-icons/react";
 import {
-  LucideDatabase,
   LucideLoader2,
   LucideRefreshCw,
   LucideSearch,
@@ -24,7 +23,6 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "../ui/context-menu";
-import EnvBadge from "../orbit/env-badge";
 import SchemaCreateDialog from "./schema-editor/schema-create";
 import SchemaList, { TableSortMode } from "./schema-sidebar-list";
 
@@ -45,7 +43,7 @@ export default function SchemaView() {
       /* ignore */
     }
   };
-  const { databaseDriver, extensions, name, environment } = useStudioContext();
+  const { databaseDriver, extensions } = useStudioContext();
   const { currentSchemaName, loading, error, refresh } = useSchema();
   const [isCreateSchema, setIsCreateSchema] = useState(false);
 
@@ -135,13 +133,6 @@ export default function SchemaView() {
       )}
 
       <div className="flex flex-col p-4 pb-2">
-        {name && (
-          <div className="mb-2 flex items-center gap-1.5 truncate text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            <LucideDatabase style={{ width: 13, height: 13 }} />
-            <span className="truncate">{name}</span>
-            <EnvBadge environment={environment} />
-          </div>
-        )}
         <div className="mb-5 flex items-center justify-between">
           <ContextMenu>
             <ContextMenuTrigger asChild>

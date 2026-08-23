@@ -41,11 +41,14 @@ export const WindowTabItemButton = forwardRef<
   return (
     <button
       className={cn(
-        "relative flex h-[40px] max-w-[300px] min-w-[170px] items-center border-x bg-neutral-100 px-2 text-left text-sm text-neutral-500 hover:text-black dark:bg-neutral-900 dark:hover:text-white",
+        // Quiet tabs on the canvas plane; the active tab joins the content
+        // sheet (bg + open bottom edge) instead of shouting with color.
+        "relative flex h-[40px] max-w-[280px] min-w-[150px] items-center border-x px-2 text-left text-[13px]",
+        "u-smooth bg-transparent text-muted-foreground hover:text-foreground",
         isDragging && "z-20",
         selected
-          ? "text-primary bg-neutral-50 dark:bg-neutral-950"
-          : "border-b border-x-transparent",
+          ? "border-border/60 bg-background font-medium text-foreground"
+          : "border-x-transparent border-b border-border/60",
         index === 0 ? "border-l-0" : ""
       )}
       onAuxClick={({ button }) => button === 1 && onClose && onClose()}
@@ -57,7 +60,7 @@ export const WindowTabItemButton = forwardRef<
       {onClose && (
         <div
           className={cn(
-            "ml-2 flex h-5 w-5 items-center justify-center rounded hover:bg-neutral-800 hover:text-white"
+            "ml-2 flex h-5 w-5 items-center justify-center rounded text-muted-foreground hover:bg-secondary hover:text-foreground"
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -69,7 +72,7 @@ export const WindowTabItemButton = forwardRef<
       )}
 
       {!selected && (
-        <div className="bg-border absolute top-2 right-[-1px] h-6 w-[1px] dark:bg-neutral-800" />
+        <div className="absolute top-3 right-[-1px] h-4 w-[1px] bg-border/70" />
       )}
     </button>
   );

@@ -15,8 +15,7 @@ import {
 } from "@/core/tab-restore";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import SchemaView from "./schema-sidebar";
-import SidebarTab, { SidebarTabItem } from "./sidebar-tab";
+import StudioSidebar, { SidebarPanel } from "./studio-sidebar";
 import ToolSidebar from "./sidebar/tools-sidebar";
 import WindowTabs, {
   TabRestoreDescriptor,
@@ -33,7 +32,8 @@ import {
 } from "@/core/extension-tab";
 import { normalizedPathname, sendAnalyticEvents } from "@/lib/tracking";
 import { cn } from "@/lib/utils";
-import { Binoculars, GearSix, StackSimple, Table } from "@phosphor-icons/react";
+import { Binoculars, GearSix, StackSimple } from "@phosphor-icons/react";
+import EnvBadge from "../orbit/env-badge";
 import useSWR from "swr";
 import ConnectionsSidebar from "./sidebar/connections-sidebar";
 import SavedDocTab from "./sidebar/saved-doc-tab";
@@ -90,7 +90,7 @@ export default function DatabaseGui() {
     setDefaultWidthPercentage((DEFAULT_WIDTH / window.innerWidth) * 100);
   }, []);
 
-  const { databaseDriver, docDriver, extensions, containerClassName } =
+  const { databaseDriver, docDriver, extensions, containerClassName, name, environment } =
     useStudioContext();
 
   // The studio's ⌘K palette (tables + actions).
@@ -284,20 +284,19 @@ export default function DatabaseGui() {
         return;
       }
     };
+    const onPaletteEvent = () => setPaletteOpen(true);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("irs:studio-cmdk", onPaletteEvent);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("irs:studio-cmdk", onPaletteEvent);
+    };
   }, []);
 
-  const sidebarTabs = useMemo(() => {
-    // Schema (the tables) leads — opening a connection should show what's in it,
-    // not a collapsed connection switcher. Databases/Queries/Tools follow.
+  // Secondary sidebar panels — the schema tree is the sidebar's permanent
+  // body; these swap in via quiet header icons (no more icon rail).
+  const sidebarPanels = useMemo(() => {
     return [
-      {
-        key: "database",
-        name: "Schema",
-        content: <SchemaView />,
-        icon: <Table weight="light" size={24} />,
-      },
       {
         key: "connections",
         name: "Databases",
@@ -319,7 +318,7 @@ export default function DatabaseGui() {
         icon: <GearSix weight="light" size={24} />,
       },
       ...extensions.getSidebars(),
-    ].filter(Boolean) as SidebarTabItem[];
+    ].filter(Boolean) as SidebarPanel[];
   }, [docDriver, extensions]);
 
   const tabSideMenu = useMemo(() => {
@@ -369,11 +368,20 @@ export default function DatabaseGui() {
       <StudioPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
       <ResizablePanelGroup direction="horizontal" autoSaveId="pmsql.layout.sidebar">
         <ResizablePanel id="sidebar" order={1} minSize={5} defaultSize={defaultWidthPercentage}>
-          <SidebarTab tabs={sidebarTabs} />
+          <StudioSidebar panels={sidebarPanels} />
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel id="main" order={2} defaultSize={100 - defaultWidthPercentage}>
           <WindowTabs
+            leading={
+              <div className="flex h-[40px] shrink-0 items-center gap-1.5 pr-2 pl-3 text-[13px]">
+                <span className="max-w-[180px] truncate text-muted-foreground">
+                  {name}
+                </span>
+                <EnvBadge environment={environment} />
+                <span className="text-muted-foreground/50">›</span>
+              </div>
+            }
             menu={tabSideMenu}
             tabs={tabs}
             selected={selectedTabIndex}
