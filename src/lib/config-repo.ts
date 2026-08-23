@@ -1,5 +1,5 @@
 import { execFileSync } from "child_process";
-import { mkdirSync } from "fs";
+import { mkdirSync, realpathSync } from "fs";
 import { dirname } from "path";
 import { vaultPath } from "./vault";
 
@@ -42,7 +42,18 @@ function git(args: string[], cwd: string = configDir()): GitResult {
 }
 
 export function isRepo(): boolean {
-  return git(["rev-parse", "--is-inside-work-tree"]).ok;
+  // The config dir must be a git repo ITSELF, not merely inside one. Without
+  // this, a config dir living inside some project checkout (PMSQL_CONFIG_ROOT
+  // pointed at a subfolder) resolves to the ENCLOSING repo, and commitConfig's
+  // `git add -A` commits vault noise into that project under the pmsql
+  // identity.
+  const top = git(["rev-parse", "--show-toplevel"]);
+  if (!top.ok) return false;
+  try {
+    return realpathSync(top.out) === realpathSync(configDir());
+  } catch {
+    return false;
+  }
 }
 
 export function remoteUrl(): string | null {
