@@ -319,7 +319,7 @@
     --input: #e4e2e4;
     --ring: #5e6ad2;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem; /* rounder, per the references: cards/menus 10, controls 8 */
 
     /* Accent-tinted selection plane (rows, palette active, grid selection). */
     --selected: #eef0fb;
