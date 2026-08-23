@@ -56,6 +56,11 @@ export default function StorybookRootLayout({
             />
             <SidebarMenuItem
               icon={Layers2}
+              text="Badges & Kbd"
+              href="/storybook/badges"
+            />
+            <SidebarMenuItem
+              icon={Layers2}
               text="Button"
               href="/storybook/button"
             />
