@@ -129,6 +129,25 @@ export default function ConnectionTreeItem({
     [conn.id, currentConnId, onOpen, router]
   );
 
+  const createTable = useCallback(
+    (schema: string) => {
+      if (conn.id === currentConnId) {
+        scc.tabs.openBuiltinSchema({ schemaName: schema });
+      } else {
+        onOpen?.(conn.id);
+        router.push(`/vault/${conn.id}`);
+      }
+    },
+    [conn.id, currentConnId, onOpen, router]
+  );
+
+  // Reload this connection's schema tree (also re-opens the pool).
+  const refreshSchemas = useCallback(() => {
+    setSchemas(null);
+    setOpen(true);
+    load();
+  }, [load]);
+
   const connected = !!conn.status?.connected;
   const statusDot = busy || loading ? (
     <CircleNotch size={11} className="shrink-0 animate-spin text-neutral-400" />
@@ -261,8 +280,8 @@ export default function ConnectionTreeItem({
                         <span className="truncate">{t.name}</span>
                       </button>
                     </ContextMenuTrigger>
-                    <ContextMenuContent>
-                      <div className="px-2 py-1.5 text-xs text-neutral-500">
+                    <ContextMenuContent className="w-52">
+                      <div className="truncate px-2 py-1.5 text-xs text-neutral-500">
                         {s.name}.{t.name}
                       </div>
                       <ContextMenuSeparator />
@@ -270,13 +289,27 @@ export default function ConnectionTreeItem({
                         Open data
                       </ContextMenuItem>
                       <ContextMenuItem onClick={() => openStructure(s.name, t.name)}>
-                        Open structure
+                        {t.type === "view" ? "Open definition" : "Open structure"}
                       </ContextMenuItem>
                       <ContextMenuSeparator />
+                      <ContextMenuItem onClick={() => createTable(s.name)}>
+                        Create table…
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onClick={() =>
+                          navigator.clipboard.writeText(`${s.name}.${t.name}`)
+                        }
+                      >
+                        Copy qualified name
+                      </ContextMenuItem>
                       <ContextMenuItem
                         onClick={() => navigator.clipboard.writeText(t.name)}
                       >
                         Copy name
+                      </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem onClick={refreshSchemas}>
+                        Refresh
                       </ContextMenuItem>
                     </ContextMenuContent>
                   </ContextMenu>
