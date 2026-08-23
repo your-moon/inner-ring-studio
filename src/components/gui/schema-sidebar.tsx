@@ -28,6 +28,9 @@ import SchemaList, { TableSortMode } from "./schema-sidebar-list";
 
 export default function SchemaView() {
   const [search, setSearch] = useState("");
+  // The filter input appears on demand (icon toggle) — one permanent search
+  // affordance per surface is the Jump-to button above this panel.
+  const [searchOpen, setSearchOpen] = useState(false);
   const [sortMode, setSortMode] = useState<TableSortMode>(() => {
     if (typeof window !== "undefined") {
       const v = window.localStorage.getItem("pmsql.tableSort");
@@ -87,7 +90,7 @@ export default function SchemaView() {
             }),
             // A quiet icon button, not a floating action button — neither
             // reference app ever floats a filled circle over content.
-            "h-7 w-7 rounded-md bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
+            "h-6 w-6 rounded-md bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
           )}
           onClick={contentMenu[0].onClick}
         >
@@ -104,7 +107,7 @@ export default function SchemaView() {
               buttonVariants({
                 size: "icon",
               }),
-              "h-7 w-7 rounded-md bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
+              "h-6 w-6 rounded-md bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
             )}
           >
             <Plus size={16} weight="bold" />
@@ -132,13 +135,14 @@ export default function SchemaView() {
         />
       )}
 
-      <div className="flex flex-col p-4 pb-2">
-        <div className="mb-5 flex items-center justify-between">
+      <div className="flex flex-col px-2 pt-3 pb-1">
+        {/* A quiet section label, not a title — right-click still sorts. */}
+        <div className="flex h-6 items-center gap-1 pl-2">
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <h1 className="cursor-context-menu text-[15px] font-semibold text-foreground">
+              <span className="cursor-context-menu text-[10.5px] font-semibold tracking-[0.06em] text-muted-foreground uppercase">
                 Tables
-              </h1>
+              </span>
             </ContextMenuTrigger>
             <ContextMenuContent>
               <ContextMenuItem onClick={() => changeSort("name-asc")}>
@@ -155,24 +159,41 @@ export default function SchemaView() {
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
+          <span className="flex-1" />
+          <button
+            onClick={() => {
+              if (searchOpen) setSearch("");
+              setSearchOpen((v) => !v);
+            }}
+            aria-label="Filter tables"
+            className={cn(
+              "u-smooth grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground",
+              (searchOpen || search) && "bg-secondary text-foreground"
+            )}
+          >
+            <LucideSearch style={{ width: 13, height: 13 }} />
+          </button>
           {activatorButton}
         </div>
 
-        <div className="u-smooth flex h-8 w-full cursor-text items-center gap-2 overflow-hidden rounded-md border border-input bg-card px-2.5 text-foreground focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/40">
-          <LucideSearch
-            className="shrink-0 text-muted-foreground"
-            style={{ width: 14, height: 14 }}
-          />
-          <input
-            type="text"
-            className="h-full flex-1 grow bg-transparent text-[13px] outline-hidden placeholder:text-muted-foreground"
-            value={search}
-            placeholder="Search tables"
-            onChange={(e) => {
-              setSearch(e.currentTarget.value);
-            }}
-          />
-        </div>
+        {(searchOpen || search !== "") && (
+          <div className="u-smooth mx-1 mt-1 flex h-7 items-center gap-2 overflow-hidden rounded-[7px] border border-input bg-background px-2 text-foreground focus-within:border-ring">
+            <input
+              type="text"
+              autoFocus
+              className="h-full flex-1 grow bg-transparent text-[13px] outline-hidden placeholder:text-muted-foreground"
+              value={search}
+              placeholder="Filter tables…"
+              onChange={(e) => setSearch(e.currentTarget.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setSearch("");
+                  setSearchOpen(false);
+                }
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">

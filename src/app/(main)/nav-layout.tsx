@@ -168,19 +168,9 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
     [mutateConns]
   );
 
-  // Filter the connection list live (by name or folder), so a long list stays
-  // usable — matching folders are force-opened below.
-  const [connFilter, setConnFilter] = useState("");
-  const filtering = connFilter.trim().length > 0;
-  const filterQuery = connFilter.trim().toLowerCase();
-  const visibleConnections = (connData?.connections ?? []).filter(
-    (c) =>
-      !filterQuery ||
-      c.name.toLowerCase().includes(filterQuery) ||
-      (c.folder ?? "").toLowerCase().includes(filterQuery)
+  const { keys: connFolderKeys, groups: connFolders } = groupByFolder(
+    connData?.connections ?? []
   );
-  const { keys: connFolderKeys, groups: connFolders } =
-    groupByFolder(visibleConnections);
 
   // Folders default to collapsed; persist the set the user has EXPANDED.
   const folderStore = useMemo(
@@ -202,9 +192,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
     },
     [folderStore]
   );
-  // While filtering, every matching folder shows open regardless of collapse.
-  const isFolderOpen = (folder: string) =>
-    filtering || expandedFolders.has(folder);
+  const isFolderOpen = (folder: string) => expandedFolders.has(folder);
 
   return (
     <div className="flex w-screen flex-col lg:h-screen lg:flex-row">
@@ -268,28 +256,12 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
             {(connData?.connections?.length ?? 0) > 0 && (
               <>
                 <SidebarMenuHeader text="Databases" />
-                <div className="px-3 pt-1 pb-1">
-                  <input
-                    value={connFilter}
-                    onChange={(e) => setConnFilter(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Escape") setConnFilter("");
-                    }}
-                    placeholder="Filter connections…"
-                    className="u-smooth h-7 w-full rounded-md border border-border bg-card px-2.5 text-[12px] text-foreground outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/40"
-                  />
-                </div>
-                {filtering && connFolderKeys.length === 0 && (
-                  <div className="px-4 py-2 text-xs text-muted-foreground">
-                    No connections match “{connFilter.trim()}”.
-                  </div>
-                )}
                 {connFolderKeys.map((folder) => (
                   <div key={folder || "_ungrouped"}>
                     {folder && (
                       <button
                         onClick={() => toggleFolder(folder)}
-                        className="flex w-full items-center gap-1 px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-neutral-500 uppercase hover:text-neutral-700 dark:hover:text-neutral-300"
+                        className="flex w-full items-center gap-1 px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase hover:text-foreground"
                       >
                         {isFolderOpen(folder) ? (
                           <CaretDown size={10} weight="bold" />

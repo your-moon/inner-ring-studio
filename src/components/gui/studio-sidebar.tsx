@@ -3,12 +3,23 @@
 import EnvBadge from "@/components/orbit/env-badge";
 import Kbd from "@/components/ui/kbd";
 import { useStudioContext } from "@/context/driver-provider";
+import { useSchema } from "@/context/schema-provider";
+import { scc } from "@/core/command";
+import { SavedDocData } from "@/drivers/saved-doc/saved-doc-driver";
+import { bumpTable, frecencyScores } from "@/lib/table-frecency";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, CaretLeft, DotsThree, MagnifyingGlass } from "@phosphor-icons/react";
+import {
+  ArrowLeft,
+  CaretLeft,
+  DotsThree,
+  MagnifyingGlass,
+  Table,
+  TerminalWindow,
+} from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { ReactElement, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { ReactElement, useEffect, useMemo, useState } from "react";
 import ThemeToggle from "../theme-toggle";
 import {
   DropdownMenu,
@@ -34,12 +45,70 @@ export interface SidebarPanel {
  * permanent body. Secondary panels (Databases, Queries, Tools, extensions)
  * swap the body via quiet header icons instead of a dedicated icon rail.
  */
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex h-6 items-center px-2 text-[10.5px] font-semibold tracking-[0.06em] text-muted-foreground uppercase">
+      {children}
+    </div>
+  );
+}
+
 export default function StudioSidebar({
   panels,
 }: Readonly<{ panels: SidebarPanel[] }>) {
-  const { name, environment, onBack } = useStudioContext();
+  const { name, environment, onBack, docDriver } = useStudioContext();
+  const { schema } = useSchema();
+  const pathname = usePathname();
   const { forcedTheme } = useTheme();
   const searchParams = useSearchParams();
+
+  // RECENT — the frecency top of this connection's tables, resolved against
+  // the live schema so renamed/dropped tables fall out naturally.
+  const [scores, setScores] = useState<Record<string, number>>({});
+  useEffect(() => setScores(frecencyScores(pathname)), [pathname]);
+  const recent = useMemo(() => {
+    const items = Object.values(schema)
+      .flat()
+      .filter((i) => i.type === "table" || i.type === "view");
+    return items
+      .filter((i) => (scores[i.name] ?? 0) > 0)
+      .sort((a, b) => (scores[b.name] ?? 0) - (scores[a.name] ?? 0))
+      .slice(0, 4);
+  }, [schema, scores]);
+
+  // SAVED QUERIES — most recently updated, live via the doc driver's listener.
+  const [savedDocs, setSavedDocs] = useState<SavedDocData[]>([]);
+  useEffect(() => {
+    if (!docDriver) return;
+    const load = () =>
+      docDriver
+        .getDocs()
+        .then((groups) =>
+          setSavedDocs(
+            groups
+              .flatMap((g) => g.docs)
+              .sort((a, b) => b.updatedAt - a.updatedAt)
+              .slice(0, 5)
+          )
+        )
+        .catch(() => {});
+    load();
+    docDriver.addChangeListener(load);
+    return () => docDriver.removeChangeListener(load);
+  }, [docDriver]);
+
+  // Identity footer (cloud/linked shows the account; desktop shows the vault).
+  const [meEmail, setMeEmail] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => alive && setMeEmail(j?.email ?? null))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Honor the old ?sidebar=<key> deep link for the swappable panels.
   const [activeKey, setActiveKey] = useState<string | null>(() => {
@@ -158,16 +227,85 @@ export default function StudioSidebar({
         </Kbd>
       </button>
 
-      {/* Body: schema tree by default, or the active secondary panel. */}
-      <div className="relative min-h-0 flex-1">
+      {/* Body: recent + schema tree + saved queries, or the active panel. */}
+      <div className="relative flex min-h-0 flex-1 flex-col">
         <div
-          className={cn("flex h-full", active?.content && "hidden")}
+          className={cn(
+            "flex min-h-0 flex-1 flex-col",
+            active?.content && "hidden"
+          )}
         >
-          <SchemaView />
+          {recent.length > 0 && (
+            <div className="shrink-0 px-2 pt-2">
+              <SectionLabel>Recent</SectionLabel>
+              {recent.map((t) => (
+                <button
+                  key={`${t.schemaName}.${t.name}`}
+                  onClick={() => {
+                    bumpTable(pathname, t.name);
+                    setScores(frecencyScores(pathname));
+                    scc.tabs.openBuiltinTable({
+                      schemaName: t.schemaName ?? "",
+                      tableName: t.name,
+                    });
+                  }}
+                  className="u-smooth flex h-[26px] w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-secondary-foreground hover:bg-secondary hover:text-foreground"
+                >
+                  <Table size={12} className="shrink-0 text-muted-foreground" />
+                  <span className="truncate">{t.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="flex min-h-0 flex-1">
+            <SchemaView />
+          </div>
+
+          {savedDocs.length > 0 && (
+            <div className="shrink-0 border-t border-border/60 px-2 pt-1.5 pb-2">
+              <SectionLabel>Saved queries</SectionLabel>
+              {savedDocs.map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() =>
+                    scc.tabs.openBuiltinQuery({
+                      name: d.name,
+                      saved: {
+                        key: d.id,
+                        sql: d.content,
+                        namespaceName: d.namespace.name,
+                      },
+                    })
+                  }
+                  className="u-smooth flex h-[26px] w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-secondary-foreground hover:bg-secondary hover:text-foreground"
+                >
+                  <TerminalWindow
+                    size={12}
+                    className="shrink-0 text-muted-foreground"
+                  />
+                  <span className="truncate">{d.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         {active?.content && (
           <div className="flex h-full">{active.content}</div>
         )}
+      </div>
+
+      {/* Identity footer — the shell's bottom anchor (account, or the local vault). */}
+      <div className="flex shrink-0 items-center gap-2 border-t border-border/60 px-3 py-2">
+        <span
+          className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[9px] font-semibold text-white"
+          style={{ background: "linear-gradient(135deg, #5e6ad2, #8a7bff)" }}
+        >
+          {(meEmail ?? "LV").slice(0, 2).toUpperCase()}
+        </span>
+        <span className="truncate text-[12.5px] text-secondary-foreground">
+          {meEmail ?? "Local vault"}
+        </span>
       </div>
     </div>
   );
