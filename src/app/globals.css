@@ -1,5 +1,8 @@
 @import "tailwindcss";
 @import "./styles/markdown.css";
+/* Revives every data-[state] animate-in/out class on the Radix layer
+   (dialogs, popovers, dropdowns, context menus) — installed but never loaded. */
+@plugin "tailwindcss-animate";
 
 /*
  * Keep loading spinners smooth even while the main thread is busy (e.g. mounting
@@ -440,6 +443,23 @@
   }
   .press:active:not(:disabled) {
     transform: scale(0.97);
+  }
+
+  /* Route entrance — app/template.tsx remounts this on navigation, giving
+     every page change one quiet rise. Transform+opacity only. */
+  .route-in {
+    animation: route-in 0.22s var(--ease-out) both;
+  }
+  @keyframes route-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .route-in {
+      animation: none;
+    }
   }
 
   /* Smooth chrome transition for rows / chips (bg + border + color). */

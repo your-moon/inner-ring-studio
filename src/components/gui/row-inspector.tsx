@@ -130,7 +130,7 @@ export default function RowInspector({
   }, [rowIndex, headers, state, snapshot.key]);
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full flex-col bg-background animate-in duration-200 fade-in-0 slide-in-from-right-2">
       <div className="flex h-10 shrink-0 items-center justify-between gap-2 border-b border-border px-3">
         <span className="truncate text-[13px] font-medium text-foreground">
           {rowIndex === null ? "No row selected" : identity}

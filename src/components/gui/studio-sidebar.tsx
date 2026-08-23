@@ -291,7 +291,12 @@ export default function StudioSidebar({
           )}
         </div>
         {active?.content && (
-          <div className="flex h-full">{active.content}</div>
+          <div
+            key={active.key}
+            className="flex h-full animate-in duration-150 fade-in-0 slide-in-from-left-1"
+          >
+            {active.content}
+          </div>
         )}
       </div>
 
