@@ -8,7 +8,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Database } from "@phosphor-icons/react";
+import { CircleNotch, Database } from "@phosphor-icons/react";
 import Link from "next/link";
 
 export interface NavConnection {
@@ -21,32 +21,45 @@ export interface NavConnection {
 export default function NavConnectionItem({
   conn,
   selected,
+  busy,
   onAction,
   onDelete,
+  onOpen,
 }: {
   conn: NavConnection;
   selected: boolean;
+  /** A connect/test is in flight for this connection — show a spinner. */
+  busy?: boolean;
   onAction: (id: string, action: "test" | "disconnect") => void;
   onDelete: (id: string, name: string) => void;
+  /** Fired when the item is clicked to open, so the parent can show a spinner. */
+  onOpen?: (id: string) => void;
 }) {
   const connected = !!conn.status?.connected;
+  const badge = busy ? (
+    <span title="Connecting…" className="mr-2 inline-flex">
+      <CircleNotch
+        size={12}
+        weight="bold"
+        className="animate-spin text-neutral-400"
+      />
+    </span>
+  ) : connected ? (
+    <span
+      title="Active connection"
+      className="mr-2 inline-block h-2 w-2 rounded-full bg-green-500"
+    />
+  ) : undefined;
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div>
+        <div onClick={() => onOpen?.(conn.id)}>
           <SidebarMenuItem
             text={conn.name}
             icon={Database}
             href={`/vault/${conn.id}`}
             selected={selected}
-            badge={
-              connected ? (
-                <span
-                  title="Active connection"
-                  className="mr-2 inline-block h-2 w-2 rounded-full bg-green-500"
-                />
-              ) : undefined
-            }
+            badge={badge}
           />
         </div>
       </ContextMenuTrigger>

@@ -1,8 +1,8 @@
 "use client";
 
-import { Database, Plus } from "@phosphor-icons/react";
+import { CircleNotch, Database, Plus } from "@phosphor-icons/react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 import NavigationLayout from "../nav-layout";
 
@@ -22,6 +22,9 @@ export default function LocalConnectionPage() {
   );
 
   const connections = useMemo(() => data?.connections ?? [], [data]);
+  // Opening a connection navigates to the studio; show a spinner on the clicked
+  // card immediately so the click clearly registers.
+  const [openingId, setOpeningId] = useState<string | null>(null);
 
   return (
     <NavigationLayout>
@@ -72,11 +75,26 @@ export default function LocalConnectionPage() {
               <Link
                 key={conn.id}
                 href={`/vault/${conn.id}`}
+                onClick={() => setOpeningId(conn.id)}
+                aria-busy={openingId === conn.id}
                 className="group flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-4 transition-colors hover:border-[#e6d400] dark:border-neutral-800 dark:bg-neutral-900"
               >
                 <div className="flex items-center gap-2">
-                  <Database size={18} className="text-neutral-500" />
+                  {openingId === conn.id ? (
+                    <CircleNotch
+                      size={18}
+                      weight="bold"
+                      className="animate-spin text-neutral-500"
+                    />
+                  ) : (
+                    <Database size={18} className="text-neutral-500" />
+                  )}
                   <span className="truncate font-medium">{conn.name}</span>
+                  {openingId === conn.id && (
+                    <span className="ml-auto text-xs text-neutral-400">
+                      Opening…
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-neutral-500">
                   <span className="rounded bg-neutral-100 px-1.5 py-0.5 uppercase dark:bg-neutral-800">

@@ -114,8 +114,21 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
     if (s > lastSyncRef.current) lastSyncRef.current = s;
   }, [connData?.syncedAt]);
 
+  // Connections with a connect/test in flight — drives the sidebar spinner so a
+  // click (open) or a Connect/Retry gives immediate feedback instead of silence.
+  const [busyConns, setBusyConns] = useState<Set<string>>(new Set());
+  const setBusy = useCallback((id: string, on: boolean) => {
+    setBusyConns((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
   const actOnConn = useCallback(
     async (id: string, action: "test" | "disconnect") => {
+      if (action === "test") setBusy(id, true);
       await fetch("/api/db", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -123,9 +136,21 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
       })
         .then((r) => r.json())
         .catch(() => {});
+      setBusy(id, false);
       mutateConns();
     },
-    [mutateConns]
+    [mutateConns, setBusy]
+  );
+
+  // Opening a connection navigates to the studio (leaving this layout). Show a
+  // spinner immediately so the click registers; a short fallback clears it if the
+  // user cancels/stays. It resets naturally when this layout remounts.
+  const onOpenConn = useCallback(
+    (id: string) => {
+      setBusy(id, true);
+      window.setTimeout(() => setBusy(id, false), 8000);
+    },
+    [setBusy]
   );
 
   const onDeleteConn = useCallback(
@@ -284,8 +309,10 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
                           key={conn.id}
                           conn={conn}
                           selected={pathname.includes(conn.id)}
+                          busy={busyConns.has(conn.id)}
                           onAction={actOnConn}
                           onDelete={onDeleteConn}
+                          onOpen={onOpenConn}
                         />
                       ))}
                   </div>
