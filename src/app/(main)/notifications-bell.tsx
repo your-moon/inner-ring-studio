@@ -37,7 +37,7 @@ export default function NotificationsBell() {
       >
         <Bell size={18} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FFEB02] px-1 text-[10px] font-bold text-black">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
@@ -51,7 +51,7 @@ export default function NotificationsBell() {
             <div className="flex items-center justify-between border-b border-neutral-200 px-3 py-2 dark:border-neutral-800">
               <span className="text-sm font-medium">Alerts</span>
               {unread > 0 && (
-                <button onClick={markAll} className="text-xs text-[#a07a00] hover:underline dark:text-[#FFEB02]">
+                <button onClick={markAll} className="text-xs text-primary hover:underline">
                   Mark all read
                 </button>
               )}
@@ -69,11 +69,11 @@ export default function NotificationsBell() {
                   onClick={() => setOpen(false)}
                   className={
                     "block border-b border-neutral-100 px-3 py-2.5 hover:bg-neutral-50 dark:border-neutral-800/60 dark:hover:bg-neutral-800/40 " +
-                    (n.read ? "" : "bg-[#FFEB02]/5")
+                    (n.read ? "" : "bg-primary/5")
                   }
                 >
                   <div className="flex items-center gap-2">
-                    {!n.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#FFEB02]" />}
+                    {!n.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />}
                     <span className="truncate text-sm font-medium">{n.title}</span>
                   </div>
                   {n.body && <p className="mt-0.5 pl-3.5 text-xs text-neutral-500">{n.body}</p>}

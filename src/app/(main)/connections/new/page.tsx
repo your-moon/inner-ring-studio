@@ -238,17 +238,17 @@ export default function NewConnectionPage() {
   }
 
   const input =
-    "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950";
+    "w-full rounded-md border border-input bg-card px-3 h-9 text-[14px] text-foreground outline-none u-smooth placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/40";
 
   const driverBtn = (d: Driver, label: string) => (
     <button
       type="button"
       onClick={() => setDriver(d)}
       className={
-        "flex-1 rounded-lg border px-4 py-2 text-sm font-medium " +
+        "press flex-1 rounded-md border px-4 h-9 text-[13px] font-medium " +
         (f.driver === d
-          ? "border-[#e0cf00] bg-yellow-50 text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300"
-          : "border-neutral-300 dark:border-neutral-700")
+          ? "border-primary/40 bg-primary/10 text-primary"
+          : "border-border text-muted-foreground hover:bg-secondary")
       }
     >
       {label}
@@ -260,23 +260,25 @@ export default function NewConnectionPage() {
   return (
     <NavigationLayout>
       <div className="mx-auto w-full max-w-lg p-8">
-        <h1 className="mb-1 text-xl font-bold">New connection</h1>
-        <p className="mb-6 text-sm text-neutral-500">
+        <h1 className="mb-1 text-[19px] font-semibold tracking-tight text-foreground">
+          New connection
+        </h1>
+        <p className="mb-6 text-[13px] text-muted-foreground">
           Connect to your own database. Credentials are stored encrypted in the vault.
         </p>
 
         {importable.length > 0 && (
-          <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-900/40">
-            <label className="mb-1 block text-sm font-medium">
+          <div className="mb-6 rounded-lg border border-border bg-secondary/40 p-4">
+            <label className="mb-1 block text-[13px] font-medium text-foreground">
               Import from another workspace
             </label>
-            <p className="mb-3 text-xs text-neutral-500">
+            <p className="mb-3 text-[12px] text-muted-foreground">
               Copy a connection you already have — credentials come along, no
               retyping.
             </p>
             <div className="flex gap-2">
               <select
-                className="irs-select flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950"
+                className="irs-select h-9 flex-1 rounded-md border border-input bg-card px-3 text-[14px] text-foreground outline-none u-smooth focus:border-ring focus:ring-2 focus:ring-ring/40"
                 value={importSel}
                 onChange={(e) => setImportSel(e.target.value)}
               >
@@ -298,7 +300,7 @@ export default function NewConnectionPage() {
               <button
                 onClick={importConn}
                 disabled={busy || !importSel}
-                className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="press h-9 rounded-md border border-border bg-card px-3.5 text-[13px] font-medium text-foreground hover:bg-secondary disabled:opacity-50"
               >
                 Import
               </button>
@@ -420,7 +422,7 @@ export default function NewConnectionPage() {
               type="checkbox"
               checked={f.ssl}
               onChange={(e) => set("ssl", e.target.checked)}
-              className="h-4 w-4 accent-[#e0cf00]"
+              className="h-4 w-4 accent-primary"
             />
             Use SSL
           </label>
@@ -429,7 +431,7 @@ export default function NewConnectionPage() {
               type="checkbox"
               checked={f.readOnly}
               onChange={(e) => set("readOnly", e.target.checked)}
-              className="h-4 w-4 accent-[#e0cf00]"
+              className="h-4 w-4 accent-primary"
             />
             Read-only (block all writes) — recommended for production
           </label>
@@ -451,7 +453,7 @@ export default function NewConnectionPage() {
             <button
               onClick={testConnection}
               disabled={busy || !f.host.trim()}
-              className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              className="press inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3.5 text-[13px] font-medium text-foreground hover:bg-secondary disabled:opacity-50"
             >
               {busy && !saving && (
                 <CircleNotch size={14} className="animate-spin" />
@@ -461,14 +463,14 @@ export default function NewConnectionPage() {
             <button
               onClick={save}
               disabled={busy || !canSave}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:hover:bg-neutral-200 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-500"
+              className="press inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3.5 text-[13px] font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving && <CircleNotch size={14} className="animate-spin" />}
               Save & connect
             </button>
             <button
               onClick={() => router.push("/local")}
-              className="rounded-lg px-4 py-2 text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+              className="press h-9 rounded-md px-3.5 text-[13px] text-muted-foreground hover:bg-secondary hover:text-foreground"
             >
               Cancel
             </button>

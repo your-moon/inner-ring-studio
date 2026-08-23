@@ -39,18 +39,23 @@ export function SidebarMenuItem({
   href,
   selected,
 }: SidebarMenuItemProps) {
+  // Linear-style inset row: rounded, compact, muted by default, a quiet filled
+  // state when selected. Motion (.u-smooth) keeps hover/selection soft.
   const className =
-    "flex p-2 pl-4 text-sm hover:cursor-pointer hover:bg-secondary h-8 items-center";
+    "group mx-2 flex h-7 items-center gap-2 rounded-md px-2 text-[13px] u-smooth hover:cursor-pointer";
+  const state = selected
+    ? "bg-secondary font-medium text-foreground"
+    : "text-muted-foreground hover:bg-secondary hover:text-foreground";
 
   const body = (
     <>
       {IconComponent ? (
-        <IconComponent className="mr-2 h-4 w-4" />
+        <IconComponent className="h-4 w-4 shrink-0" />
       ) : (
-        <span className="mr-2 h-4 w-4"></span>
+        <span className="h-4 w-4 shrink-0"></span>
       )}
 
-      <span className="flex-1 text-left">{text}</span>
+      <span className="flex-1 truncate text-left">{text}</span>
 
       {badge && badge}
     </>
@@ -59,36 +64,30 @@ export function SidebarMenuItem({
   if (href) {
     if (href.startsWith("https://")) {
       return (
-        <Link
-          href={href}
-          className={cn(className, selected ? "bg-selected" : "")}
-          target="_blank"
-        >
+        <Link href={href} className={cn(className, state)} target="_blank">
           {body}
         </Link>
       );
     }
 
     return (
-      <Link
-        href={href}
-        className={cn(className, selected ? "bg-selected" : "")}
-      >
+      <Link href={href} className={cn(className, state)}>
         {body}
       </Link>
     );
   }
 
   return (
-    <button
-      className={cn(className, selected ? "bg-selected" : "")}
-      onClick={onClick}
-    >
+    <button className={cn(className, state)} onClick={onClick}>
       {body}
     </button>
   );
 }
 
 export function SidebarMenuHeader({ text }: SidebarMenuHeader) {
-  return <div className="mt-2 flex p-2 pl-4 text-sm font-bold">{text}</div>;
+  return (
+    <div className="mt-5 mb-1 px-4 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+      {text}
+    </div>
+  );
 }

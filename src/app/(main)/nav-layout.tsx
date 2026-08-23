@@ -240,11 +240,11 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
 
         <button
           onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
-          className="mx-3 mb-2 flex items-center gap-2 rounded-lg border border-neutral-200 px-3.5 py-2 text-left text-sm text-neutral-400 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
+          className="u-smooth mx-3 mb-2 flex h-8 items-center gap-2 rounded-md border border-border bg-card px-3 text-left text-[13px] text-muted-foreground hover:bg-secondary"
         >
           <MagnifyingGlass size={14} className="shrink-0" />
           <span className="flex-1">Search…</span>
-          <kbd className="shrink-0 rounded border border-neutral-200 px-1.5 py-0.5 text-[10px] dark:border-neutral-700">⌘K</kbd>
+          <kbd className="shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">⌘K</kbd>
         </button>
 
         {mobileToggle && (
@@ -276,11 +276,11 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
                       if (e.key === "Escape") setConnFilter("");
                     }}
                     placeholder="Filter connections…"
-                    className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs outline-none placeholder:text-neutral-400 focus:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-950"
+                    className="u-smooth h-7 w-full rounded-md border border-border bg-card px-2.5 text-[12px] text-foreground outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/40"
                   />
                 </div>
                 {filtering && connFolderKeys.length === 0 && (
-                  <div className="px-4 py-2 text-xs text-neutral-400">
+                  <div className="px-4 py-2 text-xs text-muted-foreground">
                     No connections match “{connFilter.trim()}”.
                   </div>
                 )}
@@ -370,12 +370,12 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               <Link
                 href="https://cloud.carrot-soft.tech/signup"
                 target="_blank"
-                className="hover:bg-secondary flex h-8 items-center p-2 pl-4 text-sm text-neutral-400"
+                className="group mx-2 flex h-7 items-center gap-2 rounded-md px-2 text-[13px] u-smooth text-muted-foreground hover:bg-secondary hover:text-foreground"
                 title="Run queries on a schedule and get alerted — available on Inner Ring Cloud"
               >
-                <Clock className="mr-2 h-4 w-4" />
+                <Clock className="h-4 w-4 shrink-0" />
                 <span className="flex-1 text-left">Scheduled</span>
-                <span className="rounded bg-[#FFEB02]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#a07a00] dark:text-[#FFEB02]">
+                <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                   Cloud
                 </span>
               </Link>
@@ -393,12 +393,12 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               <Link
                 href="https://cloud.carrot-soft.tech/signup"
                 target="_blank"
-                className="hover:bg-secondary flex h-8 items-center p-2 pl-4 text-sm text-neutral-400"
+                className="group mx-2 flex h-7 items-center gap-2 rounded-md px-2 text-[13px] u-smooth text-muted-foreground hover:bg-secondary hover:text-foreground"
                 title="Build live dashboards from your queries — available on Inner Ring Cloud"
               >
-                <ChartBar className="mr-2 h-4 w-4" />
+                <ChartBar className="h-4 w-4 shrink-0" />
                 <span className="flex-1 text-left">Boards</span>
-                <span className="rounded bg-[#FFEB02]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#a07a00] dark:text-[#FFEB02]">
+                <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                   Cloud
                 </span>
               </Link>
@@ -444,7 +444,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
                     className="flex min-w-0 items-center gap-2 text-sm hover:underline"
                     title={me.email ?? ""}
                   >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-yellow-100 text-xs font-semibold text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                       {(me.email ?? "?").slice(0, 1).toUpperCase()}
                     </span>
                     <span className="truncate text-neutral-600 dark:text-neutral-300">
@@ -464,7 +464,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
           </div>
         </div>
       </div>
-      <div className="flex min-h-screen w-full flex-col overflow-y-auto bg-neutral-50 dark:bg-neutral-950">
+      <div className="flex min-h-screen w-full flex-col overflow-y-auto bg-background">
         {children}
       </div>
     </div>

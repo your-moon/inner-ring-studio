@@ -19,9 +19,9 @@ const OP_LABEL: Record<AlertOp, string> = {
 };
 
 const yellowBtn =
-  "rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50";
+  "rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50";
 const input =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950";
+  "w-full rounded-lg border border-input px-3 py-2 text-sm outline-none bg-card u-smooth focus:border-ring focus:ring-2 focus:ring-ring/40";
 
 function rel(ts: number | null): string {
   if (ts == null) return "—";
@@ -265,7 +265,7 @@ function ScheduleCard({ s, onChange }: { s: Schedule; onChange: () => void }) {
         <button onClick={() => setOpen(!open)} className="rounded-md px-2 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">
           {open ? "Hide" : "History"}
         </button>
-        <button onClick={toggle} className="rounded-md border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800">
+        <button onClick={toggle} className="rounded-md border border-input px-2 py-1 text-xs hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800">
           {s.enabled ? "Pause" : "Resume"}
         </button>
         <button onClick={del} className="rounded-md px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30">
@@ -291,7 +291,7 @@ function ScheduleCard({ s, onChange }: { s: Schedule; onChange: () => void }) {
                       {r.rowCount} rows{r.metricVal != null ? ` · metric ${r.metricVal}` : ""}
                     </span>
                     {r.alerted && (
-                      <span className="rounded bg-[#FFEB02] px-1.5 py-0.5 font-semibold text-black">alerted</span>
+                      <span className="rounded bg-primary/10 px-1.5 py-0.5 font-medium text-primary">alerted</span>
                     )}
                   </>
                 ) : (

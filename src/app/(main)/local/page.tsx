@@ -1,30 +1,15 @@
 "use client";
 
-import {
-  ArrowRight,
-  Database,
-  Plus,
-  Table as TableIcon,
-} from "@phosphor-icons/react";
+import { ArrowRight, Database, Plus, Table as TableIcon } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
+import { Button } from "@/components/ui/button";
+import { listContainer, listItem } from "@/lib/motion";
 import { getHistory } from "@/lib/query-history";
 import { frecencyScores } from "@/lib/table-frecency";
 import NavigationLayout from "../nav-layout";
-
-// Premium entrance: transform + opacity only, ease-out quint (no bounce, no
-// layout animation). A small stagger between sections reads as intentional.
-const EASE = [0.22, 1, 0.36, 1] as const;
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.06, delayChildren: 0.03 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.42, ease: EASE } },
-};
 
 interface Conn {
   id: string;
@@ -58,12 +43,17 @@ function timeAgo(ms: number): string {
   return d < 7 ? `${d}d ago` : `${Math.round(d / 7)}w ago`;
 }
 
-function SectionHeading({ children, aside }: { children: React.ReactNode; aside?: React.ReactNode }) {
+// A quiet section label — small, medium-weight, muted. No uppercase shout.
+function SectionLabel({
+  children,
+  aside,
+}: {
+  children: React.ReactNode;
+  aside?: React.ReactNode;
+}) {
   return (
-    <div className="mb-3 flex items-baseline justify-between">
-      <h2 className="text-[13px] font-semibold text-neutral-700 dark:text-neutral-300">
-        {children}
-      </h2>
+    <div className="mb-2.5 flex items-baseline justify-between">
+      <h2 className="text-xs font-semibold text-muted-foreground">{children}</h2>
       {aside}
     </div>
   );
@@ -101,92 +91,96 @@ export default function HomePage() {
     }
     setRecentQueries(rq.sort((a, b) => b.at - a.at).slice(0, 5));
     setRecentTables(
-      rt.sort((a, b) => b.score - a.score).slice(0, 12).map(({ table, connId, connName }) => ({ table, connId, connName }))
+      rt
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 12)
+        .map(({ table, connId, connName }) => ({ table, connId, connName }))
     );
   }, [connKey, connections]);
 
   return (
     <NavigationLayout>
       <div className="mx-auto w-full max-w-3xl px-8 py-12">
-        <header className="mb-9 flex items-center justify-between">
+        <header className="mb-10 flex items-end justify-between">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">
+            <h1 className="text-[19px] font-semibold tracking-tight text-foreground">
               Home
             </h1>
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-[13px] text-muted-foreground">
               Jump back into your work, or open a database to start querying.
             </p>
           </div>
-          <Link
-            href="/connections/new"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-neutral-900 px-3.5 py-2 text-[13px] font-medium text-white shadow-sm transition-colors hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-white"
-          >
-            <Plus size={15} weight="bold" />
-            New connection
-          </Link>
+          <Button asChild size="sm" className="gap-1.5">
+            <Link href="/connections/new">
+              <Plus size={15} weight="bold" />
+              New connection
+            </Link>
+          </Button>
         </header>
 
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="overflow-hidden rounded-lg border border-border">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="h-16 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900/60"
+                className={
+                  "h-14 animate-pulse bg-secondary/50 " +
+                  (i > 0 ? "border-t border-border" : "")
+                }
               />
             ))}
           </div>
         ) : connections.length === 0 ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white px-8 py-16 text-center shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-100 text-neutral-400 dark:bg-neutral-800">
+          <div className="rounded-lg border border-border px-8 py-16 text-center">
+            <div className="mx-auto mb-4 grid h-11 w-11 place-items-center rounded-lg border border-border text-muted-foreground">
               <Database size={22} />
             </div>
-            <p className="text-[15px] font-medium text-neutral-900 dark:text-neutral-100">
+            <p className="text-[15px] font-medium text-foreground">
               No databases connected
             </p>
-            <p className="mx-auto mt-1.5 max-w-xs text-sm text-neutral-500">
-              Connect a Postgres, MySQL, or ClickHouse database to browse data and
-              run SQL.
+            <p className="mx-auto mt-1.5 max-w-xs text-[13px] text-muted-foreground">
+              Connect a Postgres, MySQL, or ClickHouse database to browse data
+              and run SQL.
             </p>
-            <Link
-              href="/connections/new"
-              className="mt-6 inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900"
-            >
-              <Plus size={15} weight="bold" /> Connect a database
-            </Link>
+            <Button asChild size="sm" className="mt-6 gap-1.5">
+              <Link href="/connections/new">
+                <Plus size={15} weight="bold" /> Connect a database
+              </Link>
+            </Button>
           </div>
         ) : (
           <motion.div
-            variants={container}
+            variants={listContainer}
             initial="hidden"
             animate="show"
-            className="space-y-9"
+            className="space-y-10"
           >
-            {/* Recent queries — a surfaced panel */}
+            {/* Recent queries — flat, hairline-divided rows */}
             {recentQueries.length > 0 && (
-              <motion.section variants={item}>
-                <SectionHeading>Recent queries</SectionHeading>
-                <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+              <motion.section variants={listItem}>
+                <SectionLabel>Recent queries</SectionLabel>
+                <div className="overflow-hidden rounded-lg border border-border">
                   {recentQueries.map((q, i) => (
                     <Link
                       key={`${q.connId}-${i}`}
                       href={`/vault/${q.connId}`}
                       className={
-                        "group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50 " +
-                        (i > 0 ? "border-t border-neutral-100 dark:border-neutral-800/70" : "")
+                        "group flex items-center gap-4 px-3.5 py-2.5 transition-colors hover:bg-secondary " +
+                        (i > 0 ? "border-t border-border" : "")
                       }
                     >
-                      <code className="min-w-0 flex-1 truncate font-mono text-[13px] text-neutral-700 dark:text-neutral-300">
+                      <code className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-foreground/90">
                         {q.sql}
                       </code>
-                      <span className="shrink-0 rounded-md bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+                      <span className="shrink-0 text-[11px] font-medium text-muted-foreground">
                         {q.connName}
                       </span>
-                      <span className="w-14 shrink-0 text-right text-[11px] text-neutral-400 tabular-nums">
+                      <span className="w-14 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground/70">
                         {timeAgo(q.at)}
                       </span>
                       <ArrowRight
-                        size={14}
-                        className="shrink-0 text-neutral-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-neutral-600"
+                        size={13}
+                        className="shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
                       />
                     </Link>
                   ))}
@@ -194,64 +188,64 @@ export default function HomePage() {
               </motion.section>
             )}
 
-            {/* Tables you work in — crafted chips with soft depth */}
+            {/* Tables you work in — quiet hairline chips */}
             {recentTables.length > 0 && (
-              <motion.section variants={item}>
-                <SectionHeading>Tables you work in</SectionHeading>
-                <div className="flex flex-wrap gap-2">
+              <motion.section variants={listItem}>
+                <SectionLabel>Tables you work in</SectionLabel>
+                <div className="flex flex-wrap gap-1.5">
                   {recentTables.map((t, i) => (
                     <Link
                       key={`${t.connId}-${t.table}-${i}`}
                       href={`/vault/${t.connId}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white py-1.5 pr-3 pl-2.5 text-[13px] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all hover:border-neutral-300 hover:shadow-sm dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border py-1 pr-2.5 pl-2 text-[12.5px] transition-colors hover:bg-secondary"
                     >
-                      <TableIcon size={13} className="text-neutral-400" />
-                      <span className="font-mono text-neutral-700 dark:text-neutral-300">
-                        {t.table}
+                      <TableIcon size={12} className="text-muted-foreground" />
+                      <span className="font-mono text-foreground/90">{t.table}</span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {t.connName}
                       </span>
-                      <span className="text-[11px] text-neutral-400">{t.connName}</span>
                     </Link>
                   ))}
                 </div>
               </motion.section>
             )}
 
-            {/* Databases — a surfaced launcher */}
-            <motion.section variants={item}>
-              <SectionHeading
+            {/* Databases — the primary launcher */}
+            <motion.section variants={listItem}>
+              <SectionLabel
                 aside={
-                  <span className="text-[12px] text-neutral-400">
+                  <span className="text-[11px] tabular-nums text-muted-foreground">
                     {connections.length}
                   </span>
                 }
               >
                 Databases
-              </SectionHeading>
-              <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+              </SectionLabel>
+              <div className="overflow-hidden rounded-lg border border-border">
                 {connections.map((c, i) => (
                   <Link
                     key={c.id}
                     href={`/vault/${c.id}`}
                     className={
-                      "group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50 " +
-                      (i > 0 ? "border-t border-neutral-100 dark:border-neutral-800/70" : "")
+                      "group flex items-center gap-3 px-3.5 py-3 transition-colors hover:bg-secondary " +
+                      (i > 0 ? "border-t border-border" : "")
                     }
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                      <Database size={17} weight="fill" />
+                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border text-muted-foreground">
+                      <Database size={16} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                        <span className="truncate text-[13px] font-medium text-foreground">
                           {c.name}
                         </span>
                         {c.readOnly && (
-                          <span className="shrink-0 rounded bg-amber-100 px-1.5 py-px text-[10px] font-semibold tracking-wide text-amber-700 uppercase dark:bg-amber-950/50 dark:text-amber-400">
-                            RO
+                          <span className="shrink-0 rounded border border-border px-1 py-px text-[10px] font-medium tracking-wide text-muted-foreground">
+                            READ-ONLY
                           </span>
                         )}
                       </div>
-                      <div className="mt-0.5 text-[12px] text-neutral-400">
+                      <div className="mt-0.5 text-[11.5px] text-muted-foreground">
                         {DRIVER_LABEL[c.driver] ?? c.driver}
                         {c.folder ? ` · ${c.folder}` : ""}
                       </div>
@@ -262,12 +256,12 @@ export default function HomePage() {
                         "h-1.5 w-1.5 shrink-0 rounded-full " +
                         (c.status?.connected
                           ? "bg-emerald-500"
-                          : "bg-neutral-200 dark:bg-neutral-700")
+                          : "bg-border")
                       }
                     />
                     <ArrowRight
-                      size={15}
-                      className="shrink-0 text-neutral-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-neutral-600"
+                      size={14}
+                      className="shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
                     />
                   </Link>
                 ))}
@@ -275,14 +269,14 @@ export default function HomePage() {
             </motion.section>
 
             {boards.length > 0 && (
-              <motion.section variants={item}>
-                <SectionHeading>Boards</SectionHeading>
-                <div className="flex flex-wrap gap-2">
+              <motion.section variants={listItem}>
+                <SectionLabel>Boards</SectionLabel>
+                <div className="flex flex-wrap gap-1.5">
                   {boards.map((b) => (
                     <Link
                       key={b.id}
                       href={`/boards/${b.id}`}
-                      className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all hover:border-neutral-300 hover:shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+                      className="rounded-md border border-border px-3 py-2 text-[13px] transition-colors hover:bg-secondary"
                     >
                       {b.name}
                     </Link>

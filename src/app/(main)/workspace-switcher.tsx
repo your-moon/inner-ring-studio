@@ -59,7 +59,7 @@ export default function WorkspaceSwitcher({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center gap-2.5 rounded-lg border border-neutral-200 px-3 py-2 text-left text-sm hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
       >
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-[#FFEB02] text-[10px] font-bold text-black">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary/10 text-[10px] font-bold text-primary">
           {(activeName ?? "P").slice(0, 1).toUpperCase()}
         </span>
         <span className="min-w-0 flex-1 truncate font-medium">{activeName ?? "Personal"}</span>
@@ -88,7 +88,7 @@ export default function WorkspaceSwitcher({
                       </span>
                     )}
                   </span>
-                  {w.id === activeId && <Check size={14} className="text-[#a07a00] dark:text-[#FFEB02]" />}
+                  {w.id === activeId && <Check size={14} className="text-primary" />}
                 </button>
               ))}
               {workspaces.length === 0 && (

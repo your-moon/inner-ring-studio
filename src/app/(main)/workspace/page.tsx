@@ -23,9 +23,9 @@ interface Member {
 }
 
 const input =
-  "rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950";
+  "rounded-lg border border-input px-3 py-2 text-sm outline-none bg-card u-smooth focus:border-ring focus:ring-2 focus:ring-ring/40";
 const yellowBtn =
-  "rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50";
+  "rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50";
 
 export default function WorkspacePage() {
   const router = useRouter();
@@ -121,7 +121,7 @@ export default function WorkspacePage() {
             </p>
           </div>
           {isOwner && !isPersonal && (
-            <button onClick={rename} className="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800">
+            <button onClick={rename} className="rounded-lg border border-input px-3 py-1.5 text-sm hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800">
               Rename
             </button>
           )}
@@ -156,7 +156,7 @@ export default function WorkspacePage() {
                 </p>
                 <div className="flex items-center gap-2">
                   <input readOnly value={invite.url} className={input + " flex-1 font-mono text-xs"} />
-                  <button onClick={copyInvite} className="rounded-lg border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-700">
+                  <button onClick={copyInvite} className="rounded-lg border border-input px-3 py-2 text-sm hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-700">
                     {copied ? "Copied" : "Copy"}
                   </button>
                 </div>
@@ -173,7 +173,7 @@ export default function WorkspacePage() {
                 key={m.userId}
                 className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-0 dark:border-neutral-800"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100 text-xs font-semibold text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                   {m.email.slice(0, 1).toUpperCase()}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-sm">{m.email}</span>

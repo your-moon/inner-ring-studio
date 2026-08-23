@@ -16,7 +16,7 @@ interface BoardSummary {
 }
 
 const yellowBtn =
-  "rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50";
+  "rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50";
 
 export default function BoardsPage() {
   const router = useRouter();
@@ -51,7 +51,7 @@ export default function BoardsPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setImporting(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              className="flex items-center gap-1.5 rounded-lg border border-input px-3 py-2 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
             >
               <UploadSimple size={15} /> Import JSON
             </button>
@@ -89,7 +89,7 @@ export default function BoardsPage() {
                 className="group relative rounded-xl border border-neutral-200 transition-colors hover:border-[#e6d400] dark:border-neutral-800"
               >
                 <Link href={`/boards/${b.id}`} className="block p-5">
-                  <div className="flex h-24 items-center justify-center rounded-lg bg-gradient-to-br from-[#FFEB02]/10 to-transparent">
+                  <div className="flex h-24 items-center justify-center rounded-lg border border-border bg-secondary/50">
                     <ChartBar size={30} className="text-[#c9b400]" weight="duotone" />
                   </div>
                   <div className="mt-3 truncate font-medium">{b.name}</div>
@@ -172,12 +172,12 @@ function ImportDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Board name (optional)"
-              className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950"
+              className="flex-1 rounded-lg border border-input px-3 py-2 text-sm outline-none bg-card u-smooth focus:border-ring focus:ring-2 focus:ring-ring/40"
             />
             <input ref={fileRef} type="file" accept="application/json,.json" onChange={onFile} className="hidden" />
             <button
               onClick={() => fileRef.current?.click()}
-              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              className="rounded-lg border border-input px-3 py-2 text-sm hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
             >
               Upload .json
             </button>
@@ -187,7 +187,7 @@ function ImportDialog({
             onChange={(e) => setText(e.target.value)}
             spellCheck={false}
             placeholder="Paste the dashboard JSON here…"
-            className="h-56 resize-none rounded-lg border border-neutral-300 bg-neutral-50 p-3 font-mono text-[12.5px] outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950"
+            className="h-56 resize-none rounded-lg border border-input bg-neutral-50 p-3 font-mono text-[12.5px] outline-none bg-card u-smooth focus:border-ring focus:ring-2 focus:ring-ring/40"
           />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex justify-end gap-2">
@@ -197,7 +197,7 @@ function ImportDialog({
             <button
               onClick={doImport}
               disabled={busy || !text.trim()}
-              className="rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50"
+              className="rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50"
             >
               {busy ? "Importing…" : "Import"}
             </button>

@@ -100,7 +100,7 @@ export default function VaultSwitcher() {
                     )}
                   </span>
                   {v.active && (
-                    <Check size={14} className="text-[#a07a00] dark:text-[#FFEB02]" />
+                    <Check size={14} className="text-primary" />
                   )}
                 </button>
               ))}

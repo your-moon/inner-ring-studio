@@ -78,7 +78,7 @@ export default function EditConnectionPage() {
   }
 
   const input =
-    "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950";
+    "w-full rounded-lg border border-input px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950";
 
   return (
     <NavigationLayout>
@@ -140,13 +140,13 @@ export default function EditConnectionPage() {
             <button
               onClick={save}
               disabled={busy}
-              className="rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50"
+              className="rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50"
             >
               {busy ? "Saving…" : "Save"}
             </button>
             <button
               onClick={() => router.push("/connections")}
-              className="rounded-lg border border-neutral-300 px-4 py-2 text-sm dark:border-neutral-700"
+              className="rounded-lg border border-input px-4 py-2 text-sm dark:border-neutral-700"
             >
               Cancel
             </button>

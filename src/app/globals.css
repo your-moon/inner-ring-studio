@@ -95,6 +95,16 @@
   --ease-bounce: cubic-bezier(0.2, 0, 0, 1.5);
   --default-transition-duration: 100ms /* snappier than default 150ms */;
 
+  /* Motion system, lifted from Linear + Attio production CSS. Curve-based, no
+     springs. Chrome transitions (hover/press/focus) use these; JS entrances
+     live in lib/motion.ts. Defaults to Linear's house ease-out-quad. */
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Linear house curve */
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1); /* Attio calm color-fade */
+  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1); /* slides / collapsibles */
+  --motion-fast: 140ms; /* hover/press/color chrome */
+  --motion-base: 175ms; /* menu / dialog */
+  --motion-slow: 220ms;
+
   /* Animation */
   --animate-refresh: refresh 0.5s ease-in-out infinite;
 
@@ -270,77 +280,81 @@
 
 @layer base {
   :root {
-    --background: #fff;
-    --foreground: #444;
+    /* Attio/Linear-family: typographic, hairline borders over shadows,
+       restrained monochrome + one indigo accent. Light = clean near-white. */
+    --background: #ffffff;
+    --foreground: #282a30; /* text-primary: warm near-black, not #000 */
 
-    --color-surface: #fff;
-    --color-surface-hover: #eee;
+    --color-surface: #ffffff;
+    --color-surface-hover: #f4f2f4;
 
-    --card: #fff;
-    --card-foreground: #444;
+    --card: #ffffff;
+    --card-foreground: #282a30;
 
-    --popover: #fff;
-    --popover-foreground: #444;
+    --popover: #ffffff;
+    --popover-foreground: #282a30;
 
-    --primary: black;
-    --primary-foreground: white;
+    --primary: #5e6ad2; /* Linear/Attio brand indigo */
+    --primary-foreground: #ffffff;
 
-    --secondary: #f5f5f5;
-    --secondary-foreground: #444;
+    --secondary: #f4f2f4; /* bg-tertiary: hover fill */
+    --secondary-foreground: #3c4149;
 
-    --muted: #eee;
-    --muted-foreground: #888;
+    --muted: #f4f2f4;
+    --muted-foreground: #6f6e77; /* text-tertiary */
 
-    --accent: #f1f5f9;
-    --accent-foreground: #444;
+    --accent: #f4f2f4;
+    --accent-foreground: #3c4149;
 
-    --destructive: #f1f5f9;
-    --destructive-foreground: red;
+    --destructive: #eb5757;
+    --destructive-foreground: #ffffff;
 
-    --border: #e5e5e5;
-    --input: #e2e8f0;
-    --ring: #ccc;
+    --border: #e9e8ea; /* border-primary hairline */
+    --input: #e4e2e4;
+    --ring: #5e6ad2;
 
     --radius: 0.5rem;
 
-    --selected: #e2e8f0;
+    --selected: #eeeef1;
     --scroll-bar: #d4d4d4;
     --scroll-bar-hover: #ccc;
   }
 
   .dark {
-    --background: #0a0a0a;
-    --foreground: #aaa;
+    /* Linear-family warm near-black: depth via hairlines + one lightness step,
+       not shadow. Primary text near-white, muted a cool gray. */
+    --background: #08090a; /* bg-primary */
+    --foreground: #f7f8f8; /* text-primary */
 
-    --color-surface: black;
-    --color-surface-hover: #3f3f3f;
+    --color-surface: #08090a;
+    --color-surface-hover: #191a1b;
 
-    --card: #222;
-    --card-foreground: #eee;
+    --card: #0f1011; /* bg-level-1 / panel */
+    --card-foreground: #f7f8f8;
 
-    --popover: #111;
-    --popover-foreground: #eee;
+    --popover: #141516; /* bg-level-2: dropdown/menu surface */
+    --popover-foreground: #f7f8f8;
 
-    --primary: white;
-    --primary-foreground: black;
+    --primary: #7070ff; /* dark brand-bg (brighter indigo) */
+    --primary-foreground: #ffffff;
 
-    --secondary: #171717;
-    --secondary-foreground: #eee;
+    --secondary: #191a1b; /* bg-level-3: hover / selected fill */
+    --secondary-foreground: #f7f8f8;
 
-    --muted: #333;
-    --muted-foreground: #888;
+    --muted: #141516;
+    --muted-foreground: #8a8f98; /* text-tertiary */
 
-    --accent: #2a2d2e;
-    --accent-foreground: #eee;
+    --accent: #232326; /* bg-tertiary: ghost hover */
+    --accent-foreground: #f7f8f8;
 
-    --destructive: red;
-    --destructive-foreground: white;
+    --destructive: #eb5757;
+    --destructive-foreground: #ffffff;
 
-    --border: #262626;
-    --input: #333;
-    --ring: #444;
+    --border: #23252a; /* border-primary */
+    --input: #2a2c31;
+    --ring: #7070ff;
 
-    --selected: #222;
+    --selected: #191a1b;
     --scroll-bar: #353535;
     --scroll-bar-hover: #444;
   }
@@ -381,6 +395,51 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Inter's alternate glyphs (Linear/Attio both ship these) + optical sizing. */
+    font-feature-settings: "cv01", "ss03";
+    font-variation-settings: "opsz" auto;
+  }
+
+  /* Brand-tinted selection, not the harsh OS blue (Attio detail). */
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+
+  /* Indigo text caret — a small Linear signature. */
+  input,
+  textarea {
+    caret-color: var(--primary);
+  }
+}
+
+@layer utilities {
+  /* Press feedback (Linear-style): a small, quick scale-in on active. Pair with
+     any interactive control. Respects reduced-motion. */
+  .press {
+    transition:
+      transform var(--motion-fast) var(--ease-out),
+      background-color var(--motion-fast) var(--ease-out),
+      border-color var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out),
+      box-shadow var(--motion-fast) var(--ease-out);
+  }
+  .press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  /* Smooth chrome transition for rows / chips (bg + border + color). */
+  .u-smooth {
+    transition:
+      background-color var(--motion-fast) var(--ease-out),
+      border-color var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out),
+      opacity var(--motion-fast) var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .press:active:not(:disabled) {
+      transform: none;
+    }
   }
 }
 

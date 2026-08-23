@@ -63,7 +63,7 @@ export default function AcceptInvitePage() {
         {info && !info.error && (
           <>
             <h1 className="text-xl font-bold">
-              Join <span className="text-[#a07a00] dark:text-[#FFEB02]">{info.workspaceName}</span>
+              Join <span className="text-primary">{info.workspaceName}</span>
             </h1>
             <p className="mt-2 text-sm text-neutral-500">
               You&apos;ve been invited as <span className="font-medium capitalize">{info.role}</span>.
@@ -74,7 +74,7 @@ export default function AcceptInvitePage() {
                 <button
                   onClick={accept}
                   disabled={busy}
-                  className="mt-6 w-full rounded-lg bg-[#FFEB02] py-2.5 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50"
+                  className="press mt-6 w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:brightness-110 active:brightness-95 disabled:opacity-50"
                 >
                   {busy ? "Joining…" : `Join as ${info.role}`}
                 </button>

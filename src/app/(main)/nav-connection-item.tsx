@@ -42,7 +42,7 @@ export default function NavConnectionItem({
       <CircleNotch
         size={12}
         weight="bold"
-        className="animate-spin text-neutral-400"
+        className="animate-spin text-muted-foreground"
       />
     </span>
   ) : connected ? (
@@ -65,7 +65,7 @@ export default function NavConnectionItem({
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <div className="px-2 py-1.5 text-xs text-neutral-500">
+        <div className="px-2 py-1.5 text-xs text-muted-foreground">
           {connected ? "Connected" : "Not connected"}
         </div>
         <ContextMenuSeparator />

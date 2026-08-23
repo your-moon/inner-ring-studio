@@ -37,7 +37,7 @@ function OrbitalScene() {
         </radialGradient>
         <radialGradient id="core" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#fff7cc" stopOpacity="1" />
-          <stop offset="100%" stopColor="#FFEB02" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="#5e6ad2" stopOpacity="0.7" />
         </radialGradient>
       </defs>
 
@@ -160,9 +160,9 @@ export default function AuthShell({
 
 /** Shared field + button styles for the auth forms. */
 export const authInput =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-[15px] text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-[#e0cf00] focus:ring-2 focus:ring-[#FFEB02]/35 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white";
+  "w-full rounded-lg border border-input bg-card px-3.5 py-2.5 text-[15px] text-foreground outline-none u-smooth placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/40";
 
 // Brand CTA: Mercury yellow fill with black label (yellow is too light for white
 // text — matches fms `onBrand = black`).
 export const authButton =
-  "w-full rounded-lg bg-[#FFEB02] py-2.5 text-[15px] font-semibold text-black transition-colors hover:bg-[#f2df00] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:hover:bg-neutral-200 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-500 dark:disabled:hover:bg-neutral-800";
+  "press w-full rounded-lg bg-primary py-2.5 text-[15px] font-medium text-primary-foreground hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";

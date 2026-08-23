@@ -150,18 +150,32 @@ export default function CommandPalette() {
       onPick={(c) => c.run()}
       renderRow={(c, { active }) => {
         const RowIcon = c.icon;
+        // Raycast-style row: 40px, rounded selection wash (Orbit --selected),
+        // no border. Hover === active (the list sets active onMouseEnter), so a
+        // single active style covers both. Muted, right-aligned hint.
         return (
           <div
             className={
-              "flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm " +
-              (active
-                ? "bg-[#FFEB02]/15"
-                : "hover:bg-neutral-100 dark:hover:bg-neutral-800")
+              "u-smooth flex h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-2.5 text-left text-[13px] " +
+              (active ? "bg-secondary" : "bg-transparent")
             }
           >
-            <RowIcon size={16} className="shrink-0 text-neutral-500" />
-            <span className="flex-1 truncate">{c.label}</span>
-            <span className="shrink-0 text-xs text-neutral-400">{c.hint}</span>
+            <RowIcon
+              size={16}
+              className={
+                "shrink-0 " +
+                (active ? "text-foreground" : "text-muted-foreground")
+              }
+            />
+            <span className="flex-1 truncate text-foreground">{c.label}</span>
+            <span className="shrink-0 text-[13px] text-muted-foreground">
+              {c.hint}
+            </span>
+            {active && (
+              <kbd className="ml-1 hidden shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground sm:inline">
+                ↵
+              </kbd>
+            )}
           </div>
         );
       }}
