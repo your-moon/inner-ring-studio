@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inner Ring Studio — Attio/Linear-grade visual report</title>
+<style>
+  :root{
+    --bg:#f9f9fa; --panel:#ffffff; --sidebar:#efeff0; --ink:#1b1c1e; --ink-2:#4b4e55;
+    --ink-3:#8a8f98; --border:#e2e2e4; --accent:#5e6ad2; --amber:#b45309; --green:#15803d;
+    --mono:"Berkeley Mono","JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:450 15px/1.55 "Inter Variable",Inter,-apple-system,"Segoe UI",sans-serif;
+    letter-spacing:-0.011em;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:56px 32px 96px}
+  header h1{font-size:28px;font-weight:590;letter-spacing:-0.022em;margin:0 0 6px}
+  header p{color:var(--ink-2);margin:0;max-width:70ch}
+  .meta{color:var(--ink-3);font-size:13px;margin-top:10px}
+  h2{font-size:19px;font-weight:590;letter-spacing:-0.014em;margin:64px 0 6px}
+  h2 .n{color:var(--ink-3);font-weight:450;font-variant-numeric:tabular-nums;margin-right:8px}
+  .sub{color:var(--ink-2);font-size:14px;margin:0 0 20px;max-width:78ch}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media (max-width:900px){.grid2{grid-template-columns:1fr}}
+  figure{margin:0;background:var(--panel);border:1px solid var(--border);border-radius:10px;
+    overflow:hidden;box-shadow:0 1px 1px rgba(0,0,0,.03),0 3px 6px -2px rgba(0,0,0,.02)}
+  figure img{display:block;width:100%;height:auto;border-bottom:1px solid var(--border)}
+  figcaption{padding:12px 16px;font-size:13px;color:var(--ink-2)}
+  figcaption b{color:var(--ink);font-weight:590}
+  .tag{display:inline-block;font-size:11px;font-weight:590;letter-spacing:.02em;
+    padding:1px 7px;border-radius:999px;margin-right:8px;vertical-align:1px}
+  .tag.ours{background:#eef0fb;color:#4552b8}
+  .tag.ref{background:#e9f6ee;color:var(--green)}
+  .tag.gap{background:#fdf0e3;color:var(--amber)}
+  ul.notes{font-size:14px;color:var(--ink-2);margin:14px 0 0;padding-left:20px}
+  ul.notes li{margin:5px 0}
+  ul.notes b{color:var(--ink);font-weight:590}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--border);
+    border-radius:10px;overflow:hidden;font-size:13.5px}
+  th{font-weight:590;text-align:left;color:var(--ink-2);font-size:12px;letter-spacing:.03em;
+    text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg)}
+  td{padding:9px 14px;border-bottom:1px solid #eeeef0;vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  td.mono, .mono{font-family:var(--mono);font-size:12.5px}
+  .swatch{display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid rgba(0,0,0,.12);
+    margin-right:6px;vertical-align:-1px}
+  .ok{color:var(--green);font-weight:590}.warn{color:var(--amber);font-weight:590}
+  .plan td:first-child{font-weight:590;white-space:nowrap}
+  kbd{font-family:var(--mono);font-size:11px;background:var(--panel);border:1px solid var(--border);
+    border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--ink-2)}
+  .principle{border-left:3px solid var(--accent);background:var(--panel);border-radius:0 10px 10px 0;
+    padding:14px 18px;margin:18px 0;font-size:14.5px;color:var(--ink-2)}
+  .principle b{color:var(--ink)}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Inner Ring Studio → Attio/Linear grade</h1>
+  <p>Visual gap report. References were captured live from Linear's and Attio's shipped product CSS and UI;
+     IRS screenshots are the current branch running locally. Full written report:
+     <a href="report.md">report.md</a> · sources: <a href="research-sources.md">research-sources.md</a>.</p>
+  <div class="meta">2026-08-23 · branch t3code/7a99d8fa · token dump: linear-app-css-vars.json (632 vars)</div>
+</header>
+
+<h2><span class="n">01</span>The reference frames</h2>
+<p class="sub">What "grade" means concretely: one persistent shell, recessed sidebar, breadcrumb top bar,
+dense proportional-type tables, color only as meaning.</p>
+<div class="grid2">
+  <figure><img src="shots/attio-product-table.png" alt="Attio table view">
+    <figcaption><span class="tag ref">reference</span><b>Attio's grid</b> — type icons in headers, checkbox column,
+    proportional text + colored pills only where value carries meaning, side peek over the table, inline “+” add-column.</figcaption></figure>
+  <figure><img src="shots/attio-home-hero.png" alt="Attio app frame">
+    <figcaption><span class="tag ref">reference</span><b>Attio's frame</b> — workspace switcher, “Quick Actions ⌘K”
+    + <kbd>/</kbd> search in the sidebar, breadcrumb (<span class="mono">Workflows › Smartflow</span>) and view tabs in one stable shell.</figcaption></figure>
+  <figure><img src="shots/linear-product-ui.png" alt="Linear app UI">
+    <figcaption><span class="tag ref">reference</span><b>Linear</b> — sidebar recessed below content, structure via
+    background levels not lines, 4-step text ramp, mono reserved for code.</figcaption></figure>
+  <figure><img src="shots/linear-login.png" alt="Linear app shell">
+    <figcaption><span class="tag ref">reference</span><b>Linear app shell</b> — this page ships the app bundle;
+    its CSS is the source of the token table below.</figcaption></figure>
+</div>
+
+<h2><span class="n">02</span>Home — density, redundancy, safety</h2>
+<div class="grid2">
+  <figure><img src="shots/irs-home-populated.png" alt="IRS home">
+    <figcaption><span class="tag ours">ours</span><b>Current home.</b></figcaption></figure>
+  <figure>
+    <figcaption style="padding:16px 18px">
+      <span class="tag gap">gaps</span>
+      <ul class="notes">
+        <li><b>~88px rows</b> in a flat list that duplicates the sidebar tree. Attio: ~40px rows with identity + metadata.</li>
+        <li><b>prod-main and vms-dev look identical.</b> No environment field anywhere — the cheapest trust feature a DB tool can ship (badge + write-confirm on prod).</li>
+        <li><b>Two search inputs</b> (⌘K + “Filter connections…”), <b>two primary CTAs</b> on one screen. Linear: “Don’t compete for attention you haven’t earned.”</li>
+        <li><b>Gray status dot with no meaning.</b> Give it one: pool live / idle / last connect failed.</li>
+        <li>No <b>“Recent”</b> resume section despite frecency ranking already existing in the codebase.</li>
+      </ul>
+    </figcaption>
+  </figure>
+</div>
+
+<h2><span class="n">03</span>The studio — where the product is won or lost</h2>
+<div class="grid2">
+  <figure><img src="shots/irs-studio-query-empty.png" alt="IRS query view">
+    <figcaption><span class="tag ours">ours</span><b>Query workspace.</b> Doubled empty state (editor placeholder + results placeholder),
+    floating <b>+ FAB</b> (Material idiom — neither reference ever floats a button), unlabeled icon rail, size badge on every table row.</figcaption></figure>
+  <figure><img src="shots/irs-grid-light.png" alt="IRS data grid">
+    <figcaption><span class="tag ours">ours</span><b>Data grid.</b> Bold mono in every cell, full gridlines both axes,
+    <span class="mono">price</span> left-aligned while <span class="mono">in_stock</span> is right-aligned and link-blue,
+    grid stops dead mid-viewport, footer says <i>“Affected Rows: 50”</i> for a SELECT with raw pagination inputs.</figcaption></figure>
+  <figure><img src="shots/irs-grid-dark.png" alt="IRS grid dark">
+    <figcaption><span class="tag ours">ours</span><b>Dark mode</b> — palette holds up, but sidebar/content/panels sit on one level;
+    Linear separates them <span class="mono">#08090a → #121213 → #191a1b</span> with zero shadows.</figcaption></figure>
+  <figure><img src="shots/irs-cmdk.png" alt="IRS cmd-k in studio">
+    <figcaption><span class="tag gap">gap</span><b>⌘K pressed inside the studio → nothing.</b> The palette is mounted
+    only in the home shell (<span class="mono">(main)/command-palette.tsx</span>). Linear’s palette is global and doubles
+    as the bulk-action surface, teaching shortcuts via per-row <kbd>kbd</kbd> hints.</figcaption></figure>
+</div>
+<div class="principle">Grid verdict in one line: <b>right bones, wrong skin</b> — 35px rows, virtualization,
+inline Enter-commit editing and context menus already exist; the terminal look comes from
+<span class="mono">font-mono font-bold</span> on every cell plus wall-to-wall gridlines.</div>
+
+<h2><span class="n">04</span>Token comparison — shipped CSS vs ours</h2>
+<table>
+  <tr><th>Token</th><th>Linear (app bundle)</th><th>Attio (shipped)</th><th>IRS today</th><th></th></tr>
+  <tr><td>UI font</td><td class="mono">Inter Variable · 400/510/590</td><td class="mono">Inter + Inter Display</td><td class="mono">Inter · 400/500/600</td><td class="ok">≈ match</td></tr>
+  <tr><td>Mono font</td><td class="mono">Berkeley Mono</td><td class="mono">JetBrains Mono</td><td class="mono">default mono, bold, everywhere</td><td class="warn">gap 3.1</td></tr>
+  <tr><td>Type scale</td><td class="mono">15 body · 13 dense · 12 · 11</td><td class="mono">~same, 4px grid</td><td class="mono">16 body · 13 nav · 19 title</td><td class="warn">15px body</td></tr>
+  <tr><td>Accent</td><td class="mono"><span class="swatch" style="background:#5e6ad2"></span>#5e6ad2 / #7170ff</td>
+      <td class="mono"><span class="swatch" style="background:#266df0"></span>#266df0</td>
+      <td class="mono"><span class="swatch" style="background:#5e6ad2"></span>#5e6ad2</td><td class="ok">match</td></tr>
+  <tr><td>Surfaces (light)</td><td class="mono">content #f9f9fa · sidebar #efeff0</td><td class="mono">white + cool LAB ramp</td><td class="mono">all #ffffff + borders</td><td class="warn">gap F1</td></tr>
+  <tr><td>Surfaces (dark)</td><td class="mono">#08090a → #121213 → #191a1b levels</td><td class="mono">lab() ramp</td><td class="mono">one level: #08090a</td><td class="warn">gap F1</td></tr>
+  <tr><td>Text ramp (dark)</td><td class="mono">#f7f8f8 · #d0d6e0 · #8a8f98 · #62666d</td><td class="mono">4-step</td><td class="mono">2–3 steps in practice</td><td class="warn">adopt 4</td></tr>
+  <tr><td>Radius</td><td class="mono">8 base · 6 blocks · 10 cards · pill</td><td class="mono">8 base</td><td class="mono">8 base (--radius .5rem)</td><td class="ok">match</td></tr>
+  <tr><td>Shadows</td><td class="mono">0 3px 6px -2px #00000005…</td><td class="mono">7 layers, ≤7% alpha</td><td class="mono">mixed</td><td class="warn">audit</td></tr>
+  <tr><td>Motion</td><td class="mono">.1s / .25s / .35s + ease-out suite</td><td class="mono">calm cubic-beziers</td><td class="mono">motion.ts: .14/.175/.22 ease-out</td><td class="ok">match</td></tr>
+  <tr><td>Palette spec</td><td class="mono">720px · 13vh top · 46px rows · kbd hints</td><td class="mono">“Quick Actions ⌘K” + /</td><td class="mono">home shell only</td><td class="warn">gap F4</td></tr>
+  <tr><td>Theme generation</td><td class="mono">3 inputs → LCH color-mix</td><td class="mono">lab() ramps</td><td class="mono">hand-picked hex per theme</td><td class="warn">P3</td></tr>
+</table>
+
+<h2><span class="n">05</span>Priority plan</h2>
+<table class="plan">
+  <tr><th>P</th><th>Change</th><th>Start in</th><th>Effort</th></tr>
+  <tr><td>P0</td><td>Grid skin: proportional text cells, mono only for numerics/ids, alignment by type, soft gridlines, footer “50 rows · 23 ms”, selection bar (Delete only on selection)</td><td class="mono">query-result-table.tsx · table-optimized/</td><td>2–3 d</td></tr>
+  <tr><td>P0</td><td>Global ⌘K in studio: frecency tables + saved queries + actions, per-row kbd hints, Linear's measured spec</td><td class="mono">command-palette.tsx → root</td><td>2 d</td></tr>
+  <tr><td>P0</td><td>Environment badges + prod write-confirm gate</td><td class="mono">connection schema · executor gate</td><td>1–2 d</td></tr>
+  <tr><td>P1</td><td>Surface levels (recessed sidebar, dark elevation ramp), hairline pass, remove FAB</td><td class="mono">globals.css · nav-layout.tsx</td><td>1–2 d</td></tr>
+  <tr><td>P1</td><td>Home: 44px rows, identity dots, status semantics, Recent (frecency), single CTA</td><td class="mono">(main)/local/page.tsx</td><td>1–2 d</td></tr>
+  <tr><td>P2</td><td>Unified shell: studio inside main frame, breadcrumb top bar</td><td class="mono">(main) layout · database-gui.tsx</td><td>3–5 d</td></tr>
+  <tr><td>P2</td><td>Row peek panel (replaces dialog) · live query timer + cancel · collapse doubled empty state</td><td class="mono">row-detail-dialog.tsx · query-tab.tsx</td><td>2–3 d</td></tr>
+  <tr><td>P3</td><td>Footer aggregates on numeric selection · OKLCH 3-input theming · <kbd>?</kbd> shortcut overlay + Kbd component</td><td class="mono">result-stat.tsx · globals.css</td><td>3–4 d</td></tr>
+</table>
+
+<h2><span class="n">05b</span>North-star mocks — the rebuild target</h2>
+<p class="sub">Approval gate for the full rebuild (<a href="rebuild-plan.md">rebuild-plan.md</a>). Live files:
+<a href="mock-home.html">mock-home.html</a> · <a href="mock-studio.html">mock-studio.html</a> — open them, the theme button toggles dark.</p>
+<div class="grid2">
+  <figure><img src="shots/mock-home-light.png" alt="home mock light">
+    <figcaption><span class="tag ref">proposed</span><b>Home</b> — resume-first (“Continue” from frecency), 44px connection rows
+    with identity dot · dialect · <b>prod badge</b> · host · last-used · status dot, one primary CTA, recessed sidebar with live dots.</figcaption></figure>
+  <figure><img src="shots/mock-home-dark.png" alt="home mock dark">
+    <figcaption><span class="tag ref">proposed</span><b>Home, dark</b> — sidebar #09090a under canvas #121213, sheets a level up; measured Linear ramp.</figcaption></figure>
+  <figure><img src="shots/mock-studio-light.png" alt="studio mock light">
+    <figcaption><span class="tag ref">proposed</span><b>Studio</b> — unified shell (breadcrumb + tabs one bar), filter chips instead of
+    <span class="mono">eg: id=5</span>, type icons in headers, floating selection bar, peek panel with dirty-amber value + FK jump,
+    footer aggregates.</figcaption></figure>
+  <figure><img src="shots/mock-studio-dark.png" alt="studio mock dark">
+    <figcaption><span class="tag ref">proposed</span><b>Studio, dark</b> — same grammar, zero shadows on planes, selection tinted with the accent family.</figcaption></figure>
+</div>
+
+<h2><span class="n">06</span>Studio pass (5d6db64) — review</h2>
+<p class="sub">The follow-up "studio workspace pass": schema-first open, folder collapse, row inspector, color sweep.
+Full written review: <a href="studio-pass-review.md">studio-pass-review.md</a>. Verdict: right direction, hold the deploy.</p>
+<div class="grid2">
+  <figure><img src="shots/pass2-grid-toolbar.png" alt="toolbar caption bug">
+    <figcaption><span class="tag gap">broken</span><b>The tooltip is the button.</b> orbit Button renders <span class="mono">title</span>
+    as visible content, so the toolbar grows a ~500px caption button; the same line carries a TS2322 compile error
+    (<span class="mono">variant="default"</span> doesn't exist), so the pressed state renders as nothing.</figcaption></figure>
+  <figure><img src="shots/pass2-inspector.png" alt="row inspector">
+    <figcaption><span class="tag gap">rework</span><b>Row inspector.</b> Good instinct, wrong construction: an opaque overlay that
+    covers the grid's rightmost 340px (worst on the wide tables it exists for), "Row 42" instead of record identity, mono-everything,
+    line-per-field. Steal Linear's SidePanel mechanics (layout sibling, Esc, ↑/↓) + Attio's record layout (proportional field names,
+    type right-aligned, spacing not dividers).</figcaption></figure>
+  <figure><img src="shots/pass2-query-empty.png" alt="query empty state">
+    <figcaption><span class="tag gap">rework</span><b>Empty state, duplicated.</b> Editor placeholder and results panel now both say
+    "⌘↵" — same instruction twice, hardcoded Mac-only while <span class="mono">KEY_BINDING.run.toString()</span> sits imported in the
+    same file. One message per surface; results panel should earn its space (recent queries via frecency).</figcaption></figure>
+  <figure>
+    <figcaption style="padding:16px 18px"><span class="tag ref">keep</span>
+      <ul class="notes">
+        <li><b>Schema-first open</b> — correct; verified live.</li>
+        <li><b>Color sweep + quieted titles</b> — exactly the papercut work the report asked for.</li>
+        <li><b>Folder collapse</b> — right pattern; but hide, don't unmount (accidental click currently destroys tree state), and persist via <span class="mono">scopedStore</span>.</li>
+        <li><b>Silent regression to fix before ship:</b> moving ConnectionsSidebar off the default tab killed the studio's only <span class="mono">/api/db</span> poll — and with it git-vault background sync + the remote-change toast.</li>
+      </ul>
+    </figcaption>
+  </figure>
+</div>
+
+<div class="principle">Process is half the grade: Linear runs a <b>zero-bugs SLA</b> (fix in 48h/7d, no backlog)
+and <b>Quality Wednesdays</b> (weekly papercut hunts, 1,000+ fixes). A recurring two-hour papercut pass on the
+grid compounds faster than any redesign. <i>“The spec is the baseline, not the finish line.”</i> — Karri Saarinen</div>
+
+</div>
+</body>
+</html>

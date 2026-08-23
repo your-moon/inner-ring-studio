@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>North star — Home / Workspace</title>
+<style>
+  :root{
+    --canvas:#f9f9fa; --sidebar:#efeff0; --sheet:#ffffff;
+    --t1:#282a30; --t2:#3c4149; --t3:#6f6e77; --t4:#9b9a9f;
+    --border:#e9e8ea; --border-soft:#f0eff1;
+    --accent:#5e6ad2; --accent-fg:#fff;
+    --green:#22a06b; --amber:#b45309; --amber-bg:#fff7ed; --amber-bd:#fbd7a7;
+    --hover:#f2f1f3; --ring:rgba(94,106,210,.4);
+    --sh-menu:0 4px 40px #0000001a,0 3px 20px #00000020,0 2px 8px #00000020,0 1px 1px #00000020;
+  }
+  .dark{
+    --canvas:#121213; --sidebar:#09090a; --sheet:#17181a;
+    --t1:#f7f8f8; --t2:#d0d6e0; --t3:#8a8f98; --t4:#62666d;
+    --border:#23252a; --border-soft:#1b1d21;
+    --accent:#7170ff; --accent-fg:#fff;
+    --green:#3dd68c; --amber:#f5a623; --amber-bg:#2a2113; --amber-bd:#4d3a15;
+    --hover:#191a1b; --ring:rgba(113,112,255,.4);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--canvas);color:var(--t1);
+    font:450 15px/1.5 "Inter Variable",Inter,-apple-system,"SF Pro Text","Segoe UI",sans-serif;
+    letter-spacing:-.011em;-webkit-font-smoothing:antialiased;display:flex}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+
+  /* ── sidebar ─────────────────────────────────────────── */
+  .side{width:248px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:10px;gap:2px}
+  .ws{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-weight:510;font-size:13px}
+  .ws:hover{background:var(--hover)}
+  .ws .logo{width:18px;height:18px;border-radius:5px;background:var(--t1);color:var(--canvas);
+    display:grid;place-items:center;font-size:10px;font-weight:590}
+  .ws .car{margin-left:auto;color:var(--t4);font-size:10px}
+  .search{display:flex;align-items:center;gap:8px;margin:6px 2px 10px;padding:0 10px;height:30px;
+    background:var(--sheet);border:1px solid var(--border);border-radius:7px;color:var(--t3);font-size:13px;
+    transition:border-color .1s cubic-bezier(.25,.46,.45,.94)}
+  .search:hover{border-color:var(--t4)}
+  .search kbd{margin-left:auto}
+  kbd{font:510 10.5px/1 "Inter Variable",Inter,sans-serif;color:var(--t3);background:var(--canvas);
+    border:1px solid var(--border);border-radius:4px;padding:2px 4.5px}
+  .sec{margin:12px 8px 4px;font-size:10.5px;font-weight:590;letter-spacing:.06em;color:var(--t4);text-transform:uppercase;
+    display:flex;align-items:center}
+  .sec .n{margin-left:auto;font-weight:450;letter-spacing:0}
+  .item{display:flex;align-items:center;gap:8px;height:28px;padding:0 8px;border-radius:6px;
+    font-size:13px;color:var(--t2);transition:background .1s cubic-bezier(.25,.46,.45,.94)}
+  .item:hover{background:var(--hover);color:var(--t1)}
+  .item.on{background:var(--hover);color:var(--t1);font-weight:510}
+  .item svg{flex-shrink:0;color:var(--t3)}
+  .item .dot{width:6px;height:6px;border-radius:99px;margin-left:auto}
+  .dot.live{background:var(--green)} .dot.idle{background:var(--t4);opacity:.5} .dot.err{background:#e5484d}
+  .pill{font-size:9.5px;font-weight:590;letter-spacing:.04em;padding:1px 5px;border-radius:4px;
+    color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-bd);text-transform:uppercase}
+  .me{margin-top:auto;display:flex;align-items:center;gap:8px;padding:8px;border-radius:6px;font-size:13px;color:var(--t2)}
+  .me:hover{background:var(--hover)}
+  .me .av{width:20px;height:20px;border-radius:99px;background:linear-gradient(135deg,#5e6ad2,#8a7bff);
+    color:#fff;font-size:9px;font-weight:590;display:grid;place-items:center}
+
+  /* ── content ─────────────────────────────────────────── */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .top{height:46px;flex-shrink:0;display:flex;align-items:center;padding:0 20px;gap:10px;
+    border-bottom:1px solid var(--border-soft)}
+  .top .crumb{font-size:13px;font-weight:510}
+  .top .right{margin-left:auto;display:flex;gap:8px}
+  .btn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:6px;
+    font-size:13px;font-weight:510;transition:all .1s cubic-bezier(.25,.46,.45,.94)}
+  .btn.pri{background:var(--accent);color:var(--accent-fg);box-shadow:0 1px 1px #0000001f}
+  .btn.pri:hover{filter:brightness(1.06)}
+  .btn.sec{border:1px solid var(--border);background:var(--sheet);color:var(--t2)}
+  .btn.sec:hover{border-color:var(--t4);color:var(--t1)}
+
+  .page{flex:1;overflow-y:auto;padding:28px 32px 64px}
+  .wrap{max-width:880px;margin:0 auto;animation:in .35s cubic-bezier(.25,.46,.45,.94) both}
+  @keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h1{font-size:19px;font-weight:590;letter-spacing:-.014em;margin:0 0 2px}
+  .sub{color:var(--t3);font-size:13.5px;margin:0 0 28px}
+
+  .h2{display:flex;align-items:baseline;margin:26px 0 8px}
+  .h2 span{font-size:12px;font-weight:590;color:var(--t3);letter-spacing:.01em}
+  .h2 .n{margin-left:8px;font-weight:450;color:var(--t4);font-size:12px}
+  .h2 .act{margin-left:auto}
+
+  /* Continue: resume rows */
+  .resume{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px 0 10px;border-radius:8px;
+    background:var(--sheet);border:1px solid var(--border);font-size:13px;
+    transition:all .1s cubic-bezier(.25,.46,.45,.94);animation:in .35s cubic-bezier(.25,.46,.45,.94) both}
+  .chip:hover{border-color:var(--t4);transform:translateY(-1px);box-shadow:0 2px 6px -2px #00000014}
+  .chip svg{color:var(--t3)}
+  .chip .m{color:var(--t4);font-size:12px}
+  .chip:nth-child(2){animation-delay:.03s}.chip:nth-child(3){animation-delay:.06s}
+
+  /* Connection list */
+  .list{background:var(--sheet);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .row{display:grid;grid-template-columns:16px 1fr 92px 64px 170px 110px 10px;gap:12px;align-items:center;
+    height:44px;padding:0 14px;border-bottom:1px solid var(--border-soft);font-size:13px;cursor:default;
+    transition:background .1s cubic-bezier(.25,.46,.45,.94)}
+  .row:last-child{border-bottom:0}
+  .row:hover{background:var(--hover)}
+  .row .id{width:8px;height:8px;border-radius:3px}
+  .row .nm{font-weight:510;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .drv{font-size:11px;color:var(--t3);border:1px solid var(--border);border-radius:5px;
+    padding:1.5px 6px;justify-self:start}
+  .row .host{font:450 11.5px/1 ui-monospace,"SF Mono",Menlo,monospace;color:var(--t4);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .ago{font-size:12px;color:var(--t3);text-align:right;font-variant-numeric:tabular-nums}
+  .empty-env{width:34px}
+</style>
+</head>
+<body>
+  <!-- sidebar -->
+  <nav class="side">
+    <button class="ws"><span class="logo">IR</span> Inner Ring <span class="car">▾</span></button>
+    <button class="search">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      Search… <kbd>⌘K</kbd>
+    </button>
+
+    <div class="sec">Databases <span class="n">7</span></div>
+    <button class="item on">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+      Shop (sample) <span class="dot live"></span>
+    </button>
+    <button class="item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+      prod-main <span class="pill">prod</span> <span class="dot live" style="margin-left:6px"></span>
+    </button>
+    <button class="item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+      vms-dev <span class="dot idle"></span>
+    </button>
+    <button class="item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+      zahii-prod <span class="pill">prod</span> <span class="dot err" style="margin-left:6px"></span>
+    </button>
+
+    <div class="sec">Workspace</div>
+    <button class="item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      Scheduled
+    </button>
+    <button class="item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      Boards
+    </button>
+
+    <div class="sec">Manage</div>
+    <button class="item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      New connection
+    </button>
+    <button class="item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      Vault storage
+    </button>
+
+    <button class="me"><span class="av">MU</span> Munkherdene <span style="margin-left:auto;color:var(--t4)">⋯</span></button>
+  </nav>
+
+  <!-- content -->
+  <main class="main">
+    <div class="top">
+      <span class="crumb">Home</span>
+      <div class="right">
+        <button class="btn sec" onclick="document.documentElement.classList.toggle('dark')">Theme</button>
+        <button class="btn pri">＋ New connection</button>
+      </div>
+    </div>
+    <div class="page"><div class="wrap">
+      <h1>Good evening</h1>
+      <p class="sub">Pick up where you left off, or open a database.</p>
+
+      <div class="h2"><span>Continue</span></div>
+      <div class="resume">
+        <button class="chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>
+          products <span class="m">Shop (sample) · 2h</span>
+        </button>
+        <button class="chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 8-4 4 4 4M17 8l4 4-4 4M14 4l-4 16"/></svg>
+          revenue by week <span class="m">prod-main · 1d</span>
+        </button>
+        <button class="chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>
+          orders <span class="m">Shop (sample) · 3d</span>
+        </button>
+      </div>
+
+      <div class="h2"><span>Databases</span><span class="n">7</span></div>
+      <div class="list">
+        <div class="row">
+          <span class="id" style="background:#4f9cf9"></span>
+          <span class="nm">Shop (sample)</span>
+          <span class="drv">Postgres</span>
+          <span class="empty-env"></span>
+          <span class="host">localhost:5434/shop</span>
+          <span class="ago">2h ago</span>
+          <span class="dot live"></span>
+        </div>
+        <div class="row">
+          <span class="id" style="background:#e5484d"></span>
+          <span class="nm">prod-main</span>
+          <span class="drv">Postgres</span>
+          <span class="pill">prod</span>
+          <span class="host">db.vms.mn:5432/main</span>
+          <span class="ago">1d ago</span>
+          <span class="dot live"></span>
+        </div>
+        <div class="row">
+          <span class="id" style="background:#8a7bff"></span>
+          <span class="nm">vms-dev</span>
+          <span class="drv">Postgres</span>
+          <span class="empty-env"></span>
+          <span class="host">db-dev.vms.mn:5432/main</span>
+          <span class="ago">4d ago</span>
+          <span class="dot idle"></span>
+        </div>
+        <div class="row">
+          <span class="id" style="background:#f5a623"></span>
+          <span class="nm">clickhouse-prod</span>
+          <span class="drv">ClickHouse</span>
+          <span class="pill">prod</span>
+          <span class="host">ch.vms.mn:8443/events</span>
+          <span class="ago">6d ago</span>
+          <span class="dot idle"></span>
+        </div>
+        <div class="row">
+          <span class="id" style="background:#22a06b"></span>
+          <span class="nm">zahii-dev</span>
+          <span class="drv">Postgres</span>
+          <span class="empty-env"></span>
+          <span class="host">db-dev.zahii.mn:5432/app</span>
+          <span class="ago">1w ago</span>
+          <span class="dot idle"></span>
+        </div>
+        <div class="row">
+          <span class="id" style="background:#e5484d"></span>
+          <span class="nm">zahii-prod</span>
+          <span class="drv">Postgres</span>
+          <span class="pill">prod</span>
+          <span class="host">db.zahii.mn:5432/app</span>
+          <span class="ago">2w ago</span>
+          <span class="dot err"></span>
+        </div>
+        <div class="row">
+          <span class="id" style="background:#6f6e77"></span>
+          <span class="nm">concierge</span>
+          <span class="drv">Postgres</span>
+          <span class="empty-env"></span>
+          <span class="host">db.concierge.mn:5432/core</span>
+          <span class="ago">3w ago</span>
+          <span class="dot idle"></span>
+        </div>
+      </div>
+    </div></div>
+  </main>
+</body>
+</html>
