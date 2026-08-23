@@ -9,7 +9,7 @@ import { bumpTable, frecencyScores } from "@/lib/table-frecency";
 import { Icon, Table } from "@phosphor-icons/react";
 import { LucideCog, LucideDatabase, LucideView } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ListView, ListViewItem } from "../listview";
 import { CloudflareIcon } from "../resource-card/icon";
 import SchemaCreateDialog from "./schema-editor/schema-create";
@@ -245,6 +245,15 @@ export default function SchemaList({
     }
   }, [collapsed, collapseKey]);
 
+  // First time this connection is opened (no saved tree state), auto-expand the
+  // schemas so the tables are visible immediately instead of a collapsed root —
+  // you should see what's in the database the moment it opens.
+  const hadPersistedTree = useRef(
+    typeof window !== "undefined" &&
+      window.localStorage.getItem(collapseKey) !== null
+  );
+  const didAutoExpand = useRef(false);
+
   useEffect(() => {
     setSelected("");
   }, [setSelected, search]);
@@ -396,6 +405,17 @@ export default function SchemaList({
       });
     walk(listViewItems);
     return keys;
+  }, [listViewItems]);
+
+  // Auto-expand the top-level schemas once, on the first open of a connection
+  // whose tree state was never saved. Reveals the tables (e.g. Postgres "public")
+  // straight away; the user's later collapse/expand choices are persisted and win.
+  useEffect(() => {
+    if (didAutoExpand.current || hadPersistedTree.current) return;
+    const topKeys = listViewItems.map((i) => i.key);
+    if (topKeys.length === 0) return;
+    didAutoExpand.current = true;
+    setCollapsed(new Set(topKeys));
   }, [listViewItems]);
 
   const filterCallback = useCallback(

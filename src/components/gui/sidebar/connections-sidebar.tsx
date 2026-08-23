@@ -1,9 +1,12 @@
 "use client";
 
+import { CaretDown, CaretRight } from "@phosphor-icons/react";
 import { useCallback, useState } from "react";
 import useSWR from "swr";
 import ConnectionTreeItem from "@/app/(main)/connection-tree-item";
 import type { NavConnection } from "@/app/(main)/nav-connection-item";
+
+const FOLDERS_COLLAPSED_KEY = "pmsql.studioFoldersCollapsed";
 
 /**
  * The studio workspace sidebar: every saved connection grouped by folder, each
@@ -28,6 +31,35 @@ export default function ConnectionsSidebar() {
   const keys = [...folders.keys()].sort((a, b) =>
     a === "" ? -1 : b === "" ? 1 : a.localeCompare(b)
   );
+
+  // Collapsible folder groups, persisted so the studio remembers what you closed.
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem(FOLDERS_COLLAPSED_KEY);
+        if (raw) return new Set<string>(JSON.parse(raw) as string[]);
+      } catch {
+        /* ignore */
+      }
+    }
+    return new Set();
+  });
+  const toggleFolder = useCallback((f: string) => {
+    setCollapsedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(f)) next.delete(f);
+      else next.add(f);
+      try {
+        window.localStorage.setItem(
+          FOLDERS_COLLAPSED_KEY,
+          JSON.stringify([...next])
+        );
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
 
   // Per-connection "action in flight" state → spinner in the tree node.
   const [busy, setBusy] = useState<Set<string>>(new Set());
@@ -77,30 +109,49 @@ export default function ConnectionsSidebar() {
   );
 
   return (
-    <div className="flex h-full w-full flex-col overflow-y-auto py-2">
-      <h1 className="text-primary mb-1 px-4 text-lg font-medium">Databases</h1>
+    <div className="flex h-full w-full flex-col overflow-y-auto py-4">
+      <h1 className="mb-3 px-4 text-[15px] font-semibold text-foreground">
+        Databases
+      </h1>
       {conns.length === 0 && (
-        <p className="px-4 text-sm text-neutral-500">No connections.</p>
+        <p className="px-4 text-sm text-muted-foreground">No connections.</p>
       )}
-      {keys.map((folder) => (
-        <div key={folder || "_"} className="mb-1">
-          {folder && (
-            <div className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-neutral-500 uppercase">
-              {folder}
-            </div>
-          )}
-          {folders.get(folder)!.map((c) => (
-            <ConnectionTreeItem
-              key={c.id}
-              conn={c}
-              busy={busy.has(c.id)}
-              onAction={onAction}
-              onDelete={onDelete}
-              onOpen={onOpen}
-            />
-          ))}
-        </div>
-      ))}
+      {keys.map((folder) => {
+        const list = folders.get(folder)!;
+        const isCollapsed = !!folder && collapsedFolders.has(folder);
+        return (
+          <div key={folder || "_"} className="mb-1">
+            {folder && (
+              <button
+                onClick={() => toggleFolder(folder)}
+                className="group u-smooth flex w-full items-center gap-1 px-3 pt-2 pb-1 text-left text-xs font-semibold tracking-wide text-muted-foreground uppercase hover:text-foreground"
+                title={isCollapsed ? "Expand" : "Collapse"}
+              >
+                {isCollapsed ? (
+                  <CaretRight size={10} weight="bold" className="shrink-0" />
+                ) : (
+                  <CaretDown size={10} weight="bold" className="shrink-0" />
+                )}
+                <span className="flex-1 truncate">{folder}</span>
+                <span className="font-normal text-muted-foreground/60 tabular-nums">
+                  {list.length}
+                </span>
+              </button>
+            )}
+            {!isCollapsed &&
+              list.map((c) => (
+                <ConnectionTreeItem
+                  key={c.id}
+                  conn={c}
+                  busy={busy.has(c.id)}
+                  onAction={onAction}
+                  onDelete={onDelete}
+                  onOpen={onOpen}
+                />
+              ))}
+          </div>
+        );
+      })}
     </div>
   );
 }

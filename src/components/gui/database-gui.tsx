@@ -268,18 +268,20 @@ export default function DatabaseGui() {
   }, []);
 
   const sidebarTabs = useMemo(() => {
+    // Schema (the tables) leads — opening a connection should show what's in it,
+    // not a collapsed connection switcher. Databases/Queries/Tools follow.
     return [
-      {
-        key: "connections",
-        name: "Databases",
-        content: <ConnectionsSidebar />,
-        icon: <StackSimple weight="light" size={24} />,
-      },
       {
         key: "database",
         name: "Schema",
         content: <SchemaView />,
         icon: <Table weight="light" size={24} />,
+      },
+      {
+        key: "connections",
+        name: "Databases",
+        content: <ConnectionsSidebar />,
+        icon: <StackSimple weight="light" size={24} />,
       },
       docDriver
         ? {

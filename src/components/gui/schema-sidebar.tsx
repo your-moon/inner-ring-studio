@@ -86,7 +86,7 @@ export default function SchemaView() {
             buttonVariants({
               size: "icon",
             }),
-            "h-8 w-8 rounded-full bg-neutral-800 dark:bg-neutral-200"
+            "h-8 w-8 rounded-full bg-primary text-primary-foreground"
           )}
           onClick={contentMenu[0].onClick}
         >
@@ -103,7 +103,7 @@ export default function SchemaView() {
               buttonVariants({
                 size: "icon",
               }),
-              "h-8 w-8 rounded-full bg-neutral-800 dark:bg-neutral-200"
+              "h-8 w-8 rounded-full bg-primary text-primary-foreground"
             )}
           >
             <Plus size={16} weight="bold" />
@@ -133,7 +133,7 @@ export default function SchemaView() {
 
       <div className="flex flex-col p-4 pb-2">
         {name && (
-          <div className="mb-2 flex items-center gap-1.5 truncate text-xs font-semibold tracking-wide text-neutral-500 uppercase">
+          <div className="mb-2 flex items-center gap-1.5 truncate text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             <LucideDatabase style={{ width: 13, height: 13 }} />
             <span className="truncate">{name}</span>
           </div>
@@ -141,7 +141,7 @@ export default function SchemaView() {
         <div className="mb-5 flex items-center justify-between">
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <h1 className="text-primary cursor-context-menu text-xl font-medium">
+              <h1 className="cursor-context-menu text-[15px] font-semibold text-foreground">
                 Tables
               </h1>
             </ContextMenuTrigger>
@@ -163,16 +163,14 @@ export default function SchemaView() {
           {activatorButton}
         </div>
 
-        <div className="flex h-[32px] w-full cursor-text items-center overflow-hidden rounded-md bg-white px-3 py-2.5 text-base text-neutral-900 outline outline-1 outline-neutral-200 focus:outline-neutral-400/70 disabled:cursor-not-allowed disabled:opacity-50 has-focus:outline-neutral-400/70 has-enabled:active:outline-neutral-400/70 has-disabled:cursor-not-allowed has-disabled:opacity-50 dark:bg-neutral-900 dark:text-white dark:outline-neutral-800 dark:focus:outline-neutral-600 dark:has-focus:outline-neutral-600 dark:has-enabled:active:outline-neutral-600">
-          <div className="flex h-full items-center text-sm">
-            <LucideSearch
-              className="text-neutral-500"
-              style={{ width: 14, height: 14 }}
-            />
-          </div>
+        <div className="u-smooth flex h-8 w-full cursor-text items-center gap-2 overflow-hidden rounded-md border border-input bg-card px-2.5 text-foreground focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/40">
+          <LucideSearch
+            className="shrink-0 text-muted-foreground"
+            style={{ width: 14, height: 14 }}
+          />
           <input
             type="text"
-            className="h-full flex-1 grow bg-transparent p-2 pr-2 pl-2 text-sm font-light outline-hidden placeholder:text-neutral-500"
+            className="h-full flex-1 grow bg-transparent text-[13px] outline-hidden placeholder:text-muted-foreground"
             value={search}
             placeholder="Search tables"
             onChange={(e) => {
@@ -193,14 +191,14 @@ export default function SchemaView() {
             </pre>
             <button
               onClick={() => refresh()}
-              className="inline-flex items-center gap-1.5 rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              className="inline-flex items-center gap-1.5 rounded border border-border px-2 py-1 text-xs hover:bg-secondary"
             >
               <LucideRefreshCw className="h-3 w-3" />
               Retry
             </button>
           </div>
         ) : loading ? (
-          <div className="flex items-center gap-2 px-4 py-3 text-sm text-neutral-500">
+          <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
             <LucideLoader2 className="h-4 w-4 animate-spin" />
             Loading tables…
           </div>

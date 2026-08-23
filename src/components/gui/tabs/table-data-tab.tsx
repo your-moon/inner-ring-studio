@@ -35,10 +35,12 @@ import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import {
   LucideArrowLeft,
   LucideArrowRight,
+  LucidePanelRight,
   LucideRefreshCcw,
   LucideX,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import RowInspector from "../row-inspector";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SavedView } from "@/lib/saved-views";
 import SavedViewsButton from "../table-result/saved-views-button";
@@ -72,6 +74,7 @@ export default function TableDataWindow({
 
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<OptimizeTableState<TableHeaderMetadata>>();
+  const [showInspector, setShowInspector] = useState(false);
   const [tableSchema, setTableSchema] = useState<DatabaseTableSchema>();
   const [stat, setStat] = useState<DatabaseResultStat>();
   const [sortColumns, setSortColumns] = useState<ColumnSortOption[]>([]);
@@ -312,7 +315,7 @@ export default function TableDataWindow({
           onImported={() => setRevision((p) => p + 1)}
         />
       )}
-      <div className="shrink-0 grow-0 border-b border-neutral-200 py-2 dark:border-neutral-800">
+      <div className="shrink-0 grow-0 border-b border-border py-2">
         <Toolbar>
           <div className="ml-2 flex shrink-0 flex-wrap items-center gap-2">
             <Button
@@ -321,6 +324,14 @@ export default function TableDataWindow({
               disabled={loading}
             >
               <LucideRefreshCcw className="h-4 w-4" />
+            </Button>
+
+            <Button
+              variant={showInspector ? "default" : "secondary"}
+              onClick={() => setShowInspector((v) => !v)}
+              title="Row inspector — view the focused row as a record"
+            >
+              <LucidePanelRight className="h-4 w-4" />
             </Button>
 
             <Button
@@ -351,7 +362,7 @@ export default function TableDataWindow({
           </div>
 
           <div className="mx-2 flex min-w-0 grow">
-            <div className="flex w-full items-center overflow-hidden rounded border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-950">
+            <div className="flex w-full items-center overflow-hidden rounded border border-border bg-background">
               {filterColumnButton}
               <input
                 type="text"
@@ -418,8 +429,8 @@ export default function TableDataWindow({
           </div>
         )}
         {Object.entries(columnFilters).some(([, v]) => v.trim()) && (
-          <div className="flex flex-wrap items-center gap-1.5 border-b border-neutral-200 bg-neutral-50 px-3 py-1.5 dark:border-neutral-800 dark:bg-neutral-900/50">
-            <span className="text-xs text-neutral-500">Filters:</span>
+          <div className="flex flex-wrap items-center gap-1.5 border-b border-border bg-secondary/40 px-3 py-1.5">
+            <span className="text-xs text-muted-foreground">Filters:</span>
             {Object.entries(columnFilters)
               .filter(([, v]) => v.trim())
               .map(([col, term]) => (
@@ -428,7 +439,7 @@ export default function TableDataWindow({
                   className="flex items-center gap-1 rounded-full bg-[#FFEB02]/20 py-0.5 pr-1 pl-2 text-xs"
                 >
                   <span className="font-medium">{col}</span>
-                  <span className="text-neutral-500">contains “{term}”</span>
+                  <span className="text-muted-foreground">contains “{term}”</span>
                   <button
                     onClick={() => onColumnFilterChange(col, "")}
                     className="rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
@@ -444,7 +455,7 @@ export default function TableDataWindow({
                 setFinalOffset(0);
                 setOffset("0");
               }}
-              className="ml-1 text-xs text-neutral-500 underline hover:text-neutral-800 dark:hover:text-neutral-200"
+              className="ml-1 text-xs text-muted-foreground underline hover:text-foreground"
             >
               Clear all
             </button>
@@ -462,6 +473,9 @@ export default function TableDataWindow({
             onColumnFilterChange={onColumnFilterChange}
           />
         ) : null}
+        {showInspector && data && !error && (
+          <RowInspector state={data} onClose={() => setShowInspector(false)} />
+        )}
       </div>
       {stat && data && (
         <div className="flex h-12 shrink-0 justify-between border-t">
@@ -506,7 +520,7 @@ export default function TableDataWindow({
                       setLimit(v.toString());
                     }}
                     style={{ width: 50 }}
-                    className="h-8 rounded bg-neutral-200 p-1 pr-2 pl-2 text-xs dark:bg-neutral-900"
+                    className="h-8 rounded bg-secondary p-1 pr-2 pl-2 text-xs"
                     alt="Limit"
                   />
                 </TooltipTrigger>
@@ -527,7 +541,7 @@ export default function TableDataWindow({
                       setOffset(v.toString());
                     }}
                     style={{ width: 50 }}
-                    className="h-full rounded bg-neutral-200 p-1 pr-2 pl-2 text-xs dark:bg-neutral-900"
+                    className="h-full rounded bg-secondary p-1 pr-2 pl-2 text-xs"
                     alt="Offset"
                   />
                 </TooltipTrigger>

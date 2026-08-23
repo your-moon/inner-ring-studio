@@ -208,7 +208,7 @@ export default function WindowTabs({
         modifiers={[restrictToHorizontalAxis]}
       >
         <div className="flex h-full w-full flex-col">
-          <div className="no-scrollbar shrink-0 grow-0 overflow-x-auto bg-neutral-100 dark:bg-neutral-900">
+          <div className="no-scrollbar shrink-0 grow-0 overflow-x-auto bg-muted">
             <div
               className="window-tab-scrollbar flex h-[40px]"
               ref={tabContainerRef}
@@ -252,11 +252,11 @@ export default function WindowTabs({
                 <div
                   ref={tabMenuRef}
                   style={{ zIndex: 50, position: "sticky" }}
-                  className={`right-0 flex h-[40px] items-center border-b bg-neutral-100 dark:bg-neutral-900`}
+                  className={`right-0 flex h-[40px] items-center border-b bg-muted`}
                 >
                   <DropdownMenu modal={false}>
                     <DropdownMenuTrigger>
-                      <div className="ml-1.5 flex h-7 items-center justify-center gap-1 rounded-lg p-1.5 py-2 text-sm text-neutral-600 transition hover:bg-neutral-200 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white">
+                      <div className="ml-1.5 flex h-7 items-center justify-center gap-1 rounded-lg p-1.5 py-2 text-sm text-muted-foreground transition hover:bg-secondary hover:text-foreground">
                         <LucidePlus className="h-4 w-4" /> New
                       </div>
                     </DropdownMenuTrigger>
