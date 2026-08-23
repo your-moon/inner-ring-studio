@@ -29,14 +29,21 @@ interface SidebarTabProps {
 
 export default function SidebarTab({ tabs }: Readonly<SidebarTabProps>) {
   const { forcedTheme } = useTheme();
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const searchParams = useSearchParams();
+
+  // Deep-link the active sidebar tab via ?sidebar=<key>.
+  const initialIndex = (() => {
+    const k = searchParams.get("sidebar");
+    const i = k ? tabs.findIndex((t) => t.key === k) : -1;
+    return i >= 0 ? i : 0;
+  })();
+  const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [loadedIndex, setLoadedIndex] = useState(() => {
     const a: boolean[] = new Array(tabs.length).fill(false);
-    a[0] = true;
+    a[initialIndex] = true;
     return a;
   });
 
-  const searchParams = useSearchParams();
   const disableToggle =
     searchParams.get("disableThemeToggle") === "1" || forcedTheme;
 
@@ -132,6 +139,16 @@ export default function SidebarTab({ tabs }: Readonly<SidebarTabProps>) {
 
                       if (idx !== selectedIndex) {
                         setSelectedIndex(idx);
+                      }
+
+                      // Reflect the active tab in the URL so it's shareable /
+                      // restorable, without a full navigation.
+                      try {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set("sidebar", key);
+                        window.history.replaceState(null, "", url);
+                      } catch {
+                        /* ignore */
                       }
                     }}
                     className={cn(
