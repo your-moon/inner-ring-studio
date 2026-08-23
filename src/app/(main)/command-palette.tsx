@@ -7,7 +7,6 @@ import {
   Database,
   Gear,
   type Icon,
-  PlugsConnected,
   Plus,
   UsersThree,
 } from "@phosphor-icons/react";
@@ -49,9 +48,8 @@ export default function CommandPalette() {
   // Static nav actions — always available.
   const staticCmds: Cmd[] = useMemo(
     () => [
-      { id: "nav-local", label: "All connections", hint: "Go to", icon: Database, run: () => go("/local") },
+      { id: "nav-local", label: "Home", hint: "Go to", icon: Database, run: () => go("/local") },
       { id: "nav-new", label: "New connection", hint: "Go to", icon: Plus, run: () => go("/connections/new") },
-      { id: "nav-conns", label: "Connections", hint: "Settings", icon: PlugsConnected, run: () => go("/connections") },
       ...(isCloud
         ? [
             { id: "nav-boards", label: "Boards", hint: "Go to", icon: ChartBar, run: () => go("/boards") },
@@ -64,40 +62,54 @@ export default function CommandPalette() {
     [go, isCloud]
   );
 
-  // Lazy-load connections, boards, workspaces the first time the palette opens.
+  // Lazy-load the first time the palette opens. Connections load FIRST and are
+  // shown immediately — they're the most common target — so ⌘K is searchable
+  // without waiting on mode detection or the cloud boards/workspaces round-trips.
   const load = useCallback(async () => {
     if (loaded.current) return;
     loaded.current = true;
+
+    const db = await fetchJson("/api/db");
+    const connCmds: Cmd[] = (db.connections ?? []).map(
+      (c: { id: string; name: string; driver?: string }) => ({
+        id: `conn-${c.id}`,
+        label: c.name,
+        hint: c.driver ?? "Connection",
+        icon: Database,
+        run: () => go(`/vault/${c.id}`),
+      })
+    );
+    setDynamic(connCmds);
+    // If nothing came back (transient failure), allow a retry on next open.
+    if (connCmds.length === 0) loaded.current = false;
+
     const me = await fetchJson("/api/auth/me");
     const cloud = me.mode === "cloud";
     setIsCloud(cloud);
-    const cmds: Cmd[] = [];
-    const db = await fetchJson("/api/db");
-    for (const c of db.connections ?? [])
-      cmds.push({ id: `conn-${c.id}`, label: c.name, hint: c.driver ?? "Connection", icon: Database, run: () => go(`/vault/${c.id}`) });
-    if (cloud) {
-      const boards = await fetchJson("/api/boards");
-      for (const b of boards.boards ?? [])
-        cmds.push({ id: `board-${b.id}`, label: b.name, hint: "Board", icon: ChartBar, run: () => go(`/boards/${b.id}`) });
-      const ws = await fetchJson("/api/workspaces");
-      for (const w of ws.workspaces ?? [])
-        cmds.push({
-          id: `ws-${w.id}`,
-          label: w.name,
-          hint: "Switch workspace",
-          icon: UsersThree,
-          run: async () => {
-            setOpen(false);
-            await fetch("/api/workspaces/switch", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ workspaceId: w.id }),
-            });
-            window.location.reload();
-          },
-        });
-    }
-    setDynamic(cmds);
+    if (!cloud) return;
+
+    const extras: Cmd[] = [];
+    const boards = await fetchJson("/api/boards");
+    for (const b of boards.boards ?? [])
+      extras.push({ id: `board-${b.id}`, label: b.name, hint: "Board", icon: ChartBar, run: () => go(`/boards/${b.id}`) });
+    const ws = await fetchJson("/api/workspaces");
+    for (const w of ws.workspaces ?? [])
+      extras.push({
+        id: `ws-${w.id}`,
+        label: w.name,
+        hint: "Switch workspace",
+        icon: UsersThree,
+        run: async () => {
+          setOpen(false);
+          await fetch("/api/workspaces/switch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ workspaceId: w.id }),
+          });
+          window.location.reload();
+        },
+      });
+    setDynamic([...connCmds, ...extras]);
   }, [go]);
 
   const allCmds = useMemo(
