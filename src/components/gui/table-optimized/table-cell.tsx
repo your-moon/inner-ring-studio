@@ -44,7 +44,8 @@ export default function OptimizeTableCell<HeaderMetadata = unknown>({
     } else if (isNew) {
       cellBackgroundColor = "bg-green-200 dark:bg-green-700";
     } else {
-      cellBackgroundColor = "";
+      // Selection is a tinted plane (accent family), not a box per cell.
+      cellBackgroundColor = "bg-selected";
     }
   } else if (isChanged) {
     cellBackgroundColor = "bg-[#ffe693] dark:bg-[#916b20]";
@@ -58,11 +59,11 @@ export default function OptimizeTableCell<HeaderMetadata = unknown>({
   // fade to a hint — the data provides the vertical rhythm.
   const cellClassName = cn(
     "overflow-hidden border-r border-b border-b-border/70 border-r-border/40 box-border hover:bg-secondary/50",
-    isSelected && "border-neutral-950 dark:border-neutral-50",
-    isBorderBottom && "border-b border-b-neutral-950 dark:border-b-neutral-50",
-    isBorderRight && "border-r border-r-neutral-950 dark:border-r-neutral-50",
-    isFocus &&
-      "shadow-[0_0_0_1px_rgba(0,0,0,0.5)_inset] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.5)_inset]",
+    // The selection range's outer edge, drawn in the accent family — quiet
+    // structure instead of a stark box around every selected cell.
+    isBorderBottom && "border-b border-b-ring/50",
+    isBorderRight && "border-r border-r-ring/50",
+    isFocus && "shadow-[inset_0_0_0_1.5px_var(--ring)]",
     isSticky && "sticky",
     cellBackgroundColor
   );

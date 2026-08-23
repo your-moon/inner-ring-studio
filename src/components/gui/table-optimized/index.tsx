@@ -112,9 +112,13 @@ function renderCellList<HeaderMetadata = unknown>({
 }: RenderCellListProps<HeaderMetadata>) {
   const headerSizes = internalState.getHeaderWidth();
 
+  // Columns keep their set widths; a trailing filler track runs to the
+  // container edge so the grid never dies mid-viewport with dead canvas —
+  // row separators continue through it (Attio's terminal-column model).
   const templateSizes =
     `${internalState.gutterColumnWidth}px ` +
-    headers.map((header) => headerSizes[header.index] + "px").join(" ");
+    headers.map((header) => headerSizes[header.index] + "px").join(" ") +
+    " minmax(0, 1fr)";
 
   const onHeaderSizeWithRemap = (idx: number, newWidth: number) => {
     onHeaderResize(headers[idx]?.index ?? 0, newWidth);
@@ -141,7 +145,7 @@ function renderCellList<HeaderMetadata = unknown>({
       textClass =
         "flex items-center justify-end h-full pr-2 text-[11px] text-foreground tabular-nums";
       tdClass =
-        "sticky left-0 bg-secondary border-r border-b border-border/60";
+        "sticky left-0 bg-selected border-r border-b border-border/60";
     }
 
     return (
@@ -207,13 +211,15 @@ function renderCellList<HeaderMetadata = unknown>({
           );
         })}
         <TableFakeRowPadding colStart={colEnd} colEnd={headers.length - 1} />
+        {/* Filler cell under the trailing 1fr track. */}
+        <td className="border-b border-b-border/70" />
       </tr>
     );
   });
 
   return (
     <table
-      className="absolute top-0 left-0 box-border grid"
+      className="absolute top-0 left-0 box-border grid w-full min-w-max"
       style={{ ...customStyles, gridTemplateColumns: templateSizes }}
     >
       <TableHeaderList

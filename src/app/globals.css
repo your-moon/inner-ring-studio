@@ -159,10 +159,11 @@
   --text-color-ob-inverted: var(--color-white);
 
   /* ob-btn */
-  --color-ob-btn-primary-bg: var(--color-neutral-750);
-  --color-ob-btn-primary-bg-hover: var(--color-neutral-850);
-  --color-ob-btn-primary-border: var(--color-neutral-500);
-  --color-ob-btn-primary-border-hover: var(--color-neutral-600);
+  /* One button system: primary carries the brand accent in both themes. */
+  --color-ob-btn-primary-bg: var(--primary);
+  --color-ob-btn-primary-bg-hover: color-mix(in oklch, var(--primary) 88%, black);
+  --color-ob-btn-primary-border: color-mix(in oklch, var(--primary) 80%, black);
+  --color-ob-btn-primary-border-hover: color-mix(in oklch, var(--primary) 70%, black);
 
   --color-ob-btn-secondary-bg: var(--color-white);
   --color-ob-btn-secondary-bg-hover: var(--color-neutral-50);
@@ -177,7 +178,7 @@
   --color-ob-btn-destructive-border-hover: var(--color-red-500);
 
   /* Focus colors */
-  --color-ob-focus: var(--color-blue-400);
+  --color-ob-focus: var(--ring);
 
   /* END ORBIT DESIGN SYSTEM */
 
@@ -481,10 +482,10 @@
   --text-color-ob-inverted: var(--color-neutral-900);
 
   /* ob-btn */
-  --color-ob-btn-primary-bg: var(--color-neutral-300);
-  --color-ob-btn-primary-bg-hover: var(--color-neutral-250);
-  --color-ob-btn-primary-border: var(--color-neutral-100);
-  --color-ob-btn-primary-border-hover: var(--color-white);
+  --color-ob-btn-primary-bg: var(--primary);
+  --color-ob-btn-primary-bg-hover: color-mix(in oklch, var(--primary) 88%, white);
+  --color-ob-btn-primary-border: color-mix(in oklch, var(--primary) 80%, white);
+  --color-ob-btn-primary-border-hover: color-mix(in oklch, var(--primary) 70%, white);
 
   --color-ob-btn-secondary-bg: var(--color-neutral-900);
   --color-ob-btn-secondary-bg-hover: var(--color-neutral-850);
@@ -499,12 +500,12 @@
   --color-ob-btn-destructive-border-hover: var(--color-red-600);
 
   /* Focus colors */
-  --color-ob-focus: var(--color-blue-800);
+  --color-ob-focus: var(--ring);
 }
 
 .ob-btn {
   &.btn-primary {
-    @apply border-ob-btn-primary-border bg-ob-btn-primary-bg text-ob-inverted shadow-xs;
+    @apply border-ob-btn-primary-border bg-ob-btn-primary-bg text-primary-foreground shadow-xs;
 
     @variant interactive {
       @apply not-disabled:hover:border-ob-btn-primary-border-hover not-disabled:hover:bg-ob-btn-primary-bg-hover;

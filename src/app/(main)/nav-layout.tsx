@@ -375,7 +375,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               >
                 <Clock className="h-4 w-4 shrink-0" />
                 <span className="flex-1 text-left">Scheduled</span>
-                <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground opacity-0 u-smooth group-hover:opacity-100">
                   Cloud
                 </span>
               </Link>
@@ -398,7 +398,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               >
                 <ChartBar className="h-4 w-4 shrink-0" />
                 <span className="flex-1 text-left">Boards</span>
-                <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground opacity-0 u-smooth group-hover:opacity-100">
                   Cloud
                 </span>
               </Link>

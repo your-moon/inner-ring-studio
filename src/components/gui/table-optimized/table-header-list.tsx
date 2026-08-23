@@ -46,6 +46,8 @@ export default function TableHeaderList<HeaderMetadata = unknown>({
             />
           );
         })}
+        {/* Filler header over the trailing 1fr track. */}
+        <th className="sticky top-0 z-10 border-b border-border/60 bg-background" />
       </tr>
     </thead>
   );
