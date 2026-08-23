@@ -6,12 +6,25 @@ import {
   Plus,
   Table as TableIcon,
 } from "@phosphor-icons/react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { getHistory } from "@/lib/query-history";
 import { frecencyScores } from "@/lib/table-frecency";
 import NavigationLayout from "../nav-layout";
+
+// Premium entrance: transform + opacity only, ease-out quint (no bounce, no
+// layout animation). A small stagger between sections reads as intentional.
+const EASE = [0.22, 1, 0.36, 1] as const;
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06, delayChildren: 0.03 } },
+};
+const item = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.42, ease: EASE } },
+};
 
 interface Conn {
   id: string;
@@ -142,10 +155,15 @@ export default function HomePage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-9">
+          <motion.div
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="space-y-9"
+          >
             {/* Recent queries — a surfaced panel */}
             {recentQueries.length > 0 && (
-              <section>
+              <motion.section variants={item}>
                 <SectionHeading>Recent queries</SectionHeading>
                 <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                   {recentQueries.map((q, i) => (
@@ -173,12 +191,12 @@ export default function HomePage() {
                     </Link>
                   ))}
                 </div>
-              </section>
+              </motion.section>
             )}
 
             {/* Tables you work in — crafted chips with soft depth */}
             {recentTables.length > 0 && (
-              <section>
+              <motion.section variants={item}>
                 <SectionHeading>Tables you work in</SectionHeading>
                 <div className="flex flex-wrap gap-2">
                   {recentTables.map((t, i) => (
@@ -195,11 +213,11 @@ export default function HomePage() {
                     </Link>
                   ))}
                 </div>
-              </section>
+              </motion.section>
             )}
 
             {/* Databases — a surfaced launcher */}
-            <section>
+            <motion.section variants={item}>
               <SectionHeading
                 aside={
                   <span className="text-[12px] text-neutral-400">
@@ -254,10 +272,10 @@ export default function HomePage() {
                   </Link>
                 ))}
               </div>
-            </section>
+            </motion.section>
 
             {boards.length > 0 && (
-              <section>
+              <motion.section variants={item}>
                 <SectionHeading>Boards</SectionHeading>
                 <div className="flex flex-wrap gap-2">
                   {boards.map((b) => (
@@ -270,9 +288,9 @@ export default function HomePage() {
                     </Link>
                   ))}
                 </div>
-              </section>
+              </motion.section>
             )}
-          </div>
+          </motion.div>
         )}
       </div>
     </NavigationLayout>
