@@ -14,9 +14,12 @@ import { readVault } from "../src/lib/vault";
 const CLOUD = process.env.CLOUD ?? "https://cloud.carrot-soft.tech";
 const EMAIL = (process.env.EMAIL ?? "").trim().toLowerCase();
 const PW = process.env.ACCOUNT_PW ?? "";
+// Linked-mode users already hold a cloud session cookie (irs_session=...) at
+// ~/.config/pmsql/cloud-session.json — pass it as COOKIE to skip email/password.
+const COOKIE = process.env.COOKIE ?? "";
 
-if (!EMAIL || !PW) {
-  console.error("EMAIL and ACCOUNT_PW are required.");
+if (!COOKIE && (!EMAIL || !PW)) {
+  console.error("Provide COOKIE, or both EMAIL and ACCOUNT_PW.");
   process.exit(1);
 }
 
@@ -34,30 +37,36 @@ async function main() {
   const conns = readVault().connections;
   console.log(`Vault: ${conns.length} connection(s) — ${conns.map((c) => c.name).join(", ")}`);
 
-  // 2. Create the account (or reuse if it already exists), then log in cleanly.
-  let created = false;
-  const su = await fetch(`${CLOUD}/api/auth/signup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: EMAIL, password: PW }),
-  });
-  if (su.ok) created = true;
-  else {
-    const j = await su.json().catch(() => ({}));
-    console.log(`signup: ${su.status} (${j.error ?? "exists"}) — will log in instead`);
-  }
+  // 2. Authenticate. Prefer an existing session cookie (linked mode); otherwise
+  //    create/reuse the account via email + password.
+  let cookie: string | null = COOKIE || null;
+  if (cookie) {
+    console.log("auth: using provided session cookie ✓");
+  } else {
+    let created = false;
+    const su = await fetch(`${CLOUD}/api/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PW }),
+    });
+    if (su.ok) created = true;
+    else {
+      const j = await su.json().catch(() => ({}));
+      console.log(`signup: ${su.status} (${j.error ?? "exists"}) — will log in instead`);
+    }
 
-  const li = await fetch(`${CLOUD}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: EMAIL, password: PW }),
-  });
-  const cookie = sessionCookie(li);
-  if (!li.ok || !cookie) {
-    console.error(`login failed: ${li.status} ${await li.text().catch(() => "")}`);
-    process.exit(1);
+    const li = await fetch(`${CLOUD}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PW }),
+    });
+    cookie = sessionCookie(li);
+    if (!li.ok || !cookie) {
+      console.error(`login failed: ${li.status} ${await li.text().catch(() => "")}`);
+      process.exit(1);
+    }
+    console.log(`account: ${created ? "created" : "existing"} + signed in ✓`);
   }
-  console.log(`account: ${created ? "created" : "existing"} + signed in ✓`);
 
   // 3. Which connections already exist in the cloud account (idempotent sync).
   const dbRes = await fetch(`${CLOUD}/api/db`, { headers: { Cookie: cookie } });
