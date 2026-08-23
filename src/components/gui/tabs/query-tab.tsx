@@ -99,6 +99,14 @@ export default function QueryWindow({
     return initialCode ?? "";
   });
   const [isRunning, setIsRunning] = useState(false);
+  // Live elapsed time while a query runs — latency is a feature, show it.
+  const [runStartedAt, setRunStartedAt] = useState<number | null>(null);
+  const [runElapsedMs, setRunElapsedMs] = useState(0);
+  useEffect(() => {
+    if (runStartedAt === null) return;
+    const id = setInterval(() => setRunElapsedMs(Date.now() - runStartedAt), 100);
+    return () => clearInterval(id);
+  }, [runStartedAt]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const { isActiveTab } = useCurrentTab();
   const editorRef = useRef<ReactCodeMirrorRef>(null);
@@ -237,6 +245,8 @@ export default function QueryWindow({
     setProgress(undefined);
     setQueryTabIndex(0);
     setIsRunning(true);
+    setRunStartedAt(Date.now());
+    setRunElapsedMs(0);
 
     multipleQuery(
       databaseDriver,
@@ -255,7 +265,10 @@ export default function QueryWindow({
         }
       })
       .catch((e) => toast.error((e as Error).message))
-      .finally(() => setIsRunning(false));
+      .finally(() => {
+        setIsRunning(false);
+        setRunStartedAt(null);
+      });
   };
 
   const onSaveComplete = useCallback(
@@ -396,7 +409,12 @@ export default function QueryWindow({
 
             <div className="flex-1" />
 
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              {isRunning && (
+                <span className="px-1 text-[12px] text-muted-foreground tabular-nums">
+                  Running · {(runElapsedMs / 1000).toFixed(1)}s
+                </span>
+              )}
               {docDriver && (
                 <SaveDocButton
                   onComplete={onSaveComplete}

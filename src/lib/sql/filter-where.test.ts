@@ -54,3 +54,70 @@ describe("buildFilterWhere", () => {
     );
   });
 });
+
+import { buildRulesWhere, ruleLabel } from "./filter-where";
+
+describe("buildRulesWhere", () => {
+  it("compiles comparisons with numeric passthrough", () => {
+    expect(
+      buildRulesWhere("postgres", [{ column: "id", op: ">", value: "5" }], esc)
+    ).toBe('"id" > 5');
+  });
+  it("quotes non-numeric values", () => {
+    expect(
+      buildRulesWhere("postgres", [{ column: "name", op: "=", value: "Bolt" }], esc)
+    ).toBe("\"name\" = 'Bolt'");
+  });
+  it("contains uses ILIKE on postgres and LIKE on mysql", () => {
+    expect(
+      buildRulesWhere("postgres", [{ column: "name", op: "contains", value: "bo" }], esc)
+    ).toBe("CAST(\"name\" AS TEXT) ILIKE '%bo%'");
+    expect(
+      buildRulesWhere("mysql", [{ column: "name", op: "contains", value: "bo" }], esc)
+    ).toBe("`name` LIKE '%bo%'");
+  });
+  it("null checks take no value", () => {
+    expect(
+      buildRulesWhere("postgres", [{ column: "notes", op: "is null" }], esc)
+    ).toBe('"notes" IS NULL');
+  });
+  it("raw rules are parenthesized verbatim", () => {
+    expect(
+      buildRulesWhere("postgres", [{ column: "", op: "raw", value: "id % 2 = 0" }], esc)
+    ).toBe("(id % 2 = 0)");
+  });
+  it("escapes hostile identifiers and values", () => {
+    expect(
+      buildRulesWhere(
+        "postgres",
+        [{ column: 'a"b', op: "=", value: "x' OR 1=1 --" }],
+        esc
+      )
+    ).toBe("\"a\"\"b\" = 'x'' OR 1=1 --'");
+  });
+  it("ANDs multiple rules", () => {
+    expect(
+      buildRulesWhere(
+        "postgres",
+        [
+          { column: "id", op: ">=", value: "10" },
+          { column: "notes", op: "is not null" },
+        ],
+        esc
+      )
+    ).toBe('"id" >= 10 AND "notes" IS NOT NULL');
+  });
+});
+
+describe("ruleLabel", () => {
+  it("labels each op family", () => {
+    expect(ruleLabel({ column: "id", op: ">", value: "5" })).toBe("id > 5");
+    expect(ruleLabel({ column: "n", op: "contains", value: "bo" })).toBe(
+      "n contains “bo”"
+    );
+    expect(ruleLabel({ column: "n", op: "is null" })).toBe("n is null");
+    expect(ruleLabel({ column: "", op: "raw", value: "id % 2 = 0" })).toBe(
+      "id % 2 = 0"
+    );
+  });
+});

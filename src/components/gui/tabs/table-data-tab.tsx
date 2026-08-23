@@ -33,7 +33,12 @@ import {
 } from "@/drivers/base-driver";
 import { KEY_BINDING } from "@/lib/key-matcher";
 import { commitChange } from "@/lib/sql/sql-execute-helper";
-import { buildFilterWhere } from "@/lib/sql/filter-where";
+import {
+  buildFilterWhere,
+  buildRulesWhere,
+  ColumnFilterRule,
+  ruleLabel,
+} from "@/lib/sql/filter-where";
 import {
   canGoPrev,
   nextOffset,
@@ -41,6 +46,7 @@ import {
   prevOffset,
 } from "@/lib/table-pagination";
 import { escapeSqlValue } from "@/drivers/sqlite/sql-helper";
+import { exportDataAsDelimitedText } from "@/lib/export-helper";
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import {
   LucideArrowLeft,
@@ -61,6 +67,7 @@ import ShareResultButton from "../share/share-result-button";
 import OpacityLoading from "../loading-opacity";
 import ResultStats from "../result-stat";
 import OptimizeTableState from "../table-optimized/optimize-table-state";
+import FilterBuilder from "../table-result/filter-builder";
 import useTableResultColumnFilter from "../table-result/filter-column";
 import { createTableStateFromResult } from "../table-result/helper";
 import { TableHeaderMetadata } from "../table-result/type";
@@ -97,16 +104,18 @@ export default function TableDataWindow({
   // just loaded rows). Combined with the manual `where` filter below.
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
 
-  const effectiveWhere = useMemo(
-    () =>
-      buildFilterWhere(
-        databaseDriver.getFlags().dialect,
-        where,
-        columnFilters,
-        escapeSqlValue
-      ),
-    [where, columnFilters, databaseDriver]
-  );
+  // Structured filter rules from the "+ Filter" builder.
+  const [rules, setRules] = useState<ColumnFilterRule[]>([]);
+
+  const effectiveWhere = useMemo(() => {
+    const dialect = databaseDriver.getFlags().dialect;
+    return [
+      buildFilterWhere(dialect, where, columnFilters, escapeSqlValue),
+      buildRulesWhere(dialect, rules, escapeSqlValue),
+    ]
+      .filter(Boolean)
+      .join(" AND ");
+  }, [where, columnFilters, rules, databaseDriver]);
 
   const onColumnFilterChange = useCallback((col: string, term: string) => {
     setColumnFilters((prev) => {
@@ -280,6 +289,17 @@ export default function TableDataWindow({
     }
   }, [data]);
 
+  const onCopySelectedRows = useCallback(() => {
+    if (!data) return;
+    const headers = data.getHeaders();
+    const records = data
+      .getSelectedRowIndex()
+      .filter((y) => data.isFullSelectionRow(y))
+      .sort((a, b) => a - b)
+      .map((y) => headers.map((_, x) => data.getValue(y, x)));
+    exportDataAsDelimitedText([], records, "\t", "\r\n", '"', "clipboard");
+  }, [data]);
+
   const onRemoveRow = useCallback(() => {
     if (data) {
       // Only fully-selected rows — the same set the Delete button counts.
@@ -372,13 +392,7 @@ export default function TableDataWindow({
               <div className="text-sm">Add row</div>
             </Button>
 
-            {selectedCount > 0 && (
-              <Button variant={"destructive"} onClick={onRemoveRow}>
-                <div className="text-sm">
-                  Delete {selectedCount} {selectedCount === 1 ? "row" : "rows"}
-                </div>
-              </Button>
-            )}
+
 
             <SavedViewsButton
               scope={viewScope}
@@ -395,22 +409,16 @@ export default function TableDataWindow({
             )}
           </div>
 
-          <div className="mx-2 flex min-w-0 grow">
-            <div className="flex w-full items-center overflow-hidden rounded border border-border bg-background">
-              {filterColumnButton}
-              <input
-                type="text"
-                placeholder="eg: id=5"
-                value={whereInput}
-                onChange={(e) => setWhereInput(e.currentTarget.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    setWhere(e.currentTarget.value);
-                  }
-                }}
-                className="h-full grow p-2 pr-2 pl-3 font-mono text-sm outline-hidden"
-              />
-            </div>
+          <div className="mx-2 flex min-w-0 grow items-center gap-1.5">
+            <FilterBuilder
+              columns={(tableSchema?.columns ?? []).map((c) => c.name)}
+              onAdd={(rule) => {
+                setRules((prev) => [...prev, rule]);
+                setFinalOffset(0);
+                setOffset("0");
+              }}
+            />
+            {filterColumnButton}
           </div>
 
           <div className="mr-2 flex shrink-0 flex-row-reverse items-center gap-2">
@@ -462,21 +470,58 @@ export default function TableDataWindow({
             <pre>{error}</pre>
           </div>
         )}
-        {Object.entries(columnFilters).some(([, v]) => v.trim()) && (
+        {(rules.length > 0 ||
+          !!where.trim() ||
+          Object.entries(columnFilters).some(([, v]) => v.trim())) && (
           <div className="flex flex-wrap items-center gap-1.5 border-b border-border bg-secondary/40 px-3 py-1.5">
-            <span className="text-xs text-muted-foreground">Filters:</span>
+            {rules.map((rule, i) => (
+              <span
+                key={`rule-${i}`}
+                className="flex items-center gap-1 rounded-md bg-selected py-0.5 pr-1 pl-2 text-xs"
+              >
+                <span className="font-mono text-[11.5px]">{ruleLabel(rule)}</span>
+                <button
+                  onClick={() => {
+                    setRules((prev) => prev.filter((_, idx) => idx !== i));
+                    setFinalOffset(0);
+                    setOffset("0");
+                  }}
+                  className="rounded p-0.5 text-muted-foreground hover:bg-black/10 hover:text-foreground dark:hover:bg-white/10"
+                  title="Remove filter"
+                >
+                  <LucideX className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            {where.trim() && (
+              <span className="flex items-center gap-1 rounded-md bg-selected py-0.5 pr-1 pl-2 text-xs">
+                <span className="font-mono text-[11.5px]">{where}</span>
+                <button
+                  onClick={() => {
+                    setWhere("");
+                    setWhereInput("");
+                    setFinalOffset(0);
+                    setOffset("0");
+                  }}
+                  className="rounded p-0.5 text-muted-foreground hover:bg-black/10 hover:text-foreground dark:hover:bg-white/10"
+                  title="Remove filter"
+                >
+                  <LucideX className="h-3 w-3" />
+                </button>
+              </span>
+            )}
             {Object.entries(columnFilters)
               .filter(([, v]) => v.trim())
               .map(([col, term]) => (
                 <span
                   key={col}
-                  className="flex items-center gap-1 rounded-full bg-[#FFEB02]/20 py-0.5 pr-1 pl-2 text-xs"
+                  className="flex items-center gap-1 rounded-md bg-selected py-0.5 pr-1 pl-2 text-xs"
                 >
                   <span className="font-medium">{col}</span>
                   <span className="text-muted-foreground">contains “{term}”</span>
                   <button
                     onClick={() => onColumnFilterChange(col, "")}
-                    className="rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
+                    className="rounded p-0.5 text-muted-foreground hover:bg-black/10 hover:text-foreground dark:hover:bg-white/10"
                     title="Remove filter"
                   >
                     <LucideX className="h-3 w-3" />
@@ -486,6 +531,9 @@ export default function TableDataWindow({
             <button
               onClick={() => {
                 setColumnFilters({});
+                setRules([]);
+                setWhere("");
+                setWhereInput("");
                 setFinalOffset(0);
                 setOffset("0");
               }}
@@ -534,6 +582,33 @@ export default function TableDataWindow({
             )}
           </ResizablePanelGroup>
         ) : null}
+        {selectedCount > 0 && data && !error && (
+          <div
+            className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 rounded-[9px] border border-border bg-popover px-1.5 py-1 text-[12.5px]"
+            style={{
+              boxShadow:
+                "0 4px 40px #0000001a, 0 3px 20px #00000020, 0 2px 8px #00000020, 0 1px 1px #00000020",
+              animation: "irs-selbar-in 0.18s cubic-bezier(.25,.46,.45,.94) both",
+            }}
+          >
+            <style>{`@keyframes irs-selbar-in{from{opacity:0;transform:translateX(-50%) translateY(6px) scale(.97)}to{opacity:1;transform:translateX(-50%)}}`}</style>
+            <span className="px-2 text-muted-foreground tabular-nums">
+              {selectedCount} selected
+            </span>
+            <button
+              onClick={onCopySelectedRows}
+              className="rounded-md px-2.5 py-1 text-secondary-foreground hover:bg-secondary hover:text-foreground"
+            >
+              Copy
+            </button>
+            <button
+              onClick={onRemoveRow}
+              className="rounded-md px-2.5 py-1 text-red-500 hover:bg-red-500/10"
+            >
+              Delete
+            </button>
+          </div>
+        )}
       </div>
       {stat && data && (
         <div className="flex h-10 shrink-0 items-center justify-between border-t border-border">
