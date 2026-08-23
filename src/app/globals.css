@@ -71,6 +71,7 @@
 
   --color-selected: var(--selected);
   --color-sidebar: var(--sidebar);
+  --color-canvas: var(--canvas);
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -282,12 +283,15 @@
 @layer base {
   :root {
     /* Attio/Linear-family: typographic, hairline borders over shadows,
-       restrained monochrome + one indigo accent. Light = clean near-white. */
-    --background: #ffffff;
+       restrained monochrome + one indigo accent. Three surface levels carry
+       the structure (Linear's model): sidebar < canvas < sheet. */
+    --sidebar: #efeff0; /* lowest plane: the nav */
+    --canvas: #f9f9fa; /* the app backdrop between panels */
+    --background: #ffffff; /* the elevated content sheet */
     --foreground: #282a30; /* text-primary: warm near-black, not #000 */
 
     --color-surface: #ffffff;
-    --color-surface-hover: #f4f2f4;
+    --color-surface-hover: #f2f1f3;
 
     --card: #ffffff;
     --card-foreground: #282a30;
@@ -298,13 +302,13 @@
     --primary: #5e6ad2; /* Linear/Attio brand indigo */
     --primary-foreground: #ffffff;
 
-    --secondary: #f4f2f4; /* bg-tertiary: hover fill */
+    --secondary: #f2f1f3; /* bg-tertiary: hover fill */
     --secondary-foreground: #3c4149;
 
-    --muted: #f4f2f4;
+    --muted: #f2f1f3;
     --muted-foreground: #6f6e77; /* text-tertiary */
 
-    --accent: #f4f2f4;
+    --accent: #f2f1f3;
     --accent-foreground: #3c4149;
 
     --destructive: #eb5757;
@@ -316,40 +320,40 @@
 
     --radius: 0.5rem;
 
-    /* Sidebar sits a level below the content sheet (Linear: #efeff0 under
-       #f9f9fa) — structure carried by the background level, not the border. */
-    --sidebar: #f4f4f5;
-
-    --selected: #eeeef1;
+    /* Accent-tinted selection plane (rows, palette active, grid selection). */
+    --selected: #eef0fb;
     --scroll-bar: #d4d4d4;
     --scroll-bar-hover: #ccc;
   }
 
   .dark {
-    /* Linear-family warm near-black: depth via hairlines + one lightness step,
-       not shadow. Primary text near-white, muted a cool gray. */
-    --background: #08090a; /* bg-primary */
+    /* Linear-family warm near-black: depth via background LEVELS, never
+       shadow. Sidebar #09090a < canvas #121213 < sheet #17181a (the measured
+       Linear dark ramp); text ramp #f7f8f8 / #d0d6e0 / #8a8f98 / #62666d. */
+    --sidebar: #09090a; /* lowest plane: the nav */
+    --canvas: #121213; /* the app backdrop between panels */
+    --background: #17181a; /* the elevated content sheet */
     --foreground: #f7f8f8; /* text-primary */
 
-    --color-surface: #08090a;
-    --color-surface-hover: #191a1b;
+    --color-surface: #17181a;
+    --color-surface-hover: #1f2126;
 
-    --card: #0f1011; /* bg-level-1 / panel */
+    --card: #1b1d21; /* one level above the sheet */
     --card-foreground: #f7f8f8;
 
-    --popover: #141516; /* bg-level-2: dropdown/menu surface */
+    --popover: #1f2126; /* dropdown/menu surface, above cards */
     --popover-foreground: #f7f8f8;
 
     --primary: #7070ff; /* dark brand-bg (brighter indigo) */
     --primary-foreground: #ffffff;
 
-    --secondary: #191a1b; /* bg-level-3: hover / selected fill */
-    --secondary-foreground: #f7f8f8;
+    --secondary: #1f2126; /* hover / selected fill on the sheet */
+    --secondary-foreground: #d0d6e0;
 
-    --muted: #141516;
+    --muted: #1b1d21;
     --muted-foreground: #8a8f98; /* text-tertiary */
 
-    --accent: #232326; /* bg-tertiary: ghost hover */
+    --accent: #24262c; /* ghost hover */
     --accent-foreground: #f7f8f8;
 
     --destructive: #eb5757;
@@ -359,11 +363,8 @@
     --input: #2a2c31;
     --ring: #7070ff;
 
-    /* Dark inverts the step: sidebar recedes below the content plane
-       (Linear: sidebar #09090a under content #121213). */
-    --sidebar: #050506;
-
-    --selected: #191a1b;
+    /* Accent-tinted selection plane. */
+    --selected: #1d1f31;
     --scroll-bar: #353535;
     --scroll-bar-hover: #444;
   }
@@ -404,9 +405,13 @@
 
   body {
     @apply bg-background text-foreground;
-    /* Inter's alternate glyphs (Linear/Attio both ship these) + optical sizing. */
+    /* Inter's alternate glyphs (Linear/Attio both ship these) + optical sizing.
+       15px body at weight 450 with -1.1% tracking is the measured Linear base. */
     font-feature-settings: "cv01", "ss03";
     font-variation-settings: "opsz" auto;
+    font-size: 15px;
+    font-weight: 450;
+    letter-spacing: -0.011em;
   }
 
   /* Brand-tinted selection, not the harsh OS blue (Attio detail). */
