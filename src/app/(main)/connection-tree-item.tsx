@@ -153,12 +153,15 @@ export default function ConnectionTreeItem({
                 onOpen?.(conn.id);
                 router.push(`/vault/${conn.id}`);
               }}
-              className="min-w-0 flex-1 truncate text-left"
+              className="min-w-0 shrink truncate text-left"
               title={`Open ${conn.name}`}
             >
               {conn.name}
             </button>
             {statusDot}
+            {/* fills the rest so the row (hover + scrollbar) is full width while
+                the status dot stays next to the name instead of the far edge */}
+            <span className="flex-1" aria-hidden="true" />
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent>
