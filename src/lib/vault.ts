@@ -29,6 +29,9 @@ export interface VaultConnection {
   timezone?: string;
   folder?: string;
   readOnly?: boolean;
+  /** Deployment environment of the target database. `production` drives the
+   *  prod badge and the write-confirmation gate; absence means unmarked. */
+  environment?: "production" | "staging";
   createdAt: number;
   /** Last add/edit time; drives last-writer-wins in a git-vault merge. */
   updatedAt: number;
@@ -189,6 +192,7 @@ export function updateConnection(
     "timezone",
     "folder",
     "readOnly",
+    "environment",
   ] as const) {
     if (patch[key] !== undefined) (conn[key] as unknown) = patch[key];
   }

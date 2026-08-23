@@ -50,7 +50,7 @@ export default function SidebarTab({ tabs }: Readonly<SidebarTabProps>) {
   const config = useStudioContext();
 
   return (
-    <div className={cn("flex h-full bg-background")}>
+    <div className={cn("flex h-full bg-sidebar")}>
       <div className={cn("shrink-0")}>
         <div className="flex h-full flex-col gap-3 border-r border-border p-3">
           <DropdownMenu modal={false}>

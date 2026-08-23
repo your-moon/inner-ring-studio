@@ -86,7 +86,9 @@ export default function SchemaView() {
             buttonVariants({
               size: "icon",
             }),
-            "h-8 w-8 rounded-full bg-primary text-primary-foreground"
+            // A quiet icon button, not a floating action button — neither
+            // reference app ever floats a filled circle over content.
+            "h-7 w-7 rounded-md bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
           )}
           onClick={contentMenu[0].onClick}
         >
@@ -103,7 +105,7 @@ export default function SchemaView() {
               buttonVariants({
                 size: "icon",
               }),
-              "h-8 w-8 rounded-full bg-primary text-primary-foreground"
+              "h-7 w-7 rounded-md bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
             )}
           >
             <Plus size={16} weight="bold" />

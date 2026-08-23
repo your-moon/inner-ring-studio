@@ -215,9 +215,14 @@ function renderList<T>(props: ListViewRendererProps<T>): React.ReactElement {
                   </div>
 
                   {item.progressBarValue && item.progressBarMax && (
-                    <div className="text-muted-foreground relative flex h-full w-[50px] items-center">
+                    // Quiet metadata, not a gauge in a box: the label carries
+                    // the number; a hairline underneath hints relative size.
+                    <div className="relative flex h-full w-[50px] items-center justify-end">
+                      <span className="text-[11px] text-muted-foreground/80 tabular-nums">
+                        {item.progressBarLabel}
+                      </span>
                       <div
-                        className="h-[20px] rounded-sm border border-neutral-200 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800"
+                        className="absolute bottom-[6px] right-0 h-[2px] rounded-full bg-border"
                         style={{
                           width:
                             Math.max(
@@ -225,13 +230,10 @@ function renderList<T>(props: ListViewRendererProps<T>): React.ReactElement {
                                 (item.progressBarValue / item.progressBarMax) *
                                   100
                               ),
-                              5
-                            ) + "%",
+                              8
+                            ) / 2 + "%",
                         }}
                       ></div>
-                      <span className="absolute right-0">
-                        {item.progressBarLabel}
-                      </span>
                     </div>
                   )}
                 </div>

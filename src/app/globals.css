@@ -70,6 +70,7 @@
   --color-card-foreground: var(--card-foreground);
 
   --color-selected: var(--selected);
+  --color-sidebar: var(--sidebar);
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -315,6 +316,10 @@
 
     --radius: 0.5rem;
 
+    /* Sidebar sits a level below the content sheet (Linear: #efeff0 under
+       #f9f9fa) — structure carried by the background level, not the border. */
+    --sidebar: #f4f4f5;
+
     --selected: #eeeef1;
     --scroll-bar: #d4d4d4;
     --scroll-bar-hover: #ccc;
@@ -353,6 +358,10 @@
     --border: #23252a; /* border-primary */
     --input: #2a2c31;
     --ring: #7070ff;
+
+    /* Dark inverts the step: sidebar recedes below the content plane
+       (Linear: sidebar #09090a under content #121213). */
+    --sidebar: #050506;
 
     --selected: #191a1b;
     --scroll-bar: #353535;

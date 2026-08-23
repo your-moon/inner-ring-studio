@@ -209,7 +209,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
   return (
     <div className="flex w-screen flex-col lg:h-screen lg:flex-row">
       <CommandPalette />
-      <div className="bg-background sticky top-0 z-25 flex w-full shrink-0 flex-col overflow-hidden border-r-0 border-b lg:w-[250px] lg:border-r lg:border-b-0">
+      <div className="bg-sidebar sticky top-0 z-25 flex w-full shrink-0 flex-col overflow-hidden border-r-0 border-b lg:w-[250px] lg:border-r lg:border-b-0">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/local" className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-neutral-800 dark:border-neutral-200">
@@ -258,7 +258,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
 
         <div
           className={cn(
-            "bg-background fixed right-0 z-50 flex hidden h-screen w-2/3 flex-1 overflow-scroll border-b border-l pb-2 md:w-1/2 lg:relative lg:z-0 lg:block lg:h-auto lg:w-auto",
+            "bg-sidebar fixed right-0 z-50 flex hidden h-screen w-2/3 flex-1 overflow-scroll border-b border-l pb-2 md:w-1/2 lg:relative lg:z-0 lg:block lg:h-auto lg:w-auto",
             {
               block: mobileToggle,
             }
