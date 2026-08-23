@@ -117,6 +117,18 @@ export default function ConnectionTreeItem({
     [conn.id, currentConnId, onOpen, router]
   );
 
+  const openStructure = useCallback(
+    (schema: string, table: string) => {
+      if (conn.id === currentConnId) {
+        scc.tabs.openBuiltinSchema({ schemaName: schema, tableName: table });
+      } else {
+        onOpen?.(conn.id);
+        router.push(`/vault/${conn.id}`);
+      }
+    },
+    [conn.id, currentConnId, onOpen, router]
+  );
+
   const connected = !!conn.status?.connected;
   const statusDot = busy || loading ? (
     <CircleNotch size={11} className="shrink-0 animate-spin text-neutral-400" />
@@ -234,19 +246,40 @@ export default function ConnectionTreeItem({
               </button>
               {openSchemas.has(s.name) &&
                 s.tables.map((t) => (
-                  <button
-                    key={t.name}
-                    onClick={() => openTable(s.name, t.name)}
-                    className="flex h-7 w-full items-center gap-1.5 pr-2 pl-11 text-xs text-neutral-600 hover:bg-secondary dark:text-neutral-300"
-                    title={`${s.name}.${t.name}`}
-                  >
-                    {t.type === "view" ? (
-                      <Eye size={13} className="shrink-0 text-neutral-400" />
-                    ) : (
-                      <Table size={13} className="shrink-0 text-neutral-400" />
-                    )}
-                    <span className="truncate">{t.name}</span>
-                  </button>
+                  <ContextMenu key={t.name}>
+                    <ContextMenuTrigger asChild>
+                      <button
+                        onClick={() => openTable(s.name, t.name)}
+                        className="flex h-7 w-full items-center gap-1.5 pr-2 pl-11 text-xs text-neutral-600 hover:bg-secondary dark:text-neutral-300"
+                        title={`${s.name}.${t.name}`}
+                      >
+                        {t.type === "view" ? (
+                          <Eye size={13} className="shrink-0 text-neutral-400" />
+                        ) : (
+                          <Table size={13} className="shrink-0 text-neutral-400" />
+                        )}
+                        <span className="truncate">{t.name}</span>
+                      </button>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <div className="px-2 py-1.5 text-xs text-neutral-500">
+                        {s.name}.{t.name}
+                      </div>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem onClick={() => openTable(s.name, t.name)}>
+                        Open data
+                      </ContextMenuItem>
+                      <ContextMenuItem onClick={() => openStructure(s.name, t.name)}>
+                        Open structure
+                      </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem
+                        onClick={() => navigator.clipboard.writeText(t.name)}
+                      >
+                        Copy name
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                 ))}
             </div>
           ))}
