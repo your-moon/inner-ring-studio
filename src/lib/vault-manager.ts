@@ -25,6 +25,16 @@ import {
   saveRegistry,
 } from "./vault-registry-store";
 
+/**
+ * Multi-vault is meaningful only when the active vault is resolved from the
+ * registry. A pinned `PMSQL_VAULT` (the self-hosted server, or a single-vault
+ * power user) always wins in `vaultPath`, so switching/adding would be a silent
+ * no-op — disable the feature entirely in that case.
+ */
+export function multiVaultEnabled(): boolean {
+  return !process.env.PMSQL_VAULT;
+}
+
 export interface VaultSummary {
   id: string;
   name: string;

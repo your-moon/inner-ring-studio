@@ -27,7 +27,10 @@ export default function VaultStoragePage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Vaults on this machine (the registry) + the "add vault" form.
+  // Vaults on this machine (the registry) + the "add vault" form. Multi-vault is
+  // disabled when the vault is pinned via PMSQL_VAULT (e.g. the self-hosted
+  // server) — then only the active-vault git storage below applies.
+  const [mvEnabled, setMvEnabled] = useState(false);
   const [vaults, setVaults] = useState<VaultRow[]>([]);
   const [newName, setNewName] = useState("");
   const [newMode, setNewMode] = useState<"create" | "link">("create");
@@ -54,7 +57,10 @@ export default function VaultStoragePage() {
       .catch(() => {});
     fetch("/api/vaults")
       .then((r) => r.json())
-      .then((j: { vaults?: VaultRow[] }) => setVaults(j.vaults ?? []))
+      .then((j: { enabled?: boolean; vaults?: VaultRow[] }) => {
+        setMvEnabled(j.enabled !== false);
+        setVaults(j.vaults ?? []);
+      })
       .catch(() => {});
   }, []);
 
@@ -140,12 +146,17 @@ export default function VaultStoragePage() {
   return (
     <NavigationLayout>
       <div className="mx-auto w-full max-w-2xl p-8">
-        <h1 className="mb-1 text-xl font-bold">Vaults</h1>
+        <h1 className="mb-1 text-xl font-bold">
+          {mvEnabled ? "Vaults" : "Vault storage"}
+        </h1>
         <p className="mb-6 text-sm text-neutral-500">
-          Each vault is a separate encrypted store of connections on this machine.
-          Switch between them, and back each one up by linking it to a git repo.
+          {mvEnabled
+            ? "Each vault is a separate encrypted store of connections on this machine. Switch between them, and back each one up by linking it to a git repo."
+            : "Your connections are stored in a single encrypted file. Back it up and sync it across devices with any git provider, or a synced folder."}
         </p>
 
+        {mvEnabled && (
+          <>
         {/* ---- Vaults on this machine ---- */}
         <div className="mb-4 overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800">
           {vaults.map((v) => (
@@ -243,13 +254,19 @@ export default function VaultStoragePage() {
             existing vault repo; it only opens if it used that passphrase.
           </p>
         </div>
+          </>
+        )}
 
         {/* ---- Git storage for the ACTIVE vault ---- */}
-        <h2 className="mb-1 text-sm font-bold">Active vault storage</h2>
-        <p className="mb-4 text-sm text-neutral-500">
-          Back up the active vault and sync it across devices with any git
-          provider, or a synced folder.
-        </p>
+        {mvEnabled && (
+          <>
+            <h2 className="mb-1 text-sm font-bold">Active vault storage</h2>
+            <p className="mb-4 text-sm text-neutral-500">
+              Back up the active vault and sync it across devices with any git
+              provider, or a synced folder.
+            </p>
+          </>
+        )}
 
         <div className="mb-6 rounded-lg border border-neutral-200 p-4 text-sm dark:border-neutral-800">
           <div className="mb-1 flex justify-between">

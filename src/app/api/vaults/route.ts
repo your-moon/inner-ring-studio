@@ -5,6 +5,7 @@ import {
   addVault,
   forgetVault,
   listVaults,
+  multiVaultEnabled,
   switchVault,
 } from "@/lib/vault-manager";
 
@@ -23,7 +24,11 @@ export async function GET() {
   if (gate) return gate;
   const auth = await requireAuth();
   if (auth instanceof Response) return auth;
-  return NextResponse.json({ vaults: listVaults() });
+  if (!multiVaultEnabled()) {
+    // Vault is pinned (PMSQL_VAULT) — the switcher hides itself on `enabled:false`.
+    return NextResponse.json({ enabled: false, vaults: [] });
+  }
+  return NextResponse.json({ enabled: true, vaults: listVaults() });
 }
 
 export async function POST(req: Request) {
@@ -31,6 +36,12 @@ export async function POST(req: Request) {
   if (gate) return gate;
   const auth = await requireAuth();
   if (auth instanceof Response) return auth;
+  if (!multiVaultEnabled()) {
+    return NextResponse.json(
+      { error: "multi-vault is disabled (PMSQL_VAULT is pinned)" },
+      { status: 400 }
+    );
+  }
   try {
     const body = await req.json();
     switch (body.action) {

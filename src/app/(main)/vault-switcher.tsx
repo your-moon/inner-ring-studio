@@ -15,6 +15,11 @@ interface VaultRow {
   active: boolean;
 }
 
+interface VaultsResponse {
+  enabled?: boolean;
+  vaults: VaultRow[];
+}
+
 /**
  * Active vault-workspace picker for desktop / self-hosted, mirroring the cloud
  * WorkspaceSwitcher. Each vault is its own local git-vault; switching changes
@@ -23,7 +28,7 @@ interface VaultRow {
 export default function VaultSwitcher() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const { data, mutate } = useSWR<{ vaults: VaultRow[] }>("/api/vaults", fetcher);
+  const { data, mutate } = useSWR<VaultsResponse>("/api/vaults", fetcher);
   const vaults = data?.vaults ?? [];
   const active = vaults.find((v) => v.active);
 
@@ -55,6 +60,10 @@ export default function VaultSwitcher() {
       if (r?.error) window.alert(r.error);
     }
   }
+
+  // Registry not in use (vault pinned via PMSQL_VAULT) — no switcher. Also stay
+  // hidden until the first response so it never flashes on a pinned server.
+  if (!data || data.enabled === false) return null;
 
   return (
     <div className="relative px-3 pb-2">

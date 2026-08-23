@@ -7,6 +7,7 @@ import {
   addVault,
   forgetVault,
   listVaults,
+  multiVaultEnabled,
   switchVault,
 } from "./vault-manager";
 
@@ -92,5 +93,15 @@ describe("vault manager", () => {
 
   test("cannot forget the only vault", () => {
     expect(() => forgetVault("default")).toThrow(/only vault/i);
+  });
+
+  test("multiVaultEnabled is false when PMSQL_VAULT pins a single vault", () => {
+    expect(multiVaultEnabled()).toBe(true); // unset in beforeEach
+    process.env.PMSQL_VAULT = "/some/pinned/vault.enc";
+    try {
+      expect(multiVaultEnabled()).toBe(false);
+    } finally {
+      delete process.env.PMSQL_VAULT;
+    }
   });
 });
