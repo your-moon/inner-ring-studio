@@ -1,18 +1,19 @@
-FROM node:20-alpine AS builder
+# Build with bun (matches bun.lock + the rest of the toolchain; faster installs).
+# Alpine (musl) builder so native modules pulled into the Next standalone bundle
+# stay ABI-compatible with the node:20-alpine runtime below.
+FROM oven/bun:1-alpine AS builder
 
-# Setting working directory. All the path will be relative to WORKDIR
 WORKDIR /app
-# Installing dependencies
-COPY package*.json ./
-RUN npm install
 
-# Copying source files
+# Install dependencies from the lockfile (reproducible).
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+# Copy source and build the standalone output.
 COPY . .
+RUN bun run build
 
-# Building app
-RUN npm run build
-
-# Copy only standalone server to new image
+# Runtime: the Next standalone server, run on Node (proven for server.js).
 FROM node:20-alpine
 WORKDIR /app
 COPY --from=builder /app/.next/standalone ./
