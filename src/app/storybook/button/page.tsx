@@ -3,9 +3,10 @@
 import { RefreshButton } from "@/app/storybook/button/refresh-button";
 import Block from "@/components/orbit/block";
 import { Button } from "@/components/orbit/button";
+import IconButton from "@/components/orbit/icon-button";
 import Inset from "@/components/orbit/inset";
 import Section from "@/components/orbit/section";
-import { Database } from "@phosphor-icons/react";
+import { Database, MagnifyingGlass, SidebarSimple } from "@phosphor-icons/react";
 import { useState } from "react";
 
 export default function ButtonStorybook() {
@@ -36,6 +37,16 @@ export default function ButtonStorybook() {
   return (
     <Section>
       <Inset>
+        <Block title="Icon button — quiet square chrome">
+          <div className="flex items-center gap-2">
+            <IconButton aria-label="Search"><MagnifyingGlass /></IconButton>
+            <IconButton aria-label="Inspector" toggled><SidebarSimple /></IconButton>
+            <IconButton aria-label="Search small" size="sm"><MagnifyingGlass /></IconButton>
+            <IconButton aria-label="Disabled" disabled><Database /></IconButton>
+            <span className="text-[12px] text-muted-foreground">ghost at rest · secondary on hover/toggled · aria-label required</span>
+          </div>
+        </Block>
+
         <Block title="Button">
           <Button title={"Primary"} size="base" variant="primary" />
           <Button title={"Secondary"} />

@@ -1,6 +1,7 @@
 "use client";
 
 import EnvBadge from "@/components/orbit/env-badge";
+import IconButton from "@/components/orbit/icon-button";
 import Kbd from "@/components/ui/kbd";
 import { useStudioContext } from "@/context/driver-provider";
 import { useSchema } from "@/context/schema-provider";
@@ -141,13 +142,9 @@ export default function StudioSidebar({
         {onBack && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <button
-                onClick={onBack}
-                className="u-smooth grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
-                aria-label="Back to home"
-              >
-                <CaretLeft size={13} weight="bold" />
-              </button>
+              <IconButton size="sm" onClick={onBack} aria-label="Back to home">
+                <CaretLeft weight="bold" />
+              </IconButton>
             </TooltipTrigger>
             <TooltipContent side="bottom">Back to home</TooltipContent>
           </Tooltip>
@@ -160,28 +157,23 @@ export default function StudioSidebar({
         {panels.map((p) => (
           <Tooltip key={p.key}>
             <TooltipTrigger asChild>
-              <button
+              <IconButton
+                size="sm"
                 onClick={() => togglePanel(p)}
-                className={cn(
-                  "u-smooth grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground [&_svg]:h-[15px] [&_svg]:w-[15px]",
-                  activeKey === p.key && "bg-secondary text-foreground"
-                )}
+                toggled={activeKey === p.key}
                 aria-label={p.name}
               >
                 {p.icon}
-              </button>
+              </IconButton>
             </TooltipTrigger>
             <TooltipContent side="bottom">{p.name}</TooltipContent>
           </Tooltip>
         ))}
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <button
-              className="u-smooth grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
-              aria-label="More"
-            >
-              <DotsThree size={15} weight="bold" />
-            </button>
+            <IconButton size="sm" aria-label="More">
+              <DotsThree weight="bold" />
+            </IconButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="bottom" align="end">
             {!disableToggle && (

@@ -23,6 +23,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "../ui/context-menu";
+import IconButton from "../orbit/icon-button";
 import SchemaCreateDialog from "./schema-editor/schema-create";
 import SchemaList, { TableSortMode } from "./schema-sidebar-list";
 
@@ -160,19 +161,17 @@ export default function SchemaView() {
             </ContextMenuContent>
           </ContextMenu>
           <span className="flex-1" />
-          <button
+          <IconButton
+            size="sm"
             onClick={() => {
               if (searchOpen) setSearch("");
               setSearchOpen((v) => !v);
             }}
             aria-label="Filter tables"
-            className={cn(
-              "u-smooth grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground",
-              (searchOpen || search) && "bg-secondary text-foreground"
-            )}
+            toggled={searchOpen || search !== ""}
           >
-            <LucideSearch style={{ width: 13, height: 13 }} />
-          </button>
+            <LucideSearch />
+          </IconButton>
           {activatorButton}
         </div>
 
