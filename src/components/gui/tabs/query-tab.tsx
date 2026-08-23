@@ -34,6 +34,7 @@ import {
   prepareStatements,
   sqlAltersSchema,
 } from "@/lib/query-plan";
+import EmptyState from "@/components/orbit/empty-state";
 import Kbd from "@/components/ui/kbd";
 import { KEY_BINDING } from "@/lib/key-matcher";
 import {
@@ -330,13 +331,11 @@ export default function QueryWindow({
     // thing twice on one screen.
     if (queryTabs.length === 0) {
       return (
-        <div className="flex h-full w-full items-center justify-center px-6 text-center">
-          <p className="text-[13px] text-muted-foreground">
-            Results show up here. Run with{" "}
-            <Kbd>{KEY_BINDING.run.toString()}</Kbd>, or pick a table from the
-            sidebar.
-          </p>
-        </div>
+        <EmptyState>
+          Results show up here. Run with{" "}
+          <Kbd>{KEY_BINDING.run.toString()}</Kbd>, or pick a table from the
+          sidebar.
+        </EmptyState>
       );
     }
 
@@ -549,7 +548,7 @@ export default function QueryWindow({
                       "px-2",
                       lineWrap
                         ? "text-foreground bg-secondary"
-                        : "text-neutral-500 dark:text-neutral-500"
+                        : "text-muted-foreground dark:text-muted-foreground"
                     )}
                   >
                     <LucideWrapText className="h-4 w-4" />
@@ -566,7 +565,7 @@ export default function QueryWindow({
                     variant={"ghost"}
                     size="sm"
                     onClick={onFormatClicked}
-                    className="text-neutral-800 dark:text-neutral-200"
+                    className="text-secondary-foreground"
                   >
                     Format
                   </Button>

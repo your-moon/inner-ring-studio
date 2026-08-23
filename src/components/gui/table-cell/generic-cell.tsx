@@ -55,7 +55,7 @@ function SnippetRow({
 
   if (failed) {
     return (
-      <div className="p-4 text-sm text-neutral-500">
+      <div className="p-4 text-sm text-muted-foreground">
         Couldn&apos;t load the referenced row.
       </div>
     );
@@ -81,14 +81,14 @@ function SnippetRow({
         let colorClassName = "";
 
         if (value === "" || value === null)
-          colorClassName = "text-gray-400 dark:text-gray-600";
+          colorClassName = "text-muted-foreground/70";
         if (typeof value === "string") colorClassName = "text-orange-500";
         if (typeof value === "bigint" || typeof value === "number")
           colorClassName = "text-blue-600 dark:text-blue-300";
 
         return (
           <div key={header.name}>
-            <div className="mb-1 font-mono text-xs text-gray-400">
+            <div className="mb-1 font-mono text-xs text-muted-foreground">
               {header.displayName}
             </div>
             <div
@@ -112,7 +112,7 @@ function ForeignKeyColumnSnippet(props: SneakpeakProps) {
   return (
     <Popover onOpenChange={setOpen}>
       <PopoverTrigger>
-        <LucideArrowUpRight className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+        <LucideArrowUpRight className="h-4 w-4 text-muted-foreground hover:text-blue-600" />
       </PopoverTrigger>
       <PopoverContent
         side="right"
@@ -261,6 +261,12 @@ export default function GenericCell({
         return <DisplayLinkCell link={value} />;
       }
 
+      // Timestamps: drop fractional seconds for scanability — the full
+      // precision stays on hover (title) and in the row inspector.
+      const display = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}\.\d+/.test(value)
+        ? value.replace(/(\d{2}:\d{2}:\d{2})\.\d+/, "$1")
+        : value;
+
       return (
         <span
           className={cn(
@@ -270,7 +276,7 @@ export default function GenericCell({
             isNumericColumn && "text-right font-mono text-[12.5px] tabular-nums"
           )}
         >
-          {value}
+          {display}
         </span>
       );
     }

@@ -1,5 +1,18 @@
 # Rebuild plan: Attio/Linear-grade component kit, shell, and surfaces
 
+**Status (2026-08-23): all phases executed.** Phase 0 ✅ (three-plane theme,
+measured type, motion tokens) · Phase 1 ✅ (Kbd, EnvBadge, Chip, StatusDot,
+EmptyState, brand-unified orbit buttons + focus rings, /storybook pages; the
+remaining table rows are restyles absorbed by the token sweep) · Phase 2 ✅
+(unified sidebar + breadcrumb tab bar) · Phase 3 ✅ (home + workspace to the
+sheet grammar) · Phase 4 ✅ (filter builder, prod write gate, selection bar,
+query timer, timestamp trimming) · Phase 5 ✅ (selection/palette/panel motion,
+neutral-* papercut sweep across the studio).
+**Deferred, tracked:** e2e smoke (no playwright config in-repo; CI-side),
+OKLCH 3-input theme *generation* (tokens are hand-set to the measured values;
+generation is an internal refactor with no visual change), screenshot CI for
+/storybook.
+
 **Gate:** nothing below starts until the two visual mocks are approved:
 `mock-home.html` (home + workspace redesign) and `mock-studio.html` (studio
 shell + core features). They are the north star; every phase implements a piece

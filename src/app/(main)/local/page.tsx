@@ -7,7 +7,9 @@ import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { listContainer, listItem } from "@/lib/motion";
+import Chip from "@/components/orbit/chip";
 import EnvBadge from "@/components/orbit/env-badge";
+import StatusDot from "@/components/orbit/status-dot";
 import { bumpConnection, connectionLastOpened } from "@/lib/connection-frecency";
 import { getHistory } from "@/lib/query-history";
 import { frecencyScores } from "@/lib/table-frecency";
@@ -244,9 +246,7 @@ export default function HomePage() {
                         </span>
                       )}
                     </span>
-                    <span className="rounded-[5px] border border-border px-1.5 py-px text-[11px] text-muted-foreground">
-                      {DRIVER_LABEL[c.driver] ?? c.driver}
-                    </span>
+                    <Chip>{DRIVER_LABEL[c.driver] ?? c.driver}</Chip>
                     <EnvBadge environment={c.environment} />
                     <span className="truncate font-mono text-[11.5px] text-muted-foreground/80">
                       {c.host
@@ -256,12 +256,9 @@ export default function HomePage() {
                     <span className="text-right text-[12px] text-muted-foreground tabular-nums">
                       {lastOpened[c.id] ? timeAgo(lastOpened[c.id]) : ""}
                     </span>
-                    <span
-                      title={c.status?.connected ? "Connected" : "Idle"}
-                      className={
-                        "h-1.5 w-1.5 justify-self-end rounded-full " +
-                        (c.status?.connected ? "bg-emerald-500" : "bg-border")
-                      }
+                    <StatusDot
+                      className="justify-self-end"
+                      status={c.status?.connected ? "live" : "idle"}
                     />
                   </Link>
                 ))}

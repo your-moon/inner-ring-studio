@@ -59,7 +59,7 @@ export function SchemaDatabaseCreateForm({
           <p>{errorMessage}</p>
         </div>
       )}
-      <div className="flex shrink-0 grow-0 gap-2 border-neutral-200 px-1 py-4 dark:border-neutral-800">
+      <div className="flex shrink-0 grow-0 gap-2 border-border px-1 py-4 dark:border-neutral-800">
         <div className="w-full">
           <div className="mb-1 text-xs font-medium">Schema Name</div>
           <Input

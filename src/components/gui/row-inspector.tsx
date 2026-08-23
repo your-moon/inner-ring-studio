@@ -1,3 +1,4 @@
+import EmptyState from "../orbit/empty-state";
 import Kbd from "@/components/ui/kbd";
 import { convertDatabaseValueToString } from "@/drivers/sqlite/sql-helper";
 import { ColumnType } from "@outerbase/sdk-transform";
@@ -147,9 +148,9 @@ export default function RowInspector({
       </div>
 
       {rowIndex === null ? (
-        <div className="flex flex-1 items-center justify-center px-6 text-center text-[12px] text-muted-foreground">
+        <EmptyState className="flex-1">
           Click any cell to inspect its row.
-        </div>
+        </EmptyState>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
           {headers.map((h, x) => {

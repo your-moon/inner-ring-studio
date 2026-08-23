@@ -86,13 +86,13 @@ function ColumnSearchInput({
           if (e.key === "Enter") commit(text, true);
         }}
         placeholder={`Search ${name}…`}
-        className="w-full rounded border border-neutral-300 bg-white py-1 pr-6 pl-2 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950"
+        className="w-full rounded border border-input bg-background py-1 pr-6 pl-2 text-sm outline-none focus:border-ring"
       />
       {text && (
         <button
           onClick={() => commit("", true)}
           title="Clear"
-          className="absolute top-1/2 right-1 -translate-y-1/2 rounded p-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+          className="absolute top-1/2 right-1 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
         >
           <LucideX className="h-3.5 w-3.5" />
         </button>

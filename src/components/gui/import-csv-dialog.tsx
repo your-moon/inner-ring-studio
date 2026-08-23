@@ -97,7 +97,7 @@ export default function ImportCsvDialog({
   }
 
   const select =
-    "irs-select rounded border border-neutral-300 bg-white px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-950";
+    "irs-select rounded border border-input bg-white px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-950";
 
   if (typeof document === "undefined") return null;
 
@@ -105,12 +105,12 @@ export default function ImportCsvDialog({
   // context (this dialog is mounted deep in the table tab).
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
-        <div className="flex items-center justify-between border-b border-neutral-200 p-4 dark:border-neutral-800">
+      <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-xl border border-border bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="flex items-center justify-between border-b border-border p-4 dark:border-neutral-800">
           <h2 className="font-semibold">
             Import CSV into <span className="font-mono">{tableName}</span>
           </h2>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700">
+          <button onClick={onClose} className="text-muted-foreground hover:text-neutral-700">
             <LucideX className="h-5 w-5" />
           </button>
         </div>
@@ -130,7 +130,7 @@ export default function ImportCsvDialog({
             </div>
           ) : (
             <>
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-neutral-300 py-6 text-sm text-neutral-500 hover:border-blue-400 dark:border-neutral-700">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-input py-6 text-sm text-muted-foreground hover:border-blue-400 dark:border-neutral-700">
                 <LucideUpload className="h-4 w-4" />
                 {fileName || "Choose a CSV file…"}
                 <input
@@ -146,14 +146,14 @@ export default function ImportCsvDialog({
 
               {csvHeaders.length > 0 && (
                 <div className="mt-4">
-                  <p className="mb-2 text-sm text-neutral-500">
+                  <p className="mb-2 text-sm text-muted-foreground">
                     {csvRows.length.toLocaleString()} rows · map columns:
                   </p>
                   <div className="space-y-2">
                     {columns.map((col) => (
                       <div key={col} className="flex items-center gap-2">
                         <span className="w-1/2 truncate font-mono text-sm">{col}</span>
-                        <span className="text-neutral-400">←</span>
+                        <span className="text-muted-foreground">←</span>
                         <select
                           className={select + " w-1/2"}
                           value={mapping[col] ?? -1}
@@ -180,8 +180,8 @@ export default function ImportCsvDialog({
         </div>
 
         {done === null && (
-          <div className="flex justify-end gap-2 border-t border-neutral-200 p-4 dark:border-neutral-800">
-            <button onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-neutral-500">
+          <div className="flex justify-end gap-2 border-t border-border p-4 dark:border-neutral-800">
+            <button onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-muted-foreground">
               Cancel
             </button>
             <button

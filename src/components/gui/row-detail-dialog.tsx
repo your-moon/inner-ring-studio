@@ -42,7 +42,7 @@ export default function RowDetailDialog({
 
   const render = (v: unknown) => {
     if (v === null || v === undefined)
-      return <span className="text-neutral-400 italic">NULL</span>;
+      return <span className="text-muted-foreground italic">NULL</span>;
     return String(v);
   };
 
@@ -52,14 +52,14 @@ export default function RowDetailDialog({
       onClick={onClose}
     >
       <div
-        className="flex max-h-[80%] w-[min(640px,90%)] flex-col rounded-lg border border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
+        className="flex max-h-[80%] w-[min(640px,90%)] flex-col rounded-lg border border-border bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
           <h2 className="text-sm font-semibold">Row detail</h2>
           <button
             onClick={onClose}
-            className="rounded p-1 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="rounded p-1 text-muted-foreground hover:bg-secondary"
           >
             <LucideX className="h-4 w-4" />
           </button>
@@ -72,7 +72,7 @@ export default function RowDetailDialog({
                   key={i}
                   className="border-b border-neutral-100 last:border-0 dark:border-neutral-800"
                 >
-                  <td className="w-1/3 px-4 py-2 align-top font-mono text-xs font-medium text-neutral-500">
+                  <td className="w-1/3 px-4 py-2 align-top font-mono text-xs font-medium text-muted-foreground">
                     {f.name}
                   </td>
                   <td

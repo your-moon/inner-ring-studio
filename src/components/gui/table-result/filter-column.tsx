@@ -41,12 +41,12 @@ export default function useTableResultColumnFilter({
         <Button
           variant={"secondary"}
           size={"sm"}
-          className="ml-[3px] flex items-center gap-1 border-neutral-300 bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800"
+          className="ml-[3px] flex items-center gap-1 border-input bg-secondary"
         >
           <LucideSettings2 className="h-3 w-4" />
           Columns
           {!!columnFilterBadge && (
-            <span className="transform-y-[-2px] text-secondary text-secondary-foreground ml-1 h-4 w-4 rounded-[1px] border border-neutral-600 bg-neutral-700 text-[11px]">
+            <span className="transform-y-[-2px] text-secondary-foreground ml-1 h-4 w-4 rounded-[1px] border border-border bg-secondary text-[11px]">
               {columnFilterBadge}
             </span>
           )}

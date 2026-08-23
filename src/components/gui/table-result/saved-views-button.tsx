@@ -85,14 +85,14 @@ export default function SavedViewsButton({
       <PopoverContent className="w-72 p-0" align="start">
         <div className="max-h-64 overflow-y-auto">
           {views.length === 0 ? (
-            <p className="px-3 py-3 text-sm text-neutral-500">
+            <p className="px-3 py-3 text-sm text-muted-foreground">
               No saved views yet. Save the current filter and sort below.
             </p>
           ) : (
             views.map((v) => (
               <div
                 key={v.id}
-                className="flex items-center gap-2 px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                className="flex items-center gap-2 px-2 py-1.5 hover:bg-secondary"
               >
                 <button
                   className="flex grow flex-col items-start overflow-hidden text-left"
@@ -104,7 +104,7 @@ export default function SavedViewsButton({
                   <span className="w-full truncate text-sm font-medium">
                     {v.name}
                   </span>
-                  <span className="w-full truncate font-mono text-xs text-neutral-500">
+                  <span className="w-full truncate font-mono text-xs text-muted-foreground">
                     {v.where ? v.where : "no filter"}
                     {v.sortColumns.length > 0
                       ? ` · sort ${v.sortColumns
@@ -114,7 +114,7 @@ export default function SavedViewsButton({
                   </span>
                 </button>
                 <button
-                  className="shrink-0 rounded p-1 text-neutral-400 hover:bg-neutral-200 hover:text-red-600 dark:hover:bg-neutral-700"
+                  className="shrink-0 rounded p-1 text-muted-foreground hover:bg-neutral-200 hover:text-red-600 dark:hover:bg-neutral-700"
                   title="Delete view"
                   onClick={() => remove(v.id)}
                 >
@@ -124,7 +124,7 @@ export default function SavedViewsButton({
             ))
           )}
         </div>
-        <div className="flex items-center gap-2 border-t border-neutral-200 p-2 dark:border-neutral-800">
+        <div className="flex items-center gap-2 border-t border-border p-2 dark:border-neutral-800">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -132,7 +132,7 @@ export default function SavedViewsButton({
               if (e.key === "Enter") save();
             }}
             placeholder="Name this view…"
-            className="grow rounded border border-neutral-300 bg-white px-2 py-1 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950"
+            className="grow rounded border border-input bg-white px-2 py-1 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950"
           />
           <Button
             variant="primary"

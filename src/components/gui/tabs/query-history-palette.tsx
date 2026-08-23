@@ -68,7 +68,7 @@ export default function QueryHistoryPalette({
           className={
             "group flex cursor-pointer items-start gap-3 px-3 py-2.5 " +
             (active
-              ? "bg-neutral-100 dark:bg-neutral-800"
+              ? "bg-secondary"
               : "hover:bg-neutral-50 dark:hover:bg-neutral-800/50")
           }
         >
@@ -77,11 +77,11 @@ export default function QueryHistoryPalette({
           </pre>
           <div className="flex shrink-0 items-center gap-2 pt-0.5">
             {h.count > 1 && (
-              <span className="rounded bg-neutral-200 px-1.5 text-[10px] text-neutral-500 dark:bg-neutral-700 dark:text-neutral-300">
+              <span className="rounded bg-neutral-200 px-1.5 text-[10px] text-muted-foreground dark:bg-neutral-700 dark:text-neutral-300">
                 ×{h.count}
               </span>
             )}
-            <span className="flex items-center gap-1 whitespace-nowrap text-[10px] text-neutral-400">
+            <span className="flex items-center gap-1 whitespace-nowrap text-[10px] text-muted-foreground">
               <LucideClock size={11} />
               {ago(h.at, now)}
             </span>
@@ -91,7 +91,7 @@ export default function QueryHistoryPalette({
                 e.stopPropagation();
                 remove(h.sql);
               }}
-              className="rounded p-0.5 text-neutral-300 opacity-0 hover:bg-neutral-200 hover:text-neutral-600 group-hover:opacity-100 dark:hover:bg-neutral-700 dark:hover:text-neutral-200"
+              className="rounded p-0.5 text-neutral-300 opacity-0 hover:bg-neutral-200 hover:text-secondary-foreground group-hover:opacity-100 dark:hover:bg-neutral-700 dark:hover:text-neutral-200"
             >
               <LucideX size={13} />
             </button>
@@ -99,14 +99,14 @@ export default function QueryHistoryPalette({
         </div>
       )}
       renderEmpty={({ hasQuery }) => (
-        <div className="px-4 py-10 text-center text-sm text-neutral-400">
+        <div className="px-4 py-10 text-center text-sm text-muted-foreground">
           {hasQuery
             ? "No matches."
             : "No queries yet — run one and it'll show up here."}
         </div>
       )}
       footer={
-        <div className="flex items-center gap-4 border-t border-neutral-100 px-3 py-2 text-[10px] text-neutral-400 dark:border-neutral-800">
+        <div className="flex items-center gap-4 border-t border-neutral-100 px-3 py-2 text-[10px] text-muted-foreground dark:border-neutral-800">
           <span>
             <kbd className="font-sans">↑↓</kbd> navigate
           </span>

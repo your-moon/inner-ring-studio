@@ -50,7 +50,7 @@ export default function ShareResultButton({ data }: { data: OptimizeTableState }
         onClick={share}
         disabled={busy}
         title="Share this result as a public link"
-        className="flex items-center gap-1 rounded px-2 py-1 text-xs text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        className="flex items-center gap-1 rounded px-2 py-1 text-xs text-secondary-foreground hover:bg-neutral-100 disabled:opacity-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
       >
         <ShareNetwork size={13} /> {busy ? "Sharing…" : "Share"}
       </button>
@@ -58,8 +58,8 @@ export default function ShareResultButton({ data }: { data: OptimizeTableState }
       {url && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setUrl(null)} />
-          <div className="absolute bottom-full left-0 z-50 mb-1 w-80 rounded-lg border border-neutral-200 bg-white p-3 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
-            <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-neutral-500">
+          <div className="absolute bottom-full left-0 z-50 mb-1 w-80 rounded-lg border border-border bg-white p-3 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <LinkSimple size={13} /> Public link {copied && <span className="text-green-600">· copied</span>}
             </div>
             <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export default function ShareResultButton({ data }: { data: OptimizeTableState }
                 readOnly
                 value={url}
                 onFocus={(e) => e.currentTarget.select()}
-                className="flex-1 rounded border border-neutral-300 px-2 py-1 font-mono text-[11px] outline-none dark:border-neutral-700 dark:bg-neutral-950"
+                className="flex-1 rounded border border-input px-2 py-1 font-mono text-[11px] outline-none dark:border-neutral-700 dark:bg-neutral-950"
               />
               <button
                 onClick={() => {
@@ -81,7 +81,7 @@ export default function ShareResultButton({ data }: { data: OptimizeTableState }
                 {copied ? <Check size={13} /> : <LinkSimple size={13} />}
               </button>
             </div>
-            <p className="mt-2 text-[11px] text-neutral-400">
+            <p className="mt-2 text-[11px] text-muted-foreground">
               Anyone with this link can view a snapshot of these rows. Revoke it from the Shared list.
             </p>
           </div>

@@ -70,7 +70,7 @@ export default function RowComments({
 
   return (
     <div className="border-t border-neutral-100 p-4 dark:border-neutral-800">
-      <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-neutral-500">
+      <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
         <ChatCircle size={14} />
         Comments{comments.length ? ` (${comments.length})` : ""}
       </div>
@@ -79,13 +79,13 @@ export default function RowComments({
         {comments.map((c) => (
           <div key={c.id} className="group rounded-lg bg-neutral-50 px-3 py-2 dark:bg-neutral-800/50">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-neutral-500">
+              <span className="text-[11px] font-medium text-muted-foreground">
                 {c.authorEmail ?? "you"} · {new Date(c.createdAt).toLocaleString()}
               </span>
               {c.mine && (
                 <button
                   onClick={() => del(c.id)}
-                  className="rounded p-1 text-neutral-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
+                  className="rounded p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
                   title="Delete"
                 >
                   <Trash size={13} />
@@ -96,7 +96,7 @@ export default function RowComments({
           </div>
         ))}
         {comments.length === 0 && (
-          <p className="text-xs text-neutral-400">No comments on this row yet.</p>
+          <p className="text-xs text-muted-foreground">No comments on this row yet.</p>
         )}
       </div>
 
@@ -109,7 +109,7 @@ export default function RowComments({
           }}
           rows={2}
           placeholder="Add a comment… (⌘↵ to send)"
-          className="flex-1 resize-none rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-[#e0cf00] dark:border-neutral-700 dark:bg-neutral-950"
+          className="flex-1 resize-none rounded-lg border border-input px-3 py-2 text-sm outline-none focus:border-ring dark:border-neutral-700 dark:bg-neutral-950"
         />
         <button
           onClick={add}
