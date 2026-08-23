@@ -31,7 +31,8 @@ import {
 import { toast } from "sonner";
 import { SignOut, User } from "@phosphor-icons/react";
 import useSWR from "swr";
-import NavConnectionItem, { NavConnection } from "./nav-connection-item";
+import type { NavConnection } from "./nav-connection-item";
+import ConnectionTreeItem from "./connection-tree-item";
 import NotificationsBell from "./notifications-bell";
 import WorkspaceSwitcher from "./workspace-switcher";
 import VaultSwitcher from "./vault-switcher";
@@ -304,10 +305,9 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
                     )}
                     {(!folder || isFolderOpen(folder)) &&
                       connFolders.get(folder)!.map((conn) => (
-                        <NavConnectionItem
+                        <ConnectionTreeItem
                           key={conn.id}
                           conn={conn}
-                          selected={pathname.includes(conn.id)}
                           busy={busyConns.has(conn.id)}
                           onAction={actOnConn}
                           onDelete={onDeleteConn}

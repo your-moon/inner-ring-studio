@@ -14,6 +14,7 @@ import Link from "next/link";
 export interface NavConnection {
   id: string;
   name: string;
+  driver?: string;
   folder?: string;
   status?: { connected: boolean; total: number; idle: number };
 }
