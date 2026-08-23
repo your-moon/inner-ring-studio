@@ -7,7 +7,16 @@ import {
   DatabaseTableSchema,
 } from "@/drivers/base-driver";
 import { ColumnType } from "@outerbase/sdk-transform";
-import { LucideKey, LucideKeySquare, LucideSigma } from "lucide-react";
+import {
+  LucideBinary,
+  LucideCalendar,
+  LucideHash,
+  LucideKey,
+  LucideKeySquare,
+  LucideSigma,
+  LucideToggleLeft,
+  LucideType,
+} from "lucide-react";
 
 export interface BuildTableResultProps {
   result: DatabaseResultSet;
@@ -259,15 +268,32 @@ export function pipeColumnIcon(
   headers: OptimizeTableHeaderProps<TableHeaderMetadata>[]
 ) {
   for (const header of headers) {
+    // Every column gets a type glyph (Attio's header anatomy). Chroma only
+    // where it means something: amber = primary key, accent = foreign key.
     if (header.metadata.isPrimaryKey) {
       header.display.icon = LucideKey;
-      header.display.iconClassName = "text-neutral-950 dark:text-neutral-50";
+      header.display.iconClassName = "text-amber-500/90";
     } else if (header.metadata.referenceTo) {
       header.display.icon = LucideKeySquare;
-      header.display.iconClassName = "text-neutral-950 dark:text-neutral-50";
+      header.display.iconClassName = "text-ring/70";
     } else if (header.metadata.columnSchema?.constraint?.generatedExpression) {
       header.display.icon = LucideSigma;
-      header.display.iconClassName = "text-neutral-950 dark:text-neutral-50";
+      header.display.iconClassName = "text-muted-foreground/80";
+    } else {
+      const orig = (header.metadata.originalType ?? "").toLowerCase();
+      const t = header.metadata.type;
+      if (/date|time/.test(orig)) {
+        header.display.icon = LucideCalendar;
+      } else if (/bool/.test(orig)) {
+        header.display.icon = LucideToggleLeft;
+      } else if (t === ColumnType.INTEGER || t === ColumnType.REAL) {
+        header.display.icon = LucideHash;
+      } else if (t === ColumnType.BLOB) {
+        header.display.icon = LucideBinary;
+      } else {
+        header.display.icon = LucideType;
+      }
+      header.display.iconClassName = "text-muted-foreground/80";
     }
   }
 }

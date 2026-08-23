@@ -11,6 +11,7 @@ import { ColumnSortOption } from "@/drivers/base-driver";
 import { copyToClipboard, exportDataAsDelimitedText } from "@/lib/export-helper";
 import { KEY_BINDING } from "@/lib/key-matcher";
 import { cn } from "@/lib/utils";
+import { ColumnType } from "@outerbase/sdk-transform";
 import {
   LucideChevronDown,
   LucidePin,
@@ -106,19 +107,30 @@ function Header({
   header,
   internalState,
 }: PropsWithChildren<{
-  header: OptimizeTableHeaderWithIndexProps;
+  header: OptimizeTableHeaderWithIndexProps<TableHeaderMetadata>;
   internalState: OptimizeTableState;
 }>) {
   const [open, setOpen] = useState(false);
   const colIndex = header.index;
 
+  // Numeric columns read right-aligned all the way up into their header.
+  const numeric =
+    header.metadata?.type === ColumnType.INTEGER ||
+    header.metadata?.type === ColumnType.REAL;
+
   // Quiet header row (Attio): medium-weight UI type in secondary ink; the
   // data below carries the contrast. Selection tints the header, nothing bold.
-  let textClass = "grow line-clamp-1 text-[12.5px] font-medium text-muted-foreground";
+  let textClass = cn(
+    "grow line-clamp-1 text-[12.5px] font-medium text-muted-foreground",
+    numeric && "text-right"
+  );
   let thClass = "group/th flex grow items-center px-2 overflow-hidden";
 
   if (internalState.getSelectedColIndex().includes(colIndex)) {
-    textClass = "grow line-clamp-1 text-[12.5px] font-medium text-foreground";
+    textClass = cn(
+      "grow line-clamp-1 text-[12.5px] font-medium text-foreground",
+      numeric && "text-right"
+    );
     thClass =
       "group/th flex grow items-center px-2 overflow-hidden bg-secondary/70";
   }
@@ -146,9 +158,9 @@ function Header({
         }}
       >
         {header.display.icon ? (
-          <div className="mr-2">
+          <div className="mr-1.5">
             <header.display.icon
-              className={cn("h-4 w-4", header.display.iconClassName)}
+              className={cn("h-3.5 w-3.5", header.display.iconClassName)}
             />
           </div>
         ) : null}

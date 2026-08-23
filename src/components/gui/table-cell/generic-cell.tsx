@@ -185,6 +185,29 @@ function BlobCellValue({
   }
 }
 
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/** Short display for date/timestamp columns; anything else passes through. */
+function formatTemporalDisplay(value: string, originalType?: string): string {
+  const t = (originalType ?? "").toLowerCase();
+  if (!/date|timestamp/.test(t)) return value;
+  const m = value.match(/^(\d{4})-(\d{2})-(\d{2})([ T](\d{2}):(\d{2}))?/);
+  if (!m) return value;
+  const [, y, mo, d, , hh, mm] = m;
+  const month = MONTHS[Number(mo) - 1] ?? mo;
+  const sameYear = Number(y) === new Date().getFullYear();
+  const day = `${month} ${Number(d)}`;
+  const datePart = sameYear ? day : `${day}, ${y}`;
+  // Time only when the column carries it and it isn't midnight noise.
+  if (/timestamp|time/.test(t) && hh !== undefined && `${hh}:${mm}` !== "00:00") {
+    return `${datePart} ${hh}:${mm}`;
+  }
+  return datePart;
+}
+
 export default function GenericCell({
   value,
   onFocus,
@@ -261,11 +284,14 @@ export default function GenericCell({
         return <DisplayLinkCell link={value} />;
       }
 
-      // Timestamps: drop fractional seconds for scanability — the full
-      // precision stays on hover (title) and in the row inspector.
-      const display = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}\.\d+/.test(value)
-        ? value.replace(/(\d{2}:\d{2}:\d{2})\.\d+/, "$1")
-        : value;
+      // Temporal columns render as short dates ("Aug 20", year added when it
+      // differs) — the full-precision value stays on hover (title) and in the
+      // row inspector. Gated on the DECLARED column type, never inferred from
+      // the text, so date-looking strings in text columns are untouched.
+      const display = formatTemporalDisplay(
+        value,
+        header.metadata.originalType
+      );
 
       return (
         <span

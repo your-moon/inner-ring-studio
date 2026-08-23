@@ -149,6 +149,7 @@ export default function TableDataWindow({
       setLoading(true);
 
       try {
+        const t0 = performance.now();
         const { data: dataResult, schema: schemaResult } =
           await databaseDriver.selectTable(schemaName, tableName, {
             whereRaw: effectiveWhere,
@@ -173,7 +174,14 @@ export default function TableDataWindow({
 
         setData(tableState);
 
-        setStat(dataResult.stat);
+        // Latency is a feature: when the driver doesn't report duration,
+        // show the measured round-trip instead of nothing.
+        setStat({
+          ...dataResult.stat,
+          queryDurationMs:
+            dataResult.stat?.queryDurationMs ??
+            Math.round(performance.now() - t0),
+        });
         setTableSchema(schemaResult);
         updateTableSchema(tableName, schemaResult.columns);
         setLastQueryTimestamp(Date.now());
@@ -361,55 +369,8 @@ export default function TableDataWindow({
       )}
       <div className="shrink-0 grow-0 border-b border-border py-2">
         <Toolbar>
-          <div className="ml-2 flex shrink-0 flex-wrap items-center gap-2">
-            <Button
-              variant={"secondary"}
-              onClick={() => setRevision((prev) => prev + 1)}
-              disabled={loading}
-            >
-              <LucideRefreshCcw className="h-4 w-4" />
-            </Button>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  toggled={showInspector}
-                  onClick={() => setShowInspector((v) => !v)}
-                  aria-label="Row inspector"
-                >
-                  <LucidePanelRight className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Row inspector</TooltipContent>
-            </Tooltip>
-
-            <Button
-              variant={"secondary"}
-              onClick={onNewRow}
-              className="flex items-center gap-1"
-            >
-              <div className="text-sm">Add row</div>
-            </Button>
-
-
-
-            <SavedViewsButton
-              scope={viewScope}
-              currentWhere={where}
-              currentSort={sortColumns}
-              currentColumns={currentColumns}
-              onApply={applyView}
-            />
-
-            {tableSchema && tableSchema.columns.length > 0 && (
-              <Button variant={"secondary"} onClick={() => setShowImport(true)}>
-                <div className="text-sm">Import</div>
-              </Button>
-            )}
-          </div>
-
-          <div className="mx-2 flex min-w-0 grow items-center gap-1.5">
+          {/* Mock order: filters/views lead, mutations and chrome sit right. */}
+          <div className="ml-2 flex min-w-0 grow items-center gap-1.5">
             <FilterBuilder
               columns={(tableSchema?.columns ?? []).map((c) => c.name)}
               onAdd={(rule) => {
@@ -419,6 +380,13 @@ export default function TableDataWindow({
               }}
             />
             {filterColumnButton}
+            <SavedViewsButton
+              scope={viewScope}
+              currentWhere={where}
+              currentSort={sortColumns}
+              currentColumns={currentColumns}
+              onApply={applyView}
+            />
           </div>
 
           <div className="mr-2 flex shrink-0 flex-row-reverse items-center gap-2">
@@ -460,6 +428,48 @@ export default function TableDataWindow({
             ) : (
               <></>
             )}
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="secondary"
+                  toggled={showInspector}
+                  onClick={() => setShowInspector((v) => !v)}
+                  aria-label="Row inspector"
+                >
+                  <LucidePanelRight className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Row inspector</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={"secondary"}
+                  onClick={() => setRevision((prev) => prev + 1)}
+                  disabled={loading}
+                  aria-label="Refresh"
+                >
+                  <LucideRefreshCcw className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Refresh</TooltipContent>
+            </Tooltip>
+
+            {tableSchema && tableSchema.columns.length > 0 && (
+              <Button variant={"secondary"} onClick={() => setShowImport(true)}>
+                <div className="text-sm">Import</div>
+              </Button>
+            )}
+
+            <Button
+              variant={"secondary"}
+              onClick={onNewRow}
+              className="flex items-center gap-1"
+            >
+              <div className="text-sm">＋ Row</div>
+            </Button>
           </div>
         </Toolbar>
       </div>
