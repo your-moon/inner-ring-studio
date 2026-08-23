@@ -1,32 +1,25 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useCallback, useState } from "react";
 import useSWR from "swr";
-
-interface ConnRow {
-  id: string;
-  name: string;
-  folder?: string;
-  readOnly?: boolean;
-  status?: { connected: boolean };
-}
+import ConnectionTreeItem from "@/app/(main)/connection-tree-item";
+import type { NavConnection } from "@/app/(main)/nav-connection-item";
 
 /**
- * Cross-connection navigator for the studio sidebar: lists every saved
- * connection (grouped by folder, with a live "active" dot) so you can switch
- * databases without leaving the workspace.
+ * The studio workspace sidebar: every saved connection grouped by folder, each
+ * one an expandable DBeaver-style tree (connection → schemas → tables/views).
+ * This is the primary navigator on the /vault studio page — browse and switch
+ * across all connections without leaving the workspace.
  */
 export default function ConnectionsSidebar() {
-  const pathname = usePathname();
-  const { data } = useSWR<{ connections: ConnRow[] }>(
+  const { data, mutate } = useSWR<{ connections: NavConnection[] }>(
     "/api/db",
     (u: string) => fetch(u).then((r) => r.json()),
     { refreshInterval: 5000 }
   );
 
   const conns = data?.connections ?? [];
-  const folders = new Map<string, ConnRow[]>();
+  const folders = new Map<string, NavConnection[]>();
   for (const c of conns) {
     const k = c.folder?.trim() || "";
     if (!folders.has(k)) folders.set(k, []);
@@ -36,45 +29,75 @@ export default function ConnectionsSidebar() {
     a === "" ? -1 : b === "" ? 1 : a.localeCompare(b)
   );
 
+  // Per-connection "action in flight" state → spinner in the tree node.
+  const [busy, setBusy] = useState<Set<string>>(new Set());
+  const mark = useCallback((id: string, on: boolean) => {
+    setBusy((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const onAction = useCallback(
+    async (id: string, action: "test" | "disconnect") => {
+      if (action === "test") mark(id, true);
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connectionId: id, action }),
+      })
+        .then((r) => r.json())
+        .catch(() => {});
+      mark(id, false);
+      mutate();
+    },
+    [mutate, mark]
+  );
+
+  const onDelete = useCallback(
+    async (id: string, name: string) => {
+      if (!window.confirm(`Delete connection "${name}"? Removes it from the vault.`))
+        return;
+      await fetch(`/api/connections?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }).catch(() => {});
+      mutate();
+    },
+    [mutate]
+  );
+
+  const onOpen = useCallback(
+    (id: string) => {
+      mark(id, true);
+      window.setTimeout(() => mark(id, false), 8000);
+    },
+    [mark]
+  );
+
   return (
-    <div className="flex h-full flex-col overflow-y-auto p-4">
-      <h1 className="text-primary mb-4 text-xl font-medium">Databases</h1>
+    <div className="flex h-full flex-col overflow-y-auto py-2">
+      <h1 className="text-primary mb-1 px-4 text-lg font-medium">Databases</h1>
       {conns.length === 0 && (
-        <p className="text-sm text-neutral-500">No connections.</p>
+        <p className="px-4 text-sm text-neutral-500">No connections.</p>
       )}
       {keys.map((folder) => (
-        <div key={folder || "_"} className="mb-2">
+        <div key={folder || "_"} className="mb-1">
           {folder && (
-            <div className="px-1 pt-2 pb-1 text-xs font-semibold tracking-wide text-neutral-500 uppercase">
+            <div className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-neutral-500 uppercase">
               {folder}
             </div>
           )}
           {folders.get(folder)!.map((c) => (
-            <Link
+            <ConnectionTreeItem
               key={c.id}
-              href={`/vault/${c.id}`}
-              className={
-                "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 " +
-                (pathname.includes(c.id)
-                  ? "bg-neutral-100 font-medium dark:bg-neutral-800"
-                  : "")
-              }
-            >
-              <span
-                className={
-                  "inline-block h-2 w-2 shrink-0 rounded-full " +
-                  (c.status?.connected
-                    ? "bg-green-500"
-                    : "bg-neutral-300 dark:bg-neutral-600")
-                }
-              />
-              <span className="truncate">{c.name}</span>
-              {c.readOnly && (
-                <span className="ml-auto rounded bg-amber-100 px-1 text-[9px] font-semibold tracking-wide text-amber-700 uppercase dark:bg-amber-900/40 dark:text-amber-300">
-                  RO
-                </span>
-              )}
-            </Link>
+              conn={c}
+              busy={busy.has(c.id)}
+              onAction={onAction}
+              onDelete={onDelete}
+              onOpen={onOpen}
+            />
           ))}
         </div>
       ))}
