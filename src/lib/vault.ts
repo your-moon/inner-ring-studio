@@ -199,6 +199,11 @@ export function updateConnection(
   if (patch.password !== undefined && patch.password !== "") {
     conn.password = patch.password;
   }
+  // Environment can be cleared: an explicitly-present-but-undefined value
+  // (the API maps "" to undefined) removes the mark.
+  if ("environment" in patch && patch.environment === undefined) {
+    delete conn.environment;
+  }
   conn.updatedAt = Date.now();
   writeVault(data);
   const { password: _pw, ...safe } = conn;

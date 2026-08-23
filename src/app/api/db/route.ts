@@ -79,6 +79,10 @@ export const GET = storeRoute({}, async ({ ctx }) => {
     driver: c.driver,
     folder: c.folder,
     readOnly: !!c.readOnly,
+    environment: c.environment,
+    host: c.host,
+    port: c.port,
+    database: c.database,
     status: statusOf(c), // password not needed for the pool key
   }));
   return { connections, syncedAt: IS_CLOUD ? 0 : getLastRemoteChangeAt() };

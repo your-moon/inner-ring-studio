@@ -16,6 +16,7 @@ export interface NavConnection {
   name: string;
   driver?: string;
   folder?: string;
+  environment?: "production" | "staging";
   status?: { connected: boolean; total: number; idle: number };
 }
 

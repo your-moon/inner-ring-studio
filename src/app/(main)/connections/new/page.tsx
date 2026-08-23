@@ -24,6 +24,7 @@ interface Fields {
   password: string;
   ssl: boolean;
   readOnly: boolean;
+  environment: "" | "staging" | "production";
   folder: string;
 }
 
@@ -73,6 +74,7 @@ export default function NewConnectionPage() {
     password: "",
     ssl: false,
     readOnly: false,
+    environment: "",
     folder: "",
   });
   const [busy, setBusy] = useState(false);
@@ -183,6 +185,7 @@ export default function NewConnectionPage() {
           password: f.password,
           ssl: f.ssl,
           readOnly: f.readOnly,
+          environment: f.environment || undefined,
           folder: f.folder || undefined,
         }),
       });
@@ -415,6 +418,50 @@ export default function NewConnectionPage() {
               value={f.folder}
               onChange={(e) => set("folder", e.target.value)}
             />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Environment{" "}
+              <span className="font-normal text-neutral-400">(optional)</span>
+            </label>
+            <div className="inline-flex overflow-hidden rounded-md border border-border">
+              {(
+                [
+                  ["", "None"],
+                  ["staging", "Staging"],
+                  ["production", "Production"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    set("environment", value);
+                    // Marking a target as production defaults it to read-only;
+                    // the checkbox below stays free to override.
+                    if (value === "production" && !f.readOnly)
+                      set("readOnly", true);
+                  }}
+                  className={
+                    "px-3 py-1.5 text-[13px] transition-colors " +
+                    (f.environment === value
+                      ? value === "production"
+                        ? "bg-amber-50 font-medium text-amber-700 dark:bg-amber-400/10 dark:text-amber-400"
+                        : "bg-secondary font-medium text-foreground"
+                      : "text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {f.environment === "production" && (
+              <p className="mt-1.5 text-[12px] text-amber-700 dark:text-amber-400">
+                Marked as production: writes will ask for confirmation, and the
+                connection carries a prod badge everywhere it appears.
+              </p>
+            )}
           </div>
 
           <label className="flex items-center gap-2 text-sm">

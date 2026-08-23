@@ -12,6 +12,11 @@ export const dynamic = "force-dynamic";
 
 const store = getConnectionStore();
 
+/** Environment is a closed vocabulary; anything else is treated as unset. */
+function envOf(v: unknown): "production" | "staging" | undefined {
+  return v === "production" || v === "staging" ? v : undefined;
+}
+
 // Vault-git-sync only applies to the single-tenant vault store; cloud persists
 // directly in its database.
 function commitLocal(msg: string) {
@@ -67,6 +72,7 @@ export const POST = storeRoute(
         folder: (b.folder as string) || undefined,
         timezone: (b.timezone as string) || undefined,
         readOnly: !!b.readOnly,
+        environment: envOf(b.environment),
       });
       commitLocal(`pmsql: add connection ${safe.name}`);
       return { ok: true, connection: safe };
@@ -94,6 +100,11 @@ export const PUT = storeRoute(
         folder: b.folder as string,
         timezone: b.timezone as string,
         readOnly: b.readOnly as boolean,
+        // Only apply when the caller sent the field; distinguish "clear" ("")
+        // from "leave unchanged" (absent).
+        ...(b.environment !== undefined
+          ? { environment: envOf(b.environment) }
+          : {}),
       });
       if (!safe) throw new HttpError(404, "unknown connection");
       commitLocal(`pmsql: update connection ${safe.name}`);

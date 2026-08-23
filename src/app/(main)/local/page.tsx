@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { listContainer, listItem } from "@/lib/motion";
+import EnvBadge from "@/components/orbit/env-badge";
+import { bumpConnection, connectionLastOpened } from "@/lib/connection-frecency";
 import { getHistory } from "@/lib/query-history";
 import { frecencyScores } from "@/lib/table-frecency";
 import NavigationLayout from "../nav-layout";
@@ -17,6 +19,10 @@ interface Conn {
   driver: string;
   folder?: string;
   readOnly?: boolean;
+  environment?: string;
+  host?: string;
+  port?: number;
+  database?: string;
   status?: { connected: boolean };
 }
 interface Board {
@@ -41,6 +47,14 @@ function timeAgo(ms: number): string {
   if (h < 24) return `${h}h ago`;
   const d = Math.round(h / 24);
   return d < 7 ? `${d}d ago` : `${Math.round(d / 7)}w ago`;
+}
+
+// Deterministic identity color per connection name — a stable visual anchor
+// for scanning the list (OKLCH keeps every hue equally bright).
+function identityColor(name: string): string {
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return `oklch(0.65 0.14 ${h % 360})`;
 }
 
 // A quiet section label — small, medium-weight, muted. No uppercase shout.
@@ -74,6 +88,9 @@ export default function HomePage() {
   const boards = boardData?.boards ?? [];
   const connKey = connections.map((c) => c.id).join(",");
 
+  const [lastOpened, setLastOpened] = useState<Record<string, number>>({});
+  useEffect(() => setLastOpened(connectionLastOpened()), []);
+
   const [recentQueries, setRecentQueries] = useState<RecentQuery[]>([]);
   const [recentTables, setRecentTables] = useState<RecentTable[]>([]);
   useEffect(() => {
@@ -104,10 +121,19 @@ export default function HomePage() {
         <header className="mb-10 flex items-end justify-between">
           <div>
             <h1 className="text-[19px] font-semibold tracking-tight text-foreground">
-              Home
+              {(() => {
+                const h = new Date().getHours();
+                return h < 5
+                  ? "Working late"
+                  : h < 12
+                    ? "Good morning"
+                    : h < 18
+                      ? "Good afternoon"
+                      : "Good evening";
+              })()}
             </h1>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Jump back into your work, or open a database to start querying.
+              Pick up where you left off, or open a database.
             </p>
           </div>
           <Button asChild size="sm" className="gap-1.5">
@@ -155,11 +181,98 @@ export default function HomePage() {
             animate="show"
             className="space-y-10"
           >
+
+            {/* Tables you work in — quiet hairline chips */}
+            {recentTables.length > 0 && (
+              <motion.section variants={listItem}>
+                <SectionLabel>Continue</SectionLabel>
+                <div className="flex flex-wrap gap-1.5">
+                  {recentTables.map((t, i) => (
+                    <Link
+                      key={`${t.connId}-${t.table}-${i}`}
+                      href={`/vault/${t.connId}`}
+                      onClick={() => bumpConnection(t.connId)}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background py-1.5 pr-2.5 pl-2 text-[12.5px] transition-colors hover:bg-secondary"
+                    >
+                      <TableIcon size={12} className="text-muted-foreground" />
+                      <span className="font-mono text-foreground/90">{t.table}</span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {t.connName}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </motion.section>
+            )}
+
+            {/* Databases — the primary launcher */}
+            <motion.section variants={listItem}>
+              <SectionLabel
+                aside={
+                  <span className="text-[11px] tabular-nums text-muted-foreground">
+                    {connections.length}
+                  </span>
+                }
+              >
+                Databases
+              </SectionLabel>
+              <div className="overflow-hidden rounded-lg border border-border bg-background">
+                {connections.map((c, i) => (
+                  <Link
+                    key={c.id}
+                    href={`/vault/${c.id}`}
+                    onClick={() => bumpConnection(c.id)}
+                    className={
+                      "group grid h-11 grid-cols-[8px_minmax(140px,1.2fr)_max-content_max-content_minmax(0,1.6fr)_64px_8px] items-center gap-3 px-3.5 transition-colors hover:bg-secondary " +
+                      (i > 0 ? "border-t border-border/60" : "")
+                    }
+                  >
+                    <span
+                      className="h-2 w-2 rounded-[3px]"
+                      style={{ background: identityColor(c.name) }}
+                    />
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="truncate text-[13px] font-medium text-foreground">
+                        {c.name}
+                      </span>
+                      {c.readOnly && (
+                        <span
+                          title="Read-only: all writes blocked"
+                          className="text-[10px] text-muted-foreground"
+                        >
+                          ⌀w
+                        </span>
+                      )}
+                    </span>
+                    <span className="rounded-[5px] border border-border px-1.5 py-px text-[11px] text-muted-foreground">
+                      {DRIVER_LABEL[c.driver] ?? c.driver}
+                    </span>
+                    <EnvBadge environment={c.environment} />
+                    <span className="truncate font-mono text-[11.5px] text-muted-foreground/80">
+                      {c.host
+                        ? `${c.host}${c.port ? `:${c.port}` : ""}${c.database ? `/${c.database}` : ""}`
+                        : (c.folder ?? "")}
+                    </span>
+                    <span className="text-right text-[12px] text-muted-foreground tabular-nums">
+                      {lastOpened[c.id] ? timeAgo(lastOpened[c.id]) : ""}
+                    </span>
+                    <span
+                      title={c.status?.connected ? "Connected" : "Idle"}
+                      className={
+                        "h-1.5 w-1.5 justify-self-end rounded-full " +
+                        (c.status?.connected ? "bg-emerald-500" : "bg-border")
+                      }
+                    />
+                  </Link>
+                ))}
+              </div>
+            </motion.section>
+
             {/* Recent queries — flat, hairline-divided rows */}
             {recentQueries.length > 0 && (
               <motion.section variants={listItem}>
                 <SectionLabel>Recent queries</SectionLabel>
-                <div className="overflow-hidden rounded-lg border border-border">
+                <div className="overflow-hidden rounded-lg border border-border bg-background">
                   {recentQueries.map((q, i) => (
                     <Link
                       key={`${q.connId}-${i}`}
@@ -187,86 +300,6 @@ export default function HomePage() {
                 </div>
               </motion.section>
             )}
-
-            {/* Tables you work in — quiet hairline chips */}
-            {recentTables.length > 0 && (
-              <motion.section variants={listItem}>
-                <SectionLabel>Tables you work in</SectionLabel>
-                <div className="flex flex-wrap gap-1.5">
-                  {recentTables.map((t, i) => (
-                    <Link
-                      key={`${t.connId}-${t.table}-${i}`}
-                      href={`/vault/${t.connId}`}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-border py-1 pr-2.5 pl-2 text-[12.5px] transition-colors hover:bg-secondary"
-                    >
-                      <TableIcon size={12} className="text-muted-foreground" />
-                      <span className="font-mono text-foreground/90">{t.table}</span>
-                      <span className="text-[11px] text-muted-foreground">
-                        {t.connName}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </motion.section>
-            )}
-
-            {/* Databases — the primary launcher */}
-            <motion.section variants={listItem}>
-              <SectionLabel
-                aside={
-                  <span className="text-[11px] tabular-nums text-muted-foreground">
-                    {connections.length}
-                  </span>
-                }
-              >
-                Databases
-              </SectionLabel>
-              <div className="overflow-hidden rounded-lg border border-border">
-                {connections.map((c, i) => (
-                  <Link
-                    key={c.id}
-                    href={`/vault/${c.id}`}
-                    className={
-                      "group flex items-center gap-3 px-3.5 py-3 transition-colors hover:bg-secondary " +
-                      (i > 0 ? "border-t border-border" : "")
-                    }
-                  >
-                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border text-muted-foreground">
-                      <Database size={16} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate text-[13px] font-medium text-foreground">
-                          {c.name}
-                        </span>
-                        {c.readOnly && (
-                          <span className="shrink-0 rounded border border-border px-1 py-px text-[10px] font-medium tracking-wide text-muted-foreground">
-                            READ-ONLY
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-0.5 text-[11.5px] text-muted-foreground">
-                        {DRIVER_LABEL[c.driver] ?? c.driver}
-                        {c.folder ? ` · ${c.folder}` : ""}
-                      </div>
-                    </div>
-                    <span
-                      title={c.status?.connected ? "Connected" : "Idle"}
-                      className={
-                        "h-1.5 w-1.5 shrink-0 rounded-full " +
-                        (c.status?.connected
-                          ? "bg-emerald-500"
-                          : "bg-border")
-                      }
-                    />
-                    <ArrowRight
-                      size={14}
-                      className="shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
-                    />
-                  </Link>
-                ))}
-              </div>
-            </motion.section>
 
             {boards.length > 0 && (
               <motion.section variants={listItem}>

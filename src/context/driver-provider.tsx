@@ -12,6 +12,7 @@ export interface StudioContextProps {
   // Moving from useConfig previously
   color: string;
   name: string;
+  environment?: "production" | "staging";
   onBack?: () => void;
   extensions: StudioExtensionManager;
   containerClassName?: string;

@@ -19,6 +19,9 @@ export default function VaultStudioClient() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [name, setName] = useState<string>("");
+  const [environment, setEnvironment] = useState<
+    "production" | "staging" | undefined
+  >();
   const [driverName, setDriverName] = useState<
     "postgres" | "clickhouse" | "mysql"
   >("postgres");
@@ -35,10 +38,13 @@ export default function VaultStudioClient() {
       .then((j) => {
         if (!alive) return;
         const found = (j.connections ?? []).find(
-          (c: { id: string; name: string; driver?: string }) => c.id === id
+          (c: { id: string; name: string; driver?: string; environment?: string }) =>
+            c.id === id
         );
         if (found) {
           setName(found.name);
+          if (found.environment === "production" || found.environment === "staging")
+            setEnvironment(found.environment);
           if (found.driver === "clickhouse") setDriverName("clickhouse");
           else if (found.driver === "mysql") setDriverName("mysql");
           setReady(true);
@@ -93,6 +99,7 @@ export default function VaultStudioClient() {
       driver={driver}
       name={config.name}
       color="blue"
+      environment={environment}
       onBack={() => router.push("/local")}
       docDriver={docDriver}
       agentDriver={agentDriver}

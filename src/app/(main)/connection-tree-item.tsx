@@ -8,6 +8,7 @@ import {
   Table,
   Eye,
 } from "@phosphor-icons/react";
+import EnvBadge from "@/components/orbit/env-badge";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { scc } from "@/core/command";
@@ -189,6 +190,7 @@ export default function ConnectionTreeItem({
             >
               {conn.name}
             </button>
+            <EnvBadge environment={conn.environment} />
             {statusDot}
             {/* fills the rest so the row (hover + scrollbar) is full width while
                 the status dot stays next to the name instead of the far edge */}

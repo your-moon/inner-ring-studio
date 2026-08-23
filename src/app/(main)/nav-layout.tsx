@@ -464,7 +464,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
           </div>
         </div>
       </div>
-      <div className="flex min-h-screen w-full flex-col overflow-y-auto bg-background">
+      <div className="flex min-h-screen w-full flex-col overflow-y-auto bg-canvas">
         {children}
       </div>
     </div>
