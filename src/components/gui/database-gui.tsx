@@ -34,8 +34,10 @@ import {
 import { normalizedPathname, sendAnalyticEvents } from "@/lib/tracking";
 import { cn } from "@/lib/utils";
 import { Binoculars, GearSix, StackSimple, Table } from "@phosphor-icons/react";
+import useSWR from "swr";
 import ConnectionsSidebar from "./sidebar/connections-sidebar";
 import SavedDocTab from "./sidebar/saved-doc-tab";
+import StudioPalette from "./studio-palette";
 
 /**
  * The tab set to start with: restore the query tabs from the previous session
@@ -90,6 +92,18 @@ export default function DatabaseGui() {
 
   const { databaseDriver, docDriver, extensions, containerClassName } =
     useStudioContext();
+
+  // The studio's ⌘K palette (tables + actions).
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Keep the /api/db poll alive for the whole studio session. It is not just a
+  // read: the endpoint piggybacks the throttled git-vault background pull, and
+  // this used to depend on the Databases sidebar tab happening to be mounted.
+  useSWR(
+    "/api/db",
+    (u: string) => fetch(u).then((r) => r.json()),
+    { refreshInterval: 5000 }
+  );
 
   // Restore the previous session's tabs (or a default) exactly once per mount.
   const initialRef = useRef<ReturnType<typeof buildInitialTabs> | null>(null);
@@ -232,6 +246,13 @@ export default function DatabaseGui() {
       }
       if (e.shiftKey) return;
 
+      // ⌘K — the studio palette (jump to a table, run a command).
+      if (key === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+        return;
+      }
+
       // ⌘T — new query tab.
       if (key === "t") {
         e.preventDefault();
@@ -345,6 +366,7 @@ export default function DatabaseGui() {
 
   return (
     <div className={cn("flex h-screen w-screen flex-col", containerClassName)}>
+      <StudioPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
       <ResizablePanelGroup direction="horizontal" autoSaveId="pmsql.layout.sidebar">
         <ResizablePanel id="sidebar" order={1} minSize={5} defaultSize={defaultWidthPercentage}>
           <SidebarTab tabs={sidebarTabs} />

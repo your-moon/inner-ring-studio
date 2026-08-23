@@ -54,8 +54,10 @@ export default function OptimizeTableCell<HeaderMetadata = unknown>({
     cellBackgroundColor = "bg-red-100 dark:bg-red-900";
   }
 
+  // Structure felt, not seen: row separators stay readable, column separators
+  // fade to a hint — the data provides the vertical rhythm.
   const cellClassName = cn(
-    "overflow-hidden border-r border-b box-border hover:bg-neutral-100 dark:hover:bg-neutral-800",
+    "overflow-hidden border-r border-b border-b-border/70 border-r-border/40 box-border hover:bg-secondary/50",
     isSelected && "border-neutral-950 dark:border-neutral-50",
     isBorderBottom && "border-b border-b-neutral-950 dark:border-b-neutral-50",
     isBorderRight && "border-r border-r-neutral-950 dark:border-r-neutral-50",

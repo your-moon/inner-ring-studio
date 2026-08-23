@@ -1,5 +1,4 @@
 "use client";
-import { cn } from "@/lib/utils";
 import { Icon } from "@phosphor-icons/react";
 import React, {
   ReactElement,
@@ -131,24 +130,18 @@ function renderCellList<HeaderMetadata = unknown>({
   const cells = windowArray.map((row, rowIndex) => {
     const absoluteRowIndex = rowIndex + rowStart;
 
-    let textClass = "flex items-center justify-end h-full pr-2 font-mono";
+    // The row-number gutter is chrome, not data: quiet tabular numerals that
+    // tint (never embolden) when the row is selected.
+    let textClass =
+      "flex items-center justify-end h-full pr-2 text-[11px] text-muted-foreground tabular-nums";
     let tdClass =
-      "sticky left-0 bg-neutral-50 dark:bg-neutral-950 border-r border-b";
+      "sticky left-0 bg-background border-r border-b border-border/60";
 
     if (internalState.getSelectedRowIndex().includes(absoluteRowIndex)) {
-      if (internalState.isFullSelectionRow(absoluteRowIndex)) {
-        textClass = cn(
-          "flex items-center justify-end h-full pr-2 font-mono",
-          "bg-neutral-100 dark:bg-neutral-900 border-red-900 text-black dark:text-white font-bold"
-        );
-        tdClass =
-          "sticky left-0 bg-neutral-100 dark:bg-blue-800 border-r border-b";
-      } else {
-        textClass =
-          "flex items-center justify-end h-full pr-2 font-mono dark:text-white font-bold";
-        tdClass =
-          "sticky left-0 bg-neutral-100 dark:bg-neutral-900 border-r border-b";
-      }
+      textClass =
+        "flex items-center justify-end h-full pr-2 text-[11px] text-foreground tabular-nums";
+      tdClass =
+        "sticky left-0 bg-secondary border-r border-b border-border/60";
     }
 
     return (

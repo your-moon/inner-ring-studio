@@ -34,6 +34,7 @@ import {
   prepareStatements,
   sqlAltersSchema,
 } from "@/lib/query-plan";
+import Kbd from "@/components/ui/kbd";
 import { KEY_BINDING } from "@/lib/key-matcher";
 import {
   multipleQuery,
@@ -158,8 +159,11 @@ export default function QueryWindow({
   const [name, setName] = useState(initialName);
   const { changeCurrentTab } = useTabsContext();
 
-  const [namespaceName, setNamespaceName] = useState(
-    initialNamespace ?? "Unsaved Query"
+  // The saved-doc namespace this query belongs to; undefined = unsaved. Unsaved
+  // is represented as absence, never as a placeholder label — a user's real
+  // namespace could be named anything.
+  const [namespaceName, setNamespaceName] = useState<string | undefined>(
+    initialNamespace
   );
   const [savedKey, setSavedKey] = useState<string | undefined>(initialSavedKey);
   const [placeholders, setPlaceholders] = useState<Record<string, string>>({});
@@ -308,22 +312,16 @@ export default function QueryWindow({
       });
     }
 
-    // Nothing has run yet — fill the results panel with guidance instead of a void.
+    // Nothing has run yet. One quiet line — the editor's own placeholder
+    // already teaches the run shortcut; repeating it here would say the same
+    // thing twice on one screen.
     if (queryTabs.length === 0) {
       return (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center">
-          <div className="grid h-11 w-11 place-items-center rounded-lg border border-border text-muted-foreground">
-            <LucideGrid className="h-5 w-5" />
-          </div>
+        <div className="flex h-full w-full items-center justify-center px-6 text-center">
           <p className="text-[13px] text-muted-foreground">
-            Write a query above and press{" "}
-            <kbd className="rounded border border-border px-1.5 py-0.5 text-[11px] font-medium text-foreground">
-              ⌘↵
-            </kbd>{" "}
-            to run it. Results show up here.
-          </p>
-          <p className="text-[12px] text-muted-foreground/70">
-            Or pick a table from the sidebar to browse its data.
+            Results show up here. Run with{" "}
+            <Kbd>{KEY_BINDING.run.toString()}</Kbd>, or pick a table from the
+            sidebar.
           </p>
         </div>
       );
@@ -373,7 +371,7 @@ export default function QueryWindow({
       <ResizablePanel id="editor" order={1} style={{ position: "relative" }}>
         <div className="absolute top-0 right-0 bottom-0 left-0 flex flex-col">
           <div className="flex border-b border-border bg-background py-3 pr-1 pl-3">
-            {namespaceName && namespaceName !== "Unsaved Query" && (
+            {namespaceName && (
               <div className="flex shrink-0 items-center p-1 text-sm text-muted-foreground">
                 {namespaceName}&nbsp;/
               </div>

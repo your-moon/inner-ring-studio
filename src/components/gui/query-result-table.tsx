@@ -112,21 +112,15 @@ function Header({
   const [open, setOpen] = useState(false);
   const colIndex = header.index;
 
-  let textClass = "grow line-clamp-1 font-mono font-bold";
-  let thClass = "flex grow items-center px-2 overflow-hidden";
+  // Quiet header row (Attio): medium-weight UI type in secondary ink; the
+  // data below carries the contrast. Selection tints the header, nothing bold.
+  let textClass = "grow line-clamp-1 text-[12.5px] font-medium text-muted-foreground";
+  let thClass = "group/th flex grow items-center px-2 overflow-hidden";
 
   if (internalState.getSelectedColIndex().includes(colIndex)) {
-    if (internalState.isFullSelectionCol(colIndex)) {
-      textClass =
-        "grow line-clamp-1 font-mono font-bold text-black dark:text-white font-bold";
-      thClass =
-        "flex grow items-center px-2 overflow-hidden bg-neutral-100 dark:bg-neutral-900";
-    } else {
-      textClass =
-        "grow line-clamp-1 font-mono font-bold dark:text-white font-bold";
-      thClass =
-        "flex grow items-center px-2 overflow-hidden bg-neutral-100 dark:bg-neutral-900";
-    }
+    textClass = "grow line-clamp-1 text-[12.5px] font-medium text-foreground";
+    thClass =
+      "group/th flex grow items-center px-2 overflow-hidden bg-secondary/70";
   }
 
   return (
@@ -165,8 +159,11 @@ function Header({
           <DropdownMenuTrigger asChild>
             <LucideChevronDown
               className={cn(
-                "text-mute h-4 w-4 shrink-0 cursor-pointer",
-                textClass
+                "h-3.5 w-3.5 shrink-0 cursor-pointer text-muted-foreground",
+                // Revealed on hover (or while its menu is open) — at rest the
+                // header shows names, not a chevron per column.
+                "opacity-0 transition-opacity group-hover/th:opacity-100",
+                open && "opacity-100"
               )}
             />
           </DropdownMenuTrigger>

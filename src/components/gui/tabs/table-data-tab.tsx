@@ -9,6 +9,16 @@ import {
 
 import { Button } from "@/components/orbit/button";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -182,10 +192,20 @@ export default function TableDataWindow({
     cachedSchema,
   ]);
 
+  // Fully-selected rows (gutter clicks) — bulk actions (Delete) only exist
+  // while this is non-zero, so a destructive control never idles on screen and
+  // never appears just because a cell has focus.
+  const [selectedCount, setSelectedCount] = useState(0);
+
   useEffect(() => {
     if (data) {
       const callback = (state: OptimizeTableState) => {
         setChangeNumber(state.getChangedRows().length);
+        setSelectedCount(
+          state
+            .getSelectedRowIndex()
+            .filter((r) => state.isFullSelectionRow(r)).length
+        );
       };
       data.addChangeListener(callback);
       return () => data.removeChangeListener(callback);
@@ -262,9 +282,13 @@ export default function TableDataWindow({
 
   const onRemoveRow = useCallback(() => {
     if (data) {
-      data.getSelectedRowIndex().forEach((index) => {
-        data.removeRow(index);
-      });
+      // Only fully-selected rows — the same set the Delete button counts.
+      data
+        .getSelectedRowIndex()
+        .filter((index) => data.isFullSelectionRow(index))
+        .forEach((index) => {
+          data.removeRow(index);
+        });
     }
   }, [data]);
 
@@ -326,13 +350,19 @@ export default function TableDataWindow({
               <LucideRefreshCcw className="h-4 w-4" />
             </Button>
 
-            <Button
-              variant={showInspector ? "default" : "secondary"}
-              onClick={() => setShowInspector((v) => !v)}
-              title="Row inspector — view the focused row as a record"
-            >
-              <LucidePanelRight className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="secondary"
+                  toggled={showInspector}
+                  onClick={() => setShowInspector((v) => !v)}
+                  aria-label="Row inspector"
+                >
+                  <LucidePanelRight className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Row inspector</TooltipContent>
+            </Tooltip>
 
             <Button
               variant={"secondary"}
@@ -342,9 +372,13 @@ export default function TableDataWindow({
               <div className="text-sm">Add row</div>
             </Button>
 
-            <Button variant={"secondary"} onClick={onRemoveRow}>
-              <div className="text-sm">Delete row</div>
-            </Button>
+            {selectedCount > 0 && (
+              <Button variant={"destructive"} onClick={onRemoveRow}>
+                <div className="text-sm">
+                  Delete {selectedCount} {selectedCount === 1 ? "row" : "rows"}
+                </div>
+              </Button>
+            )}
 
             <SavedViewsButton
               scope={viewScope}
@@ -462,107 +496,128 @@ export default function TableDataWindow({
           </div>
         )}
         {data && !error ? (
-          <ResultTable
-            data={data}
-            tableName={tableName}
-            key={lastQueryTimestamp}
-            sortColumns={sortColumns}
-            onSortColumnChange={setSortColumns}
-            visibleColumnIndexList={columnIndexList}
-            columnFilters={columnFilters}
-            onColumnFilterChange={onColumnFilterChange}
-          />
+          // The inspector is a layout sibling (Linear's peek pattern), never an
+          // overlay — the grid shrinks and every column stays reachable.
+          <ResizablePanelGroup
+            direction="horizontal"
+            autoSaveId="pmsql.layout.inspector"
+          >
+            <ResizablePanel id="grid" order={1} defaultSize={74} minSize={40}>
+              <ResultTable
+                data={data}
+                tableName={tableName}
+                key={lastQueryTimestamp}
+                sortColumns={sortColumns}
+                onSortColumnChange={setSortColumns}
+                visibleColumnIndexList={columnIndexList}
+                columnFilters={columnFilters}
+                onColumnFilterChange={onColumnFilterChange}
+              />
+            </ResizablePanel>
+            {showInspector && (
+              <>
+                <ResizableHandle />
+                <ResizablePanel
+                  id="inspector"
+                  order={2}
+                  defaultSize={26}
+                  minSize={16}
+                  maxSize={45}
+                >
+                  <RowInspector
+                    state={data}
+                    visibleColumnIndexList={columnIndexList}
+                    onClose={() => setShowInspector(false)}
+                  />
+                </ResizablePanel>
+              </>
+            )}
+          </ResizablePanelGroup>
         ) : null}
-        {showInspector && data && !error && (
-          <RowInspector state={data} onClose={() => setShowInspector(false)} />
-        )}
       </div>
       {stat && data && (
-        <div className="flex h-12 shrink-0 justify-between border-t">
-          <div className="flex items-center p-1 px-2">
-            <div>
-              <ExportResultButton data={data} />
-            </div>
+        <div className="flex h-10 shrink-0 items-center justify-between border-t border-border">
+          <div className="flex items-center px-2">
+            <ExportResultButton data={data} />
             <ShareResultButton data={data} />
-            <ResultStats stats={stat} />
-          </div>
-          <div className="p-1 pr-3">
-            <AggregateResultButton data={data} />
+            <ResultStats stats={stat} rowCount={data.getRowsCount()} />
           </div>
 
-          <div className="mr-3 flex items-center gap-2">
+          <div className="mr-3 flex items-center gap-1">
+            <AggregateResultButton data={data} />
             <Button
-              variant={"secondary"}
+              variant={"ghost"}
               size={"sm"}
               disabled={!canGoPrev(finalOffset) || loading}
+              aria-label="Previous page"
               onClick={() => {
                 const o = prevOffset(finalOffset, finalLimit);
                 setFinalOffset(o);
                 setOffset(o.toString());
               }}
-              style={{ width: 32, height: 32 }}
             >
               <LucideArrowLeft className="h-4 w-4" />
             </Button>
 
-            <div className="flex gap-2">
-              <Tooltip>
-                <TooltipTrigger>
-                  <input
-                    value={limit}
-                    onChange={(e) => setLimit(e.currentTarget.value)}
-                    onBlur={(e) => {
-                      const v = parsePageValue(
-                        e.currentTarget.value,
-                        finalLimit
-                      );
-                      if (v !== finalLimit) setFinalLimit(v);
-                      setLimit(v.toString());
-                    }}
-                    style={{ width: 50 }}
-                    className="h-8 rounded bg-secondary p-1 pr-2 pl-2 text-xs"
-                    alt="Limit"
-                  />
-                </TooltipTrigger>
-                <TooltipContent>Limit</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger>
-                  <input
-                    value={offset}
-                    onChange={(e) => setOffset(e.currentTarget.value)}
-                    onBlur={(e) => {
-                      const v = parsePageValue(
-                        e.currentTarget.value,
-                        finalOffset
-                      );
-                      if (v !== finalOffset) setFinalOffset(v);
-                      setOffset(v.toString());
-                    }}
-                    style={{ width: 50 }}
-                    className="h-full rounded bg-secondary p-1 pr-2 pl-2 text-xs"
-                    alt="Offset"
-                  />
-                </TooltipTrigger>
-                <TooltipContent>Offset</TooltipContent>
-              </Tooltip>
-            </div>
+            {/* The visible range; page size and offset live in a popover
+                instead of naked inputs idling in the footer. */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="rounded-md px-2 py-1 text-xs text-muted-foreground tabular-nums hover:bg-secondary hover:text-foreground">
+                  {(finalOffset + 1).toLocaleString()}–
+                  {(finalOffset + data.getRowsCount()).toLocaleString()}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-52 p-3" align="end">
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                    Rows per page
+                    <input
+                      value={limit}
+                      onChange={(e) => setLimit(e.currentTarget.value)}
+                      onBlur={(e) => {
+                        const v = parsePageValue(
+                          e.currentTarget.value,
+                          finalLimit
+                        );
+                        if (v !== finalLimit) setFinalLimit(v);
+                        setLimit(v.toString());
+                      }}
+                      className="w-20 rounded-md border border-input bg-background px-2 py-1 text-right text-xs text-foreground tabular-nums outline-none focus:border-ring"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                    Offset
+                    <input
+                      value={offset}
+                      onChange={(e) => setOffset(e.currentTarget.value)}
+                      onBlur={(e) => {
+                        const v = parsePageValue(
+                          e.currentTarget.value,
+                          finalOffset
+                        );
+                        if (v !== finalOffset) setFinalOffset(v);
+                        setOffset(v.toString());
+                      }}
+                      className="w-20 rounded-md border border-input bg-background px-2 py-1 text-right text-xs text-foreground tabular-nums outline-none focus:border-ring"
+                    />
+                  </label>
+                </div>
+              </PopoverContent>
+            </Popover>
 
             <Button
-              variant={"secondary"}
+              variant={"ghost"}
               size={"sm"}
               disabled={loading}
-              style={{ width: 32, height: 32 }}
+              aria-label="Next page"
+              onClick={() => {
+                const o = nextOffset(finalOffset, finalLimit);
+                setFinalOffset(o);
+                setOffset(o.toString());
+              }}
             >
-              <LucideArrowRight
-                className="h-4 w-4"
-                onClick={() => {
-                  const o = nextOffset(finalOffset, finalLimit);
-                  setFinalOffset(o);
-                  setOffset(o.toString());
-                }}
-              />
+              <LucideArrowRight className="h-4 w-4" />
             </Button>
           </div>
         </div>

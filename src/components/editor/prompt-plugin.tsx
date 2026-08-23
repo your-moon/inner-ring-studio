@@ -1,5 +1,6 @@
 import AgentDriverList from "@/drivers/agent/list";
 import { generateId } from "@/lib/generate-id";
+import { KEY_BINDING } from "@/lib/key-matcher";
 import { unifiedMergeView } from "@codemirror/merge";
 import {
   Compartment,
@@ -53,7 +54,12 @@ class PlaceholderWidget extends WidgetType {
     const wrap = document.createElement("span");
     wrap.className = "cm-placeholder";
     wrap.style.padding = "";
-    wrap.append(document.createTextNode("Write SQL, then ⌘↵ to run"));
+    // Platform-correct run hint (⌘ on Mac, Ctrl elsewhere).
+    wrap.append(
+      document.createTextNode(
+        `Write SQL, then ${KEY_BINDING.run.toString()} to run`
+      )
+    );
     return wrap;
   }
 

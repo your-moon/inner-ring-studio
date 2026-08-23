@@ -1,34 +1,42 @@
 import { DatabaseResultStat } from "@/drivers/base-driver";
 
-export default function ResultStats({ stats }: { stats: DatabaseResultStat }) {
+/**
+ * The quiet status line under a result grid: "50 rows · 231 ms". Latency is a
+ * feature — always show it. Write counters appear only when a write happened,
+ * so a plain SELECT never says "affected".
+ */
+export default function ResultStats({
+  stats,
+  rowCount,
+}: {
+  stats: DatabaseResultStat;
+  rowCount?: number;
+}) {
+  const parts: string[] = [];
+
+  if (rowCount !== undefined) {
+    parts.push(`${rowCount.toLocaleString()} ${rowCount === 1 ? "row" : "rows"}`);
+  }
+  if (stats.queryDurationMs !== null && stats.queryDurationMs !== undefined) {
+    parts.push(`${Math.round(stats.queryDurationMs)} ms`);
+  }
+  // Some drivers report a SELECT's row count as rowsAffected — "50 rows · 50
+  // affected" is noise. Only show it when it says something the count doesn't.
+  if (stats.rowsAffected && stats.rowsAffected !== rowCount) {
+    parts.push(`${stats.rowsAffected.toLocaleString()} affected`);
+  }
+  if (stats.rowsRead && rowCount === undefined) {
+    parts.push(`${stats.rowsRead.toLocaleString()} read`);
+  }
+  if (stats.rowsWritten) {
+    parts.push(`${stats.rowsWritten.toLocaleString()} written`);
+  }
+
+  if (parts.length === 0) return null;
+
   return (
-    <div className="text-sm p-2 flex">
-      {stats.queryDurationMs !== null && (
-        <div className="px-2 border-r">
-          <span className="font-semibold">Query Duration</span>:{" "}
-          {stats.queryDurationMs}ms
-        </div>
-      )}
-
-      {!!stats.rowsRead && (
-        <div className="px-2 border-r">
-          <span className="font-semibold">Rows Read</span>: {stats.rowsRead}
-        </div>
-      )}
-
-      {!!stats.rowsWritten && (
-        <div className="px-2 border-r">
-          <span className="font-semibold">Rows Written</span>:{" "}
-          {stats.rowsWritten}
-        </div>
-      )}
-
-      {!!stats.rowsAffected && (
-        <div className="px-2">
-          <span className="font-semibold">Affected Rows</span>:{" "}
-          {stats.rowsAffected}
-        </div>
-      )}
+    <div className="px-2 text-xs text-muted-foreground tabular-nums">
+      {parts.join(" · ")}
     </div>
   );
 }

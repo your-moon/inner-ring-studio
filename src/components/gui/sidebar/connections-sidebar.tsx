@@ -1,12 +1,17 @@
 "use client";
 
 import { CaretDown, CaretRight } from "@phosphor-icons/react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import useSWR from "swr";
 import ConnectionTreeItem from "@/app/(main)/connection-tree-item";
 import type { NavConnection } from "@/app/(main)/nav-connection-item";
+import { scopedStore } from "@/lib/scoped-store";
+import { cn } from "@/lib/utils";
 
-const FOLDERS_COLLAPSED_KEY = "pmsql.studioFoldersCollapsed";
+const foldersCollapsedStore = scopedStore<string[]>(
+  "studioFoldersCollapsed",
+  []
+);
 
 /**
  * The studio workspace sidebar: every saved connection grouped by folder, each
@@ -33,33 +38,22 @@ export default function ConnectionsSidebar() {
   );
 
   // Collapsible folder groups, persisted so the studio remembers what you closed.
-  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const raw = window.localStorage.getItem(FOLDERS_COLLAPSED_KEY);
-        if (raw) return new Set<string>(JSON.parse(raw) as string[]);
-      } catch {
-        /* ignore */
-      }
-    }
-    return new Set();
-  });
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(
+    () => new Set(foldersCollapsedStore.read())
+  );
   const toggleFolder = useCallback((f: string) => {
     setCollapsedFolders((prev) => {
       const next = new Set(prev);
       if (next.has(f)) next.delete(f);
       else next.add(f);
-      try {
-        window.localStorage.setItem(
-          FOLDERS_COLLAPSED_KEY,
-          JSON.stringify([...next])
-        );
-      } catch {
-        /* ignore */
-      }
       return next;
     });
   }, []);
+  // Persist outside the updater (updaters must stay pure — StrictMode
+  // double-invokes them).
+  useEffect(() => {
+    foldersCollapsedStore.write([...collapsedFolders]);
+  }, [collapsedFolders]);
 
   // Per-connection "action in flight" state → spinner in the tree node.
   const [busy, setBusy] = useState<Set<string>>(new Set());
@@ -138,8 +132,10 @@ export default function ConnectionsSidebar() {
                 </span>
               </button>
             )}
-            {!isCollapsed &&
-              list.map((c) => (
+            {/* Hidden, not unmounted: collapsing must not throw away each
+                item's expanded tree + fetched schema state. */}
+            <div className={cn(isCollapsed && "hidden")}>
+              {list.map((c) => (
                 <ConnectionTreeItem
                   key={c.id}
                   conn={c}
@@ -149,6 +145,7 @@ export default function ConnectionsSidebar() {
                   onOpen={onOpen}
                 />
               ))}
+            </div>
           </div>
         );
       })}

@@ -192,11 +192,19 @@ export default function GenericCell({
   onDoubleClick,
   header,
 }: TableCellProps) {
-  const className = cn("h-[35px] leading-[35px] font-mono flex", "pl-2 pr-2");
-  const isAlignRight = align === "right";
+  // Text reads in the UI face; only values where alignment carries meaning
+  // (numbers) are mono/tabular — a grid set entirely in bold mono reads like a
+  // terminal, not a data surface.
+  const className = cn("h-[35px] leading-[35px] text-[13px] flex", "pl-2 pr-2");
+  // Numeric by declared column type too: Postgres NUMERIC arrives as a string,
+  // but it is still a number to the reader and belongs right-aligned.
+  const isNumericColumn =
+    header.metadata.type === ColumnType.INTEGER ||
+    header.metadata.type === ColumnType.REAL;
+  const isAlignRight = align === "right" || isNumericColumn;
 
   const textBaseStyle = cn(
-    "flex grow text-neutral-500",
+    "flex grow text-muted-foreground",
     isAlignRight ? "justify-end" : ""
   );
 
@@ -232,12 +240,16 @@ export default function GenericCell({
     }
 
     if (value === null) {
-      return <span className={textBaseStyle}>NULL</span>;
+      return (
+        <span className={cn(textBaseStyle, "text-muted-foreground/60 italic")}>
+          NULL
+        </span>
+      );
     }
 
     if (value === undefined) {
       return (
-        <span className={textBaseStyle}>
+        <span className={cn(textBaseStyle, "text-muted-foreground/60 italic")}>
           {header.metadata.columnSchema?.constraint?.generatedExpression ??
             "DEFAULT"}
         </span>
@@ -252,8 +264,10 @@ export default function GenericCell({
       return (
         <span
           className={cn(
-            "flex-1 overflow-hidden text-ellipsis whitespace-nowrap",
-            "text-neutral-950 dark:text-neutral-50"
+            "flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-foreground",
+            // A numeric column whose driver hands us strings (Postgres NUMERIC)
+            // still reads as a number: right-aligned, tabular.
+            isNumericColumn && "text-right font-mono text-[12.5px] tabular-nums"
           )}
         >
           {value}
@@ -262,11 +276,13 @@ export default function GenericCell({
     }
 
     if (typeof value === "number" || typeof value === "bigint") {
+      // Neutral ink: in this design system chroma means something (blue =
+      // interactive), so numbers don't get to be blue just for being numbers.
       return (
         <span
           className={cn(
             "flex-1 overflow-hidden text-ellipsis whitespace-nowrap",
-            "block grow text-right text-blue-700 dark:text-blue-300"
+            "block grow text-right font-mono text-[12.5px] text-foreground/90 tabular-nums"
           )}
         >
           {value.toString()}

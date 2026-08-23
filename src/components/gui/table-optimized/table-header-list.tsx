@@ -26,7 +26,7 @@ export default function TableHeaderList<HeaderMetadata = unknown>({
   return (
     <thead className="contents">
       <tr className="contents">
-        <th className="sticky top-0 left-0 z-30 border-r border-b bg-neutral-50 dark:bg-neutral-950"></th>
+        <th className="sticky top-0 left-0 z-30 border-r border-b border-border/60 bg-background"></th>
         {headers.map((header, idx) => {
           return (
             <TableHeader

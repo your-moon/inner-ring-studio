@@ -9,7 +9,7 @@ import { bumpTable, frecencyScores } from "@/lib/table-frecency";
 import { Icon, Table } from "@phosphor-icons/react";
 import { LucideCog, LucideDatabase, LucideView } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ListView, ListViewItem } from "../listview";
 import { CloudflareIcon } from "../resource-card/icon";
 import SchemaCreateDialog from "./schema-editor/schema-create";
@@ -222,37 +222,37 @@ export default function SchemaList({
   );
 
   // Persist the expanded/collapsed state of the DB tree per connection so it
-  // survives reloads (DBeaver-like navigator behavior).
+  // survives reloads (DBeaver-like navigator behavior). `null` means this
+  // connection has no saved tree state yet: we render the all-expanded default
+  // (tables visible the moment the connection opens) and only start persisting
+  // once the user actually toggles something — so a reload before the schema
+  // ever loaded can't freeze an empty tree into storage.
   const collapseKey = `pmsql.schemaCollapsed:${pathname}`;
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const raw = window.localStorage.getItem(collapseKey);
-        if (raw) return new Set<string>(JSON.parse(raw) as string[]);
-      } catch {
-        /* ignore */
-      }
+  const readCollapsed = useCallback((): Set<string> | null => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem(collapseKey);
+      if (raw) return new Set<string>(JSON.parse(raw) as string[]);
+    } catch {
+      /* ignore */
     }
-    return new Set<string>();
-  });
+    return null;
+  }, [collapseKey]);
+  const [collapsed, setCollapsed] = useState<Set<string> | null>(readCollapsed);
+
+  // This component instance survives switching connections (router.push between
+  // /vault/<id> pages re-renders it with a new pathname) — re-read the new
+  // connection's saved state instead of carrying the previous one across.
+  useEffect(() => setCollapsed(readCollapsed()), [readCollapsed]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (collapsed === null || typeof window === "undefined") return;
     try {
       window.localStorage.setItem(collapseKey, JSON.stringify([...collapsed]));
     } catch {
       /* ignore */
     }
   }, [collapsed, collapseKey]);
-
-  // First time this connection is opened (no saved tree state), auto-expand the
-  // schemas so the tables are visible immediately instead of a collapsed root —
-  // you should see what's in the database the moment it opens.
-  const hadPersistedTree = useRef(
-    typeof window !== "undefined" &&
-      window.localStorage.getItem(collapseKey) !== null
-  );
-  const didAutoExpand = useRef(false);
 
   useEffect(() => {
     setSelected("");
@@ -407,16 +407,18 @@ export default function SchemaList({
     return keys;
   }, [listViewItems]);
 
-  // Auto-expand the top-level schemas once, on the first open of a connection
-  // whose tree state was never saved. Reveals the tables (e.g. Postgres "public")
-  // straight away; the user's later collapse/expand choices are persisted and win.
-  useEffect(() => {
-    if (didAutoExpand.current || hadPersistedTree.current) return;
-    const topKeys = listViewItems.map((i) => i.key);
-    if (topKeys.length === 0) return;
-    didAutoExpand.current = true;
-    setCollapsed(new Set(topKeys));
-  }, [listViewItems]);
+  // The all-expanded default for a connection with no saved tree state: schema
+  // nodes only. On flattened (schema-less) trees the top level is the tables
+  // themselves, and force-expanding them would unfold trigger/FTS shadow groups.
+  const defaultExpanded = useMemo(
+    () =>
+      new Set(
+        listViewItems
+          .filter((i) => i.data.type === "schema")
+          .map((i) => i.key)
+      ),
+    [listViewItems]
+  );
 
   const filterCallback = useCallback(
     (item: ListViewItem<DatabaseSchemaItem>) => {
@@ -492,8 +494,12 @@ export default function SchemaList({
         items={listViewItems}
         // While searching, expand everything so matches inside a collapsed
         // schema are actually visible; restore the user's state after.
-        collapsedKeys={search ? allKeys : collapsed}
-        onCollapsedChange={setCollapsed}
+        collapsedKeys={search ? allKeys : (collapsed ?? defaultExpanded)}
+        onCollapsedChange={(keys) => {
+          // While searching, the tree is force-expanded (allKeys) — a toggle in
+          // that state must not overwrite the user's real saved tree.
+          if (!search) setCollapsed(keys);
+        }}
         onContextMenu={(item) => prepareContextMenu(item?.data)}
         selectedKey={selected}
         onSelectChange={(key) => {

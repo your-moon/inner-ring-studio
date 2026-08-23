@@ -105,10 +105,10 @@ export default function QueryResult({
       {stats && (
         <div className="flex shrink-0 justify-between border-t">
           <div className="flex items-center p-1">
-            <ResultStats stats={stats} />
+            <ResultStats stats={stats} rowCount={loadedCount} />
             {hasMore && (
-              <span className="ml-2 text-xs text-neutral-400">
-                {loadedCount.toLocaleString()} loaded, scroll for more…
+              <span className="ml-2 text-xs text-muted-foreground">
+                scroll for more…
               </span>
             )}
             <div>

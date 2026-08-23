@@ -25,7 +25,7 @@ export default function TableHeader<HeaderMetadata = unknown>({
 }) {
   const className = cn(
     sticky ? "z-30" : "z-10",
-    "bg-background border-r border-b overflow-hidden sticky top-0 h-[35px] leading-[35px] flex text-left p-0"
+    "bg-background border-r border-b border-border/60 overflow-hidden sticky top-0 h-[35px] leading-[35px] flex text-left p-0"
   );
 
   return (
