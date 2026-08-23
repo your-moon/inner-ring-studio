@@ -327,7 +327,7 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
             {linked && !cloudSignedIn && (
               <button
                 onClick={connectCloud}
-                className="mx-3 mb-1 flex items-center gap-2 rounded-lg border border-[#FFEB02]/50 bg-[#FFEB02]/10 px-3 py-2 text-left text-sm font-medium text-[#8a6d00] hover:bg-[#FFEB02]/20 dark:text-[#FFEB02]"
+                className="mx-3 mb-1 flex h-8 items-center gap-2 px-2 text-left text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
                 title="Sign in to your cloud account in the browser"
               >
                 <CloudArrowUp className="h-4 w-4" />
@@ -335,20 +335,23 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               </button>
             )}
             {cloudSignedIn && (
-              <div className="mx-3 mb-1 flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-xs">
-                <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />
+              <div className="group mx-3 mb-1 flex h-8 items-center gap-2 px-2 text-xs">
                 <span
-                  className="flex-1 truncate text-neutral-600 dark:text-neutral-300"
+                  title="Connected to Cloud"
+                  className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"
+                />
+                <span
+                  className="min-w-0 flex-1 truncate text-neutral-500"
                   title={link?.email ?? ""}
                 >
                   {link?.email}
                 </span>
                 <button
                   onClick={disconnectCloud}
-                  className="shrink-0 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                  className="shrink-0 text-neutral-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-neutral-700 dark:hover:text-neutral-200"
                   title="Disconnect from Cloud"
                 >
-                  ✕
+                  Disconnect
                 </button>
               </div>
             )}
