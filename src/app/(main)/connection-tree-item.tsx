@@ -8,8 +8,9 @@ import {
   Table,
   Eye,
 } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { scc } from "@/core/command";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -46,6 +47,9 @@ export default function ConnectionTreeItem({
   onOpen?: (id: string) => void;
 }) {
   const router = useRouter();
+  // The connection currently open in the studio (the /vault/[id] route param).
+  const params = useParams<{ id?: string }>();
+  const currentConnId = params?.id;
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +71,8 @@ export default function ConnectionTreeItem({
           name,
           tables: items
             .filter((i) => i.type === "table" || i.type === "view")
-            .map((i) => ({ type: i.type as "table" | "view", name: i.name })),
+            .map((i) => ({ type: i.type as "table" | "view", name: i.name }))
+            .sort((a, b) => a.name.localeCompare(b.name)),
         }))
         .filter((n) => n.tables.length > 0)
         .sort((a, b) => a.name.localeCompare(b.name));
@@ -97,6 +102,20 @@ export default function ConnectionTreeItem({
       return next;
     });
   }, []);
+
+  const openTable = useCallback(
+    (schema: string, table: string) => {
+      if (conn.id === currentConnId) {
+        // Same connection as the open studio — open the table's data tab in place.
+        scc.tabs.openBuiltinTable({ schemaName: schema, tableName: table });
+      } else {
+        // Different connection — switch the studio over to it.
+        onOpen?.(conn.id);
+        router.push(`/vault/${conn.id}`);
+      }
+    },
+    [conn.id, currentConnId, onOpen, router]
+  );
 
   const connected = !!conn.status?.connected;
   const statusDot = busy || loading ? (
@@ -214,10 +233,7 @@ export default function ConnectionTreeItem({
                 s.tables.map((t) => (
                   <button
                     key={t.name}
-                    onClick={() => {
-                      onOpen?.(conn.id);
-                      router.push(`/vault/${conn.id}`);
-                    }}
+                    onClick={() => openTable(s.name, t.name)}
                     className="flex h-7 w-full items-center gap-1.5 pr-2 pl-11 text-xs text-neutral-600 hover:bg-secondary dark:text-neutral-300"
                     title={`${s.name}.${t.name}`}
                   >

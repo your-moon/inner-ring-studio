@@ -77,7 +77,7 @@ export default function ConnectionsSidebar() {
   );
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto py-2">
+    <div className="flex h-full w-full flex-col overflow-y-auto py-2">
       <h1 className="text-primary mb-1 px-4 text-lg font-medium">Databases</h1>
       {conns.length === 0 && (
         <p className="px-4 text-sm text-neutral-500">No connections.</p>
