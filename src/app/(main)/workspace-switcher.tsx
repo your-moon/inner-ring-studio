@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretUpDown, Check, Plus, UsersThree } from "@phosphor-icons/react";
+import { CaretUpDown, Check, CircleNotch, Plus, UsersThree } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
@@ -101,7 +101,12 @@ export default function WorkspaceSwitcher({
                 disabled={busy}
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-neutral-100 disabled:opacity-60 dark:hover:bg-neutral-800"
               >
-                <Plus size={14} /> {busy ? "Switching…" : "New workspace"}
+                {busy ? (
+                  <CircleNotch size={14} className="animate-spin" />
+                ) : (
+                  <Plus size={14} />
+                )}{" "}
+                New workspace
               </button>
               <Link
                 href="/workspace"

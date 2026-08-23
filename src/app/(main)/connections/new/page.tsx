@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleNotch } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import NavigationLayout from "../../nav-layout";
@@ -450,16 +451,20 @@ export default function NewConnectionPage() {
             <button
               onClick={testConnection}
               disabled={busy || !f.host.trim()}
-              className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
             >
-              {busy ? "Testing…" : "Test connection"}
+              {busy && !saving && (
+                <CircleNotch size={14} className="animate-spin" />
+              )}
+              Test connection
             </button>
             <button
               onClick={save}
               disabled={busy || !canSave}
-              className="rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:hover:bg-neutral-200 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-500"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:hover:bg-neutral-200 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-500"
             >
-              {saving ? "Saving…" : "Save & connect"}
+              {saving && <CircleNotch size={14} className="animate-spin" />}
+              Save & connect
             </button>
             <button
               onClick={() => router.push("/local")}

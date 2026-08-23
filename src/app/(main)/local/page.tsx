@@ -90,11 +90,6 @@ export default function LocalConnectionPage() {
                     <Database size={18} className="text-neutral-500" />
                   )}
                   <span className="truncate font-medium">{conn.name}</span>
-                  {openingId === conn.id && (
-                    <span className="ml-auto text-xs text-neutral-400">
-                      Opening…
-                    </span>
-                  )}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-neutral-500">
                   <span className="rounded bg-neutral-100 px-1.5 py-0.5 uppercase dark:bg-neutral-800">

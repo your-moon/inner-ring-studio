@@ -17,7 +17,6 @@ import {
   List,
   MagnifyingGlass,
   Plus,
-  PlugsConnected,
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -414,12 +413,6 @@ export default function NavigationLayout({ children }: PropsWithChildren) {
               icon={Plus}
               href="/connections/new"
               selected={pathname === "/connections/new"}
-            />
-            <SidebarMenuItem
-              text="Connection status"
-              icon={PlugsConnected}
-              href="/connections"
-              selected={pathname === "/connections"}
             />
             {/* Vault storage is a self-hosted/desktop concept (git-synced vault). */}
             {!isCloud && (
