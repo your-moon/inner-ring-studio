@@ -73,6 +73,11 @@ export default function StorybookRootLayout({
             />
             <SidebarMenuItem
               icon={Layers2}
+              text="Form controls"
+              href="/storybook/form"
+            />
+            <SidebarMenuItem
+              icon={Layers2}
               text="Input"
               href="/storybook/input"
             />
