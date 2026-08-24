@@ -18,10 +18,11 @@ export default function EnvBadge({
   return (
     <span
       className={cn(
-        "shrink-0 rounded px-[5px] py-px text-[9.5px] font-semibold tracking-[0.04em] uppercase",
+        "inline-flex h-[18px] shrink-0 items-center rounded-[var(--radius-small)] px-1.5",
+        "text-ui-micro [line-height:1] font-[var(--weight-semibold)] tracking-[0.05em] uppercase",
         prod
-          ? "border border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-400"
-          : "border border-border text-muted-foreground",
+          ? "bg-[var(--intent-warning-soft)] [color:var(--intent-warning)]"
+          : "border-border-default [color:var(--content-tertiary)] border",
         className
       )}
     >

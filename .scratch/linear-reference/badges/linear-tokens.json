@@ -1,0 +1,44 @@
+{
+  "_source": "Extracted live from linear.app (workspace moonssez) via the t3 preview browser, 2026-08-24. Durable, committed reference so it survives worktree loss.",
+  "radius": {
+    "control": "8px",
+    "editorBlock": "6px",
+    "pill": "9999px",
+    "settingsListItem": "10px"
+  },
+  "font": {
+    "editorWeight": 450,
+    "mediumWeight": 500,
+    "smallSize": "0.8125rem (13px)",
+    "editorSize": "0.9375rem (15px)"
+  },
+  "color": {
+    "focusRing": "#5e69d1",
+    "textPrimary": "lch(100% 0 272)  /* pure white in dark */",
+    "textSecondary": "lch(90.451% 1.2 272)",
+    "textTertiary": "lch(61.803% 1.2 272)",
+    "textQuaternary": "lch(36.975% 1.2 272)",
+    "borderPrimary": "lch(9.84% 1.48 272)",
+    "borderSecondary": "lch(14.16% 1.48 272)",
+    "bgSecondary": "lch(7.32% 0.85 272)",
+    "bgTertiary": "lch(8.22% 1.3 272)"
+  },
+  "statusPriorityHueFamily": {
+    "_note": "Linear's status/priority/label icons render from a small LCH hue family at L~63, plus neutrals. Observed hues:",
+    "yellowOrange": "lch(63.304 7 76.437)  /* In Progress / warning */",
+    "blue": "lch(63.304 7 270.292)",
+    "blueAlt": "lch(63.304 7 271.994)",
+    "purple": "lch(63.304 7 282.865)  /* Done */",
+    "priorityOrange": "rgb(242, 153, 74)  /* #F2994A */",
+    "accentBlue": "rgb(0, 143, 255)  /* #008FFF */",
+    "neutralIcon": "rgb(107, 111, 118)  /* #6B6F76 backlog/idle */"
+  },
+  "labelPill": {
+    "_note": "Linear issue labels: pill with a small colored dot + text.",
+    "radius": "9999px",
+    "fontSize": "11-12px",
+    "fontWeight": 500,
+    "dotSize": "~8px",
+    "height": "~20px"
+  }
+}

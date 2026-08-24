@@ -2,9 +2,19 @@ import { cn } from "@/lib/utils";
 
 export type ConnectionStatus = "live" | "idle" | "error";
 
+const STATUS_META: Record<
+  ConnectionStatus,
+  { title: string; color: string }
+> = {
+  live: { title: "Connected", color: "var(--intent-success)" },
+  idle: { title: "Idle", color: "var(--border-strong)" },
+  error: { title: "Can't connect", color: "var(--intent-danger)" },
+};
+
 /**
  * The connection status dot: color is the meaning (green = live pool,
- * gray = idle, red = last connect failed), the tooltip is the words.
+ * grey = idle, red = last connect failed), the tooltip is the words. Because
+ * color alone isn't accessible, always pair it with a text label in context.
  */
 export default function StatusDot({
   status,
@@ -13,22 +23,14 @@ export default function StatusDot({
   status: ConnectionStatus;
   className?: string;
 }) {
+  const { title, color } = STATUS_META[status];
   return (
     <span
-      title={
-        status === "live"
-          ? "Connected"
-          : status === "error"
-            ? "Can't connect"
-            : "Idle"
-      }
-      className={cn(
-        "h-1.5 w-1.5 shrink-0 rounded-full",
-        status === "live" && "bg-emerald-500",
-        status === "idle" && "bg-border",
-        status === "error" && "bg-red-500",
-        className
-      )}
+      title={title}
+      role="img"
+      aria-label={title}
+      className={cn("inline-block size-1.5 shrink-0 rounded-full", className)}
+      style={{ backgroundColor: color }}
     />
   );
 }

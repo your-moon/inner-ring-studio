@@ -79,6 +79,16 @@ export type {
   MultiSelectProps,
 } from "./combobox";
 export { default as Chip } from "./chip";
+export { Badge } from "./badge";
+export type { BadgeIntent, BadgeProps, BadgeSize } from "./badge";
+export { Label, LABEL_COLORS } from "./tag";
+export type { LabelColor, LabelProps } from "./tag";
+export { CountBadge } from "./count-badge";
+export type { CountBadgeProps } from "./count-badge";
+export { StatusIcon } from "./status-icon";
+export type { StatusIconProps, WorkflowStatus } from "./status-icon";
+export { PriorityIcon } from "./priority-icon";
+export type { Priority, PriorityIconProps } from "./priority-icon";
 export { default as EnvBadge } from "./env-badge";
 export { default as StatusDot } from "./status-dot";
 export { default as EmptyState } from "./empty-state";
