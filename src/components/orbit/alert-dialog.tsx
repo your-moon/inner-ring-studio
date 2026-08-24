@@ -45,12 +45,12 @@ export const AlertDialogContent = forwardRef<
 ) {
   return (
     <AlertDialogPrimitive.Portal>
-      <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=open]:animate-[orbit-overlay-in_var(--motion-base)_var(--ease-out)] data-[state=closed]:animate-[orbit-overlay-out_var(--motion-fast)_var(--ease-out)] motion-reduce:animate-none" />
+      <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=open]:animate-[orbit-overlay-in_var(--motion-base)_var(--ease-out)_both] data-[state=closed]:animate-[orbit-overlay-out_var(--motion-fast)_var(--ease-out)_both] motion-reduce:animate-none" />
       <AlertDialogPrimitive.Content
         ref={ref}
         className={cn(
           "bg-surface-panel fixed top-1/2 left-1/2 z-50 grid w-full max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[var(--radius-modal)] border border-border-default p-6 shadow-[var(--shadow-modal)]",
-          "data-[state=open]:animate-[orbit-dialog-in_var(--motion-base)_var(--ease-out)] data-[state=closed]:animate-[orbit-dialog-out_var(--motion-fast)_var(--ease-out)] motion-reduce:animate-none",
+          "data-[state=open]:animate-[orbit-dialog-in_var(--motion-base)_var(--ease-out)_both] data-[state=closed]:animate-[orbit-dialog-out_var(--motion-fast)_var(--ease-out)_both] motion-reduce:animate-none",
           className
         )}
         {...props}

@@ -20,13 +20,13 @@ type Side = "right" | "left" | "top" | "bottom";
 
 const SIDE: Record<Side, string> = {
   right:
-    "inset-y-0 right-0 h-full w-[380px] max-w-[92vw] border-l data-[state=open]:animate-[orbit-sheet-in-right_var(--motion-base)_var(--ease-in-out-cubic)] data-[state=closed]:animate-[orbit-sheet-out-right_var(--motion-base)_var(--ease-in-out-cubic)]",
+    "inset-y-0 right-0 h-full w-[380px] max-w-[92vw] border-l data-[state=open]:animate-[orbit-sheet-in-right_var(--motion-base)_var(--ease-in-out-cubic)_both] data-[state=closed]:animate-[orbit-sheet-out-right_var(--motion-base)_var(--ease-in-out-cubic)_both]",
   left:
-    "inset-y-0 left-0 h-full w-[380px] max-w-[92vw] border-r data-[state=open]:animate-[orbit-sheet-in-left_var(--motion-base)_var(--ease-in-out-cubic)] data-[state=closed]:animate-[orbit-sheet-out-left_var(--motion-base)_var(--ease-in-out-cubic)]",
+    "inset-y-0 left-0 h-full w-[380px] max-w-[92vw] border-r data-[state=open]:animate-[orbit-sheet-in-left_var(--motion-base)_var(--ease-in-out-cubic)_both] data-[state=closed]:animate-[orbit-sheet-out-left_var(--motion-base)_var(--ease-in-out-cubic)_both]",
   top:
-    "inset-x-0 top-0 h-auto max-h-[92vh] border-b data-[state=open]:animate-[orbit-sheet-in-top_var(--motion-base)_var(--ease-in-out-cubic)] data-[state=closed]:animate-[orbit-sheet-out-top_var(--motion-base)_var(--ease-in-out-cubic)]",
+    "inset-x-0 top-0 h-auto max-h-[92vh] border-b data-[state=open]:animate-[orbit-sheet-in-top_var(--motion-base)_var(--ease-in-out-cubic)_both] data-[state=closed]:animate-[orbit-sheet-out-top_var(--motion-base)_var(--ease-in-out-cubic)_both]",
   bottom:
-    "inset-x-0 bottom-0 h-auto max-h-[92vh] border-t data-[state=open]:animate-[orbit-sheet-in-bottom_var(--motion-base)_var(--ease-in-out-cubic)] data-[state=closed]:animate-[orbit-sheet-out-bottom_var(--motion-base)_var(--ease-in-out-cubic)]",
+    "inset-x-0 bottom-0 h-auto max-h-[92vh] border-t data-[state=open]:animate-[orbit-sheet-in-bottom_var(--motion-base)_var(--ease-in-out-cubic)_both] data-[state=closed]:animate-[orbit-sheet-out-bottom_var(--motion-base)_var(--ease-in-out-cubic)_both]",
 };
 
 export type SheetContentProps = ComponentPropsWithoutRef<
@@ -46,7 +46,7 @@ export const SheetContent = forwardRef<
 ) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=open]:animate-[orbit-overlay-in_var(--motion-base)_var(--ease-out)] data-[state=closed]:animate-[orbit-overlay-out_var(--motion-fast)_var(--ease-out)] motion-reduce:animate-none" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=open]:animate-[orbit-overlay-in_var(--motion-base)_var(--ease-out)_both] data-[state=closed]:animate-[orbit-overlay-out_var(--motion-fast)_var(--ease-out)_both] motion-reduce:animate-none" />
       <DialogPrimitive.Content
         ref={ref}
         className={cn(

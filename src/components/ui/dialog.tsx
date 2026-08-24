@@ -21,7 +21,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=open]:animate-[orbit-overlay-in_var(--motion-base)_var(--ease-out)] data-[state=closed]:animate-[orbit-overlay-out_var(--motion-fast)_var(--ease-out)] motion-reduce:animate-none",
+      "fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=open]:animate-[orbit-overlay-in_var(--motion-base)_var(--ease-out)_both] data-[state=closed]:animate-[orbit-overlay-out_var(--motion-fast)_var(--ease-out)_both] motion-reduce:animate-none",
       className
     )}
     {...props}
@@ -38,7 +38,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "bg-surface-panel fixed top-[50%] left-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 rounded-[var(--radius-modal)] border border-border-default p-6 shadow-[var(--shadow-modal)] data-[state=open]:animate-[orbit-dialog-in_var(--motion-base)_var(--ease-out)] data-[state=closed]:animate-[orbit-dialog-out_var(--motion-fast)_var(--ease-out)] motion-reduce:animate-none",
+        "bg-surface-panel fixed top-[50%] left-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 rounded-[var(--radius-modal)] border border-border-default p-6 shadow-[var(--shadow-modal)] data-[state=open]:animate-[orbit-dialog-in_var(--motion-base)_var(--ease-out)_both] data-[state=closed]:animate-[orbit-dialog-out_var(--motion-fast)_var(--ease-out)_both] motion-reduce:animate-none",
         className
       )}
       {...props}
