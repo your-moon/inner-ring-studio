@@ -1,9 +1,8 @@
 import ClientOnly from "@/components/client-only";
 import { SidebarMenuHeader, SidebarMenuItem } from "@/components/sidebar-menu";
 import ThemeToggle from "@/components/theme-toggle";
-import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Component, Layers2, Palette } from "lucide-react";
+import { Layers2, Palette } from "lucide-react";
 import Link from "next/link";
 import ThemeLayout from "../(theme)/theme_layout";
 
@@ -32,29 +31,6 @@ export default function StorybookRootLayout({
               text="Foundations"
               href="/storybook/foundations"
             />
-            <SidebarMenuHeader text="Shadcn UI" />
-
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Dialog"
-              href="https://ui.shadcn.com/docs/components/dialog"
-            />
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Create Dialog"
-              href="/storybook/create-dialog"
-            />
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Dropdown Menu"
-              href="https://ui.shadcn.com/docs/components/dropdown-menu"
-            />
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Popover"
-              href="https://ui.shadcn.com/docs/components/popover"
-            />
-
             <SidebarMenuHeader text="Orbit Design System" />
             <SidebarMenuItem
               icon={Layers2}
@@ -76,56 +52,6 @@ export default function StorybookRootLayout({
               text="Form controls"
               href="/storybook/form"
             />
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Input"
-              href="/storybook/input"
-            />
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Label"
-              href="/storybook/label"
-            />
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Loader"
-              href="/storybook/loader"
-            />
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Menu bar"
-              href="/storybook/menu-bar"
-            />
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Select"
-              href="/storybook/select"
-            />
-
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Toggle"
-              href="/storybook/toggle"
-            />
-
-            <Separator />
-            <SidebarMenuHeader text="Advanced UI Components" />
-            <SidebarMenuItem
-              icon={Layers2}
-              text="Toolbar"
-              href="/storybook/toolbar"
-            />
-            <SidebarMenuItem
-              icon={Component}
-              text="List View"
-              href="/storybook/listview"
-            />
-            <SidebarMenuItem
-              icon={Component}
-              text="Chart Editor"
-              href="/storybook/chart-editor"
-            />
-            <SidebarMenuItem text="Board" href="/storybook/board" />
           </aside>
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <header className="bg-surface-panel flex h-12 shrink-0 items-center justify-between border-b border-border-subtle px-3 md:hidden">

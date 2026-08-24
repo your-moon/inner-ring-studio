@@ -2,21 +2,37 @@
 
 import {
   Checkbox,
+  Combobox,
   Field,
   FieldLabel,
+  MultiSelect,
   NumberField,
   PasswordField,
   RadioGroup,
   RadioGroupItem,
   SearchField,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   StatusDot,
   Switch,
   TextField,
   TextareaField,
+  type ComboboxOption,
   type FieldSize,
 } from "@/components/orbit";
 import type { ReactNode } from "react";
 import { useState } from "react";
+
+const DIALECTS: ComboboxOption[] = [
+  { value: "postgres", label: "PostgreSQL" },
+  { value: "mysql", label: "MySQL" },
+  { value: "clickhouse", label: "ClickHouse" },
+  { value: "sqlite", label: "SQLite" },
+  { value: "mssql", label: "SQL Server" },
+];
 
 function CatalogSection({
   title,
@@ -56,6 +72,9 @@ export default function FormStorybook() {
   const [env, setEnv] = useState("staging");
   const [live, setLive] = useState(true);
   const [readonly, setReadonly] = useState(false);
+  const [dialect, setDialect] = useState("postgres");
+  const [driver, setDriver] = useState<string | null>("postgres");
+  const [tags, setTags] = useState<string[]>(["postgres", "clickhouse"]);
   const allChecked = checks.ssl && checks.pool;
   const someChecked = checks.ssl || checks.pool;
 
@@ -75,7 +94,7 @@ export default function FormStorybook() {
           </p>
         </div>
         <div className="text-ui-small text-content-secondary flex items-center gap-2">
-          <StatusDot status="live" />8 controls · ready
+          <StatusDot status="live" />11 controls · ready
         </div>
       </header>
 
@@ -199,6 +218,51 @@ export default function FormStorybook() {
                   </label>
                 ))}
               </RadioGroup>
+            </Field>
+          </Card>
+        </div>
+      </CatalogSection>
+
+      <CatalogSection
+        title="Menus and pickers"
+        description="Select for short static sets; Combobox when the list is long enough to search; MultiSelect when more than one applies."
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Card label="Select">
+            <Field label="Dialect">
+              <Select value={dialect} onValueChange={setDialect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a dialect" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DIALECTS.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>
+                      {d.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </Card>
+          <Card label="Combobox — searchable">
+            <Field label="Driver">
+              <Combobox
+                options={DIALECTS}
+                value={driver}
+                onChange={setDriver}
+                placeholder="Select a driver"
+                searchPlaceholder="Search drivers"
+              />
+            </Field>
+          </Card>
+          <Card label="MultiSelect — chips">
+            <Field label="Environments">
+              <MultiSelect
+                options={DIALECTS}
+                value={tags}
+                onChange={setTags}
+                placeholder="Add dialects"
+              />
             </Field>
           </Card>
         </div>

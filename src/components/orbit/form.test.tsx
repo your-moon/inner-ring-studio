@@ -4,7 +4,18 @@ import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 
+// jsdom lacks ResizeObserver, which cmdk (Combobox/MultiSelect) relies on.
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+globalThis.ResizeObserver = globalThis.ResizeObserver ?? ResizeObserverStub;
+globalThis.Element.prototype.scrollIntoView =
+  globalThis.Element.prototype.scrollIntoView ?? (() => {});
+
 import { Checkbox } from "./checkbox";
+import { Combobox, MultiSelect } from "./combobox";
 import { Field } from "./field";
 import { RadioGroup, RadioGroupItem } from "./radio-group";
 import { Switch } from "./switch";
@@ -94,6 +105,54 @@ describe("RadioGroup", () => {
     fireEvent.click(screen.getByRole("radio", { name: "b" }));
     expect(screen.getByRole("radio", { name: "b" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "a" })).not.toBeChecked();
+  });
+});
+
+const OPTIONS = [
+  { value: "postgres", label: "PostgreSQL" },
+  { value: "mysql", label: "MySQL" },
+];
+
+describe("Combobox", () => {
+  it("filters options by search and selects one", async () => {
+    function Harness() {
+      const [value, setValue] = useState<string | null>(null);
+      return (
+        <Field label="Driver">
+          <Combobox options={OPTIONS} value={value} onChange={setValue} />
+        </Field>
+      );
+    }
+    render(<Harness />);
+    const trigger = screen.getByLabelText("Driver");
+    fireEvent.click(trigger);
+    const search = await screen.findByPlaceholderText("Search…");
+    fireEvent.change(search, { target: { value: "my" } });
+    expect(screen.queryByText("PostgreSQL")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("MySQL"));
+    expect(trigger).toHaveTextContent("MySQL");
+  });
+});
+
+describe("MultiSelect", () => {
+  it("accumulates and removes chip selections", () => {
+    function Harness() {
+      const [value, setValue] = useState<string[]>([]);
+      return (
+        <Field label="Environments">
+          <MultiSelect options={OPTIONS} value={value} onChange={setValue} />
+        </Field>
+      );
+    }
+    render(<Harness />);
+    const trigger = screen.getByLabelText("Environments");
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByText("PostgreSQL"));
+    fireEvent.click(screen.getByText("MySQL"));
+    expect(trigger).toHaveTextContent("PostgreSQL");
+    expect(trigger).toHaveTextContent("MySQL");
+    fireEvent.click(screen.getByRole("button", { name: "Remove PostgreSQL" }));
+    expect(trigger).not.toHaveTextContent("PostgreSQL");
   });
 });
 
