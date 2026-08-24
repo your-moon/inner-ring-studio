@@ -72,6 +72,11 @@ export default function StorybookRootLayout({
               text="Data display"
               href="/storybook/data-display"
             />
+            <SidebarMenuItem
+              icon={Layers2}
+              text="Navigation"
+              href="/storybook/navigation"
+            />
           </aside>
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <header className="bg-surface-panel flex h-12 shrink-0 items-center justify-between border-b border-border-subtle px-3 md:hidden">

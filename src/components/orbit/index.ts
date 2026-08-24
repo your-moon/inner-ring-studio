@@ -175,6 +175,26 @@ export { Timeline, TimelineItem } from "./timeline";
 export type { TimelineItemProps } from "./timeline";
 export { CodeBlock } from "./code-block";
 export type { CodeBlockProps } from "./code-block";
+export {
+  Tabs,
+  TabList,
+  Tab,
+  TabPanel,
+  SegmentedControl,
+  Breadcrumb,
+  BreadcrumbItem,
+  Pagination,
+  PageHeader,
+} from "./navigation";
+export type {
+  TabsProps,
+  TabProps,
+  SegmentedOption,
+  SegmentedControlProps,
+  BreadcrumbItemProps,
+  PaginationProps,
+  PageHeaderProps,
+} from "./navigation";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
