@@ -68,6 +68,35 @@ const FAMILY_COVERAGE = [
   ],
 ] as const;
 
+function ShowcaseCard({
+  name,
+  api,
+  note,
+  children,
+}: {
+  name: string;
+  api: string;
+  note: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="border-border-default bg-surface-panel flex flex-col gap-4 rounded-[var(--radius-panel)] border p-5">
+      <div className="flex min-h-16 flex-1 items-center justify-center">
+        {children}
+      </div>
+      <div className="border-border-subtle border-t pt-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <code className="text-ui-small font-mono">{name}</code>
+          <code className="text-ui-caption text-content-tertiary font-mono">
+            {api}
+          </code>
+        </div>
+        <p className="text-ui-caption text-content-tertiary mt-1">{note}</p>
+      </div>
+    </div>
+  );
+}
+
 function CatalogSection({
   title,
   description,
@@ -453,6 +482,143 @@ export default function ButtonStorybook() {
               label="Copy SQL"
             />
           </div>
+        </div>
+      </CatalogSection>
+
+      <CatalogSection
+        title="Family showcase"
+        description="Every member of the family, rendered live. Six real components; the rest are presets of Button that need no separate implementation."
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <ShowcaseCard
+            name="Button"
+            api="<Button>"
+            note="Text action; secondary is the default"
+          >
+            <Button variant="primary" title="Create">
+              <Plus weight="bold" />
+            </Button>
+          </ShowcaseCard>
+
+          <ShowcaseCard
+            name="IconButton"
+            api="<IconButton>"
+            note="Icon-only; aria-label required"
+          >
+            <IconButton aria-label="More actions">
+              <DotsThree weight="bold" />
+            </IconButton>
+          </ShowcaseCard>
+
+          <ShowcaseCard
+            name="ButtonGroup"
+            api="<ButtonGroup>"
+            note="Segmented, exactly one selected"
+          >
+            <ButtonGroup aria-label="Layout">
+              <ButtonGroupItem selected>
+                <ListBullets /> List
+              </ButtonGroupItem>
+              <ButtonGroupItem>
+                <Rows /> Rows
+              </ButtonGroupItem>
+            </ButtonGroup>
+          </ShowcaseCard>
+
+          <ShowcaseCard
+            name="ToggleGroup"
+            api="<ToggleGroup>"
+            note="Independent on/off options in one frame"
+          >
+            <ToggleGroup
+              type="multiple"
+              aria-label="Columns"
+              defaultValue={["type"]}
+            >
+              <ToggleGroupItem value="type">Type</ToggleGroupItem>
+              <ToggleGroupItem value="nullable">Nullable</ToggleGroupItem>
+            </ToggleGroup>
+          </ShowcaseCard>
+
+          <ShowcaseCard
+            name="SplitButton"
+            api="<SplitButton>"
+            note="Primary action plus related-actions menu"
+          >
+            <SplitButton
+              title="Save view"
+              menuLabel="More save options"
+              menu={
+                <>
+                  <DropdownMenuItem>Save as new view</DropdownMenuItem>
+                  <DropdownMenuItem>Update current view</DropdownMenuItem>
+                </>
+              }
+            >
+              <FloppyDisk weight="bold" />
+            </SplitButton>
+          </ShowcaseCard>
+
+          <ShowcaseCard
+            name="CopyButton"
+            api="<CopyButton>"
+            note="Clipboard write with announced confirmation"
+          >
+            <CopyButton value="select 1;" label="Copy SQL" />
+          </ShowcaseCard>
+
+          <ShowcaseCard
+            name="ToggleButton"
+            api="<Button toggled>"
+            note="aria-pressed; IconButton takes toggled too"
+          >
+            <Button title="Inspector" toggled>
+              <SlidersHorizontal />
+            </Button>
+          </ShowcaseCard>
+
+          <ShowcaseCard
+            name="LinkButton"
+            api={'<Button as="link">'}
+            note="Renders next/link, keeps button styling"
+          >
+            <Button
+              as="link"
+              href="/storybook/foundations"
+              variant="ghost"
+              title="Foundations"
+            >
+              <ArrowRight />
+            </Button>
+          </ShowcaseCard>
+
+          <ShowcaseCard
+            name="LoadingButton"
+            api="<Button loading>"
+            note="Width-stable loader, aria-busy, sr-only status"
+          >
+            <Button title="Run query" loading loadingLabel="Running query" />
+          </ShowcaseCard>
+
+          <ShowcaseCard
+            name="DangerButton"
+            api={'<Button variant="destructive">'}
+            note="Red is reserved for data loss"
+          >
+            <Button variant="destructive" title="Delete">
+              <Trash weight="bold" />
+            </Button>
+          </ShowcaseCard>
+
+          <ShowcaseCard
+            name="FloatingActionButton"
+            api="—"
+            note="Omitted: PRODUCT.md lists FABs as an anti-reference"
+          >
+            <span className="text-content-tertiary text-ui-small border-border-default rounded-[var(--radius-control)] border border-dashed px-3 py-2">
+              Not built
+            </span>
+          </ShowcaseCard>
         </div>
       </CatalogSection>
 
