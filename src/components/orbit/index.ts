@@ -128,6 +128,33 @@ export type {
   ScrollAreaProps,
   StackProps,
 } from "./layout";
+export {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+  Stat,
+  DescriptionList,
+  DescriptionItem,
+  KeyValue,
+  List,
+  ListItem,
+  Code,
+  TruncatedText,
+  Timestamp,
+  RelativeTime,
+} from "./data-display";
+export type {
+  CardProps,
+  StatProps,
+  DescriptionListProps,
+  DescriptionItemProps,
+  KeyValueProps,
+  ListItemProps,
+  TruncatedTextProps,
+  TimestampProps,
+} from "./data-display";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
