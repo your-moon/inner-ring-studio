@@ -28,6 +28,16 @@
   }
 }
 
+/* Orbit indeterminate progress: a segment sweeping across the track. */
+@keyframes orbit-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant interactive (&:where(.interactive, .interactive *));
