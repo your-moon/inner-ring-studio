@@ -14,7 +14,17 @@
 
 // Owned primitives
 export { Button } from "./button";
+export type { ButtonProps, ButtonSize, ButtonVariant } from "./button";
+export { ButtonGroup, ButtonGroupItem } from "./button-group";
+export type { ButtonGroupItemProps, ButtonGroupProps } from "./button-group";
 export { default as IconButton } from "./icon-button";
+export type {
+  IconButtonProps,
+  IconButtonSize,
+  IconButtonVariant,
+} from "./icon-button";
+export { SplitButton } from "./split-button";
+export type { SplitButtonProps } from "./split-button";
 export { default as Chip } from "./chip";
 export { default as EnvBadge } from "./env-badge";
 export { default as StatusDot } from "./status-dot";
@@ -24,6 +34,30 @@ export { default as Inset } from "./inset";
 export { default as Section } from "./section";
 export { Avatar } from "./avatar";
 export { Input as FieldInput } from "./input";
+export { Density } from "./density";
+export type { DensityProps } from "./density";
+export {
+  BREAKPOINTS,
+  BRAND_COLORS,
+  COLOR_TOKEN_GROUPS,
+  DENSITIES,
+  DENSITY_METRICS,
+  ELEVATION_TOKENS,
+  FONT_STACK,
+  FONT_WEIGHTS,
+  FOUNDATION_MOTION,
+  ICON_SIZES,
+  INTENT_TOKENS,
+  RADIUS_TOKENS,
+  SPACING_TOKENS,
+  TYPOGRAPHY_TOKENS,
+  Z_INDEX,
+} from "./foundations";
+export type {
+  Density as DensityName,
+  FoundationToken,
+  FoundationTokenGroup,
+} from "./foundations";
 
 // Token-styled primitives over Radix (implementation lives in ui/)
 export { default as Kbd } from "@/components/ui/kbd";

@@ -32,3 +32,22 @@ export function frecencyScores(connKey: string): Record<string, number> {
   }
   return out;
 }
+
+export interface TableFrecencyEntry extends Entry {
+  table: string;
+  score: number;
+}
+
+/**
+ * Full table-usage records for resume surfaces. The sidebar only needs scores,
+ * while home also needs the last-opened timestamp to interleave tables with
+ * recent queries honestly.
+ */
+export function tableFrecencyEntries(connKey: string): TableFrecencyEntry[] {
+  const now = Date.now();
+  return Object.entries(store(connKey).read()).map(([table, entry]) => ({
+    table,
+    ...entry,
+    score: frecencyScore(entry.count, entry.last, now),
+  }));
+}

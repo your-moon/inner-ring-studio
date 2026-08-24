@@ -31,6 +31,7 @@ import {
   tabReplaceChannel,
 } from "@/core/extension-tab";
 import { normalizedPathname, sendAnalyticEvents } from "@/lib/tracking";
+import { bumpTable } from "@/lib/table-frecency";
 import { cn } from "@/lib/utils";
 import { Binoculars, GearSix, StackSimple } from "@phosphor-icons/react";
 import EnvBadge from "../orbit/env-badge";
@@ -54,6 +55,16 @@ function buildInitialTabs(restoreKey: string): {
 
   if (typeof window === "undefined") return { tabs: fallback(), selected: 0 };
 
+  const resumeKey = restoreKey.replace("pmsql.tabs:", "pmsql.resume.query:");
+  const resumedSql = window.sessionStorage.getItem(resumeKey);
+  if (resumedSql !== null) window.sessionStorage.removeItem(resumeKey);
+
+  const withResumedQuery = (tabs: WindowTabItemProps[], selected: number) => {
+    if (!resumedSql) return { tabs, selected };
+    const resumed = builtinOpenQueryTab.generate({ initialCode: resumedSql });
+    return { tabs: [...tabs, resumed], selected: tabs.length };
+  };
+
   try {
     const raw = window.localStorage.getItem(restoreKey);
     if (raw) {
@@ -68,14 +79,16 @@ function buildInitialTabs(restoreKey: string): {
       if (restored.length > 0) {
         ensureQueryCounterAtLeast(nextQueryCounter(descriptors));
         const idx = restored.findIndex((t) => t.key === parsed.selectedKey);
-        return { tabs: restored, selected: idx < 0 ? 0 : idx };
+        return withResumedQuery(restored, idx < 0 ? 0 : idx);
       }
     }
   } catch {
     /* ignore malformed persistence — fall back to the default tab */
   }
 
-  return { tabs: fallback(), selected: 0 };
+  return resumedSql
+    ? withResumedQuery([], 0)
+    : { tabs: fallback(), selected: 0 };
 }
 
 export default function DatabaseGui() {
@@ -114,11 +127,19 @@ export default function DatabaseGui() {
   const [selectedTabIndex, setSelectedTabIndex] = useState(
     initialRef.current.selected
   );
-  const { currentSchemaName } = useSchema();
+  const { currentSchemaName, schema } = useSchema();
   const [tabs, setTabs] = useState<WindowTabItemProps[]>(
     initialRef.current.tabs
   );
 
+  // Home can hand off a recent table without putting internal state in the
+  // URL. Resolve its schema after introspection finishes, then open it once.
+  const resumeTableRef = useRef<string | null | undefined>(undefined);
+  if (resumeTableRef.current === undefined && typeof window !== "undefined") {
+    const key = `pmsql.resume.table:${pathname}`;
+    resumeTableRef.current = window.sessionStorage.getItem(key);
+    window.sessionStorage.removeItem(key);
+  }
   const openTabInternal = useCallback((tabOption: WindowTabItemProps) => {
     setTabs((prev) => {
       const foundIndex = prev.findIndex(
@@ -190,6 +211,25 @@ export default function DatabaseGui() {
   useEffect(() => {
     return tabOpenChannel.listen(openTabInternal);
   }, [openTabInternal]);
+
+  useEffect(() => {
+    const tableName = resumeTableRef.current;
+    if (!tableName) return;
+    const match = Object.values(schema)
+      .flat()
+      .find(
+        (item) =>
+          item.name === tableName &&
+          (item.type === "table" || item.type === "view")
+      );
+    if (!match) return;
+    resumeTableRef.current = null;
+    bumpTable(pathname, tableName);
+    scc.tabs.openBuiltinTable({
+      schemaName: match.schemaName ?? "",
+      tableName,
+    });
+  }, [schema, pathname]);
 
   useEffect(() => {
     return tabCloseChannel.listen(closeStudioTab);

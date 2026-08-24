@@ -1,6 +1,5 @@
 "use client";
 
-import { SidebarMenuItem } from "@/components/sidebar-menu";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -8,6 +7,8 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import EnvBadge from "@/components/orbit/env-badge";
+import { cn } from "@/lib/utils";
 import { CircleNotch, Database } from "@phosphor-icons/react";
 import Link from "next/link";
 
@@ -38,8 +39,8 @@ export default function NavConnectionItem({
   onOpen?: (id: string) => void;
 }) {
   const connected = !!conn.status?.connected;
-  const badge = busy ? (
-    <span title="Connecting…" className="mr-2 inline-flex">
+  const status = busy ? (
+    <span title="Connecting…" className="inline-flex">
       <CircleNotch
         size={12}
         weight="bold"
@@ -49,21 +50,30 @@ export default function NavConnectionItem({
   ) : connected ? (
     <span
       title="Active connection"
-      className="mr-2 inline-block h-2 w-2 rounded-full bg-green-500"
+      className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"
     />
-  ) : undefined;
+  ) : (
+    <span title="Idle" className="inline-block h-1.5 w-1.5 rounded-full bg-border" />
+  );
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div onClick={() => onOpen?.(conn.id)}>
-          <SidebarMenuItem
-            text={conn.name}
-            icon={Database}
-            href={`/vault/${conn.id}`}
-            selected={selected}
-            badge={badge}
-          />
-        </div>
+        <Link
+          href={`/vault/${conn.id}`}
+          onClick={() => onOpen?.(conn.id)}
+          aria-current={selected ? "page" : undefined}
+          className={cn(
+            "u-smooth group mx-3 flex h-7 items-center gap-2 rounded-md px-2 text-[12.5px]",
+            selected
+              ? "bg-secondary font-medium text-foreground"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+          )}
+        >
+          <Database size={14} className="shrink-0 opacity-75" />
+          <span className="min-w-0 flex-1 truncate">{conn.name}</span>
+          <EnvBadge environment={conn.environment} />
+          {status}
+        </Link>
       </ContextMenuTrigger>
       <ContextMenuContent>
         <div className="px-2 py-1.5 text-xs text-muted-foreground">

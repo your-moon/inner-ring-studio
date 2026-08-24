@@ -57,19 +57,19 @@ export default function WorkspaceSwitcher({
     <div className="relative px-3 pb-2">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2.5 rounded-lg border border-neutral-200 px-3 py-2 text-left text-sm hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
+        className="u-smooth hover:bg-secondary flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px]"
       >
         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary/10 text-[10px] font-bold text-primary">
           {(activeName ?? "P").slice(0, 1).toUpperCase()}
         </span>
         <span className="min-w-0 flex-1 truncate font-medium">{activeName ?? "Personal"}</span>
-        <CaretUpDown size={14} className="shrink-0 text-neutral-400" />
+        <CaretUpDown size={12} className="text-muted-foreground shrink-0" />
       </button>
 
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-3 right-3 z-50 mt-1 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="border-border bg-popover absolute right-3 left-3 z-50 mt-1 overflow-hidden rounded-lg border shadow-lg">
             <div className="max-h-64 overflow-y-auto py-1">
               {workspaces.map((w) => (
                 <button

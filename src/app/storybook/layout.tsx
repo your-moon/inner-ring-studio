@@ -3,7 +3,8 @@ import { SidebarMenuHeader, SidebarMenuItem } from "@/components/sidebar-menu";
 import ThemeToggle from "@/components/theme-toggle";
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Component, Layers2 } from "lucide-react";
+import { Component, Layers2, Palette } from "lucide-react";
+import Link from "next/link";
 import ThemeLayout from "../(theme)/theme_layout";
 
 export default function StorybookRootLayout({
@@ -14,8 +15,8 @@ export default function StorybookRootLayout({
   return (
     <ClientOnly>
       <ThemeLayout>
-        <div className="flex h-screen w-screen overflow-hidden">
-          <div className="flex w-[300px] flex-col border-r">
+        <div className="bg-surface-canvas flex h-screen w-screen overflow-hidden">
+          <aside className="bg-sidebar hidden w-[260px] shrink-0 flex-col overflow-y-auto border-r border-border-subtle md:flex">
             <div className="flex p-2">
               <ThemeToggle />
             </div>
@@ -24,6 +25,12 @@ export default function StorybookRootLayout({
               icon={Layers2}
               text="Guideline"
               href="/storybook"
+            />
+            <SidebarMenuHeader text="Foundation" />
+            <SidebarMenuItem
+              icon={Palette}
+              text="Foundations"
+              href="/storybook/foundations"
             />
             <SidebarMenuHeader text="Shadcn UI" />
 
@@ -114,9 +121,20 @@ export default function StorybookRootLayout({
               href="/storybook/chart-editor"
             />
             <SidebarMenuItem text="Board" href="/storybook/board" />
-          </div>
-          <div className="flex-1 overflow-y-auto p-4">
-            <TooltipProvider>{children}</TooltipProvider>
+          </aside>
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+            <header className="bg-surface-panel flex h-12 shrink-0 items-center justify-between border-b border-border-subtle px-3 md:hidden">
+              <Link
+                href="/storybook/foundations"
+                className="focus-ring text-ui-small rounded-[var(--radius-small)] font-semibold"
+              >
+                PMSQL UI
+              </Link>
+              <ThemeToggle />
+            </header>
+            <div className="min-w-0 flex-1 overflow-y-auto p-3 sm:p-4">
+              <TooltipProvider>{children}</TooltipProvider>
+            </div>
           </div>
         </div>
       </ThemeLayout>

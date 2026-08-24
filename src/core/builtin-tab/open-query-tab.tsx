@@ -19,6 +19,8 @@ export const builtinOpenQueryTab = createTabExtension<
       name?: string;
       /** Reuse a specific tab id (session restore) instead of a random one. */
       restoreId?: string;
+      /** Seed a fresh unsaved query, for example when resuming from home. */
+      initialCode?: string;
       saved?: {
         namespaceName?: string;
         key: string;
@@ -49,7 +51,7 @@ export const builtinOpenQueryTab = createTabExtension<
         initialNamespace={options.saved.namespaceName}
       />
     ) : (
-      <QueryWindow initialName={title} />
+      <QueryWindow initialName={title} initialCode={options?.initialCode} />
     );
 
     return {

@@ -8,20 +8,21 @@
  * entrances/exits that CSS can't express (command menu, route, staggered lists).
  */
 import type { Transition, Variants } from "framer-motion";
+import { FOUNDATION_MOTION } from "@/components/orbit/foundations";
 
 // Easing curves (cubic-bezier control points), lifted from production CSS.
 // `EASE_OUT` is Linear's house curve (ease-out-quad) — the workhorse.
 // `EASE_EMPHASIZED` is Attio's calm color-fade; `EASE_IN_OUT_CUBIC` for slides.
-export const EASE_OUT = [0.25, 0.46, 0.45, 0.94] as const; // Linear house
-export const EASE_EMPHASIZED = [0.2, 0, 0, 1] as const; // Attio calm
-export const EASE_IN_OUT_CUBIC = [0.65, 0, 0.35, 1] as const;
+export const EASE_OUT = FOUNDATION_MOTION.easing.out; // Linear house
+export const EASE_EMPHASIZED = FOUNDATION_MOTION.easing.emphasized; // Attio calm
+export const EASE_IN_OUT_CUBIC = FOUNDATION_MOTION.easing.inOut;
 
 // Durations (seconds). Linear lands nearly everything in 80–175ms.
 export const DUR = {
-  fast: 0.14,
-  base: 0.175, // menu / dialog
-  slow: 0.22,
-  slower: 0.3,
+  fast: FOUNDATION_MOTION.duration.fast / 1000,
+  base: FOUNDATION_MOTION.duration.base / 1000, // menu / dialog
+  slow: FOUNDATION_MOTION.duration.slow / 1000,
+  slower: FOUNDATION_MOTION.duration.slower / 1000,
 } as const;
 
 export const transition = {
