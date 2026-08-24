@@ -1,12 +1,14 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import { Button } from "./button";
 import { ButtonGroup, ButtonGroupItem } from "./button-group";
+import { CopyButton } from "./copy-button";
 import IconButton from "./icon-button";
 import { SplitButton } from "./split-button";
+import { ToggleGroup, ToggleGroupItem } from "./toggle-group";
 
 describe("Button", () => {
   it("renders its backwards-compatible title as the accessible label", () => {
@@ -104,6 +106,44 @@ describe("Button", () => {
       "aria-pressed",
       "true",
     );
+  });
+
+  it("exposes independent toggles with their own pressed state", () => {
+    render(
+      <ToggleGroup type="multiple" aria-label="Columns" value={["type"]}>
+        <ToggleGroupItem value="type">Type</ToggleGroupItem>
+        <ToggleGroupItem value="nullable">Nullable</ToggleGroupItem>
+      </ToggleGroup>,
+    );
+
+    // Radix gives the set toolbar semantics with roving arrow-key focus.
+    expect(
+      screen.getByRole("toolbar", { name: "Columns" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Type" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Nullable" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("copies its value and confirms in place", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    const onCopied = jest.fn();
+    render(<CopyButton value="select 1;" label="Copy SQL" onCopied={onCopied} />);
+
+    const button = screen.getByRole("button", { name: /Copy SQL/ });
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    expect(writeText).toHaveBeenCalledWith("select 1;");
+    expect(onCopied).toHaveBeenCalledWith("select 1;");
+    expect(screen.getByRole("button", { name: /Copied/ })).toBeInTheDocument();
   });
 
   it("keeps split-button actions separately focusable", () => {

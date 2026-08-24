@@ -17,6 +17,10 @@ export { Button } from "./button";
 export type { ButtonProps, ButtonSize, ButtonVariant } from "./button";
 export { ButtonGroup, ButtonGroupItem } from "./button-group";
 export type { ButtonGroupItemProps, ButtonGroupProps } from "./button-group";
+export { ToggleGroup, ToggleGroupItem } from "./toggle-group";
+export type { ToggleGroupItemProps, ToggleGroupProps } from "./toggle-group";
+export { CopyButton } from "./copy-button";
+export type { CopyButtonProps } from "./copy-button";
 export { default as IconButton } from "./icon-button";
 export type {
   IconButtonProps,

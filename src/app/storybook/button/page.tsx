@@ -4,18 +4,19 @@ import {
   Button,
   ButtonGroup,
   ButtonGroupItem,
+  CopyButton,
   DropdownMenuItem,
   IconButton,
   SplitButton,
   StatusDot,
+  ToggleGroup,
+  ToggleGroupItem,
   type ButtonVariant,
   type IconButtonVariant,
 } from "@/components/orbit";
 import {
   ArrowRight,
   ChartBar,
-  Check,
-  Copy,
   DotsThree,
   FloppyDisk,
   Funnel,
@@ -48,6 +49,24 @@ const ICON_VARIANTS = [
   variant: IconButtonVariant;
   label: string;
 }[];
+
+const FAMILY_COVERAGE = [
+  ["Button", "<Button>", "Text action; secondary is the default variant"],
+  ["IconButton", "<IconButton>", "Icon-only; aria-label required"],
+  ["ButtonGroup", "<ButtonGroup>", "Segmented, exactly one selected"],
+  ["ToggleGroup", "<ToggleGroup>", "Independent on/off options in one frame"],
+  ["SplitButton", "<SplitButton>", "Primary action plus related-actions menu"],
+  ["CopyButton", "<CopyButton>", "Clipboard write with announced confirmation"],
+  ["ToggleButton", "<Button toggled>", "aria-pressed; IconButton takes toggled too"],
+  ["LinkButton", '<Button as="link">', "Renders next/link, keeps button styling"],
+  ["LoadingButton", "<Button loading>", "Width-stable loader, aria-busy, sr-only status"],
+  ["DangerButton", '<Button variant="destructive">', "Red is reserved for data loss"],
+  [
+    "FloatingActionButton",
+    "—",
+    "Intentionally omitted: PRODUCT.md lists FABs as an anti-reference",
+  ],
+] as const;
 
 function CatalogSection({
   title,
@@ -100,12 +119,7 @@ function TableCell({ children }: { children: ReactNode }) {
 export default function ButtonStorybook() {
   const [iconToggled, setIconToggled] = useState(true);
   const [view, setView] = useState("list");
-  const [copied, setCopied] = useState(false);
-
-  function copyExample() {
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1200);
-  }
+  const [columns, setColumns] = useState(["type", "nullable"]);
 
   return (
     <main className="mx-auto w-full max-w-[1180px] px-2 pt-8 pb-24 sm:px-6">
@@ -124,7 +138,7 @@ export default function ButtonStorybook() {
         </div>
         <div className="text-ui-small text-content-secondary flex items-center gap-2">
           <StatusDot status="live" />
-          6 button types · ready
+          8 button types · ready
         </div>
       </header>
 
@@ -333,7 +347,7 @@ export default function ButtonStorybook() {
         title="Compound buttons"
         description="Grouped choices and split actions keep related commands together without inventing new visual rules."
       >
-        <div className="border-border-default bg-surface-panel grid gap-8 rounded-[var(--radius-panel)] border p-5 md:grid-cols-2">
+        <div className="border-border-default bg-surface-panel grid gap-8 rounded-[var(--radius-panel)] border p-5 md:grid-cols-2 xl:grid-cols-3">
           <div>
             <div className="text-ui-small font-medium">Segmented group</div>
             <p className="text-ui-caption text-content-tertiary mt-0.5 mb-4">
@@ -380,6 +394,23 @@ export default function ButtonStorybook() {
               <FloppyDisk weight="bold" />
             </SplitButton>
           </div>
+
+          <div>
+            <div className="text-ui-small font-medium">Toggle group</div>
+            <p className="text-ui-caption text-content-tertiary mt-0.5 mb-4">
+              Independent on/off options; roving focus with arrow keys.
+            </p>
+            <ToggleGroup
+              type="multiple"
+              aria-label="Visible columns"
+              value={columns}
+              onValueChange={setColumns}
+            >
+              <ToggleGroupItem value="type">Type</ToggleGroupItem>
+              <ToggleGroupItem value="nullable">Nullable</ToggleGroupItem>
+              <ToggleGroupItem value="default">Default</ToggleGroupItem>
+            </ToggleGroup>
+          </div>
         </div>
       </CatalogSection>
 
@@ -417,16 +448,48 @@ export default function ButtonStorybook() {
             <div className="text-ui-caption text-content-tertiary mb-3">
               Confirmation
             </div>
-            <Button
-              title={copied ? "Copied" : "Copy SQL"}
-              variant="secondary"
-              onClick={copyExample}
-              displayContent="items-first"
-            >
-              {copied ? <Check weight="bold" /> : <Copy />}
-            </Button>
+            <CopyButton
+              value="select * from public.orders limit 100;"
+              label="Copy SQL"
+            />
           </div>
         </div>
+      </CatalogSection>
+
+      <CatalogSection
+        title="Family coverage"
+        description="Every action type on the library inventory, and the API that provides it. Where a name is only a preset of Button, it stays a preset — the family has one implementation."
+      >
+        <TableFrame>
+          <table className="w-full min-w-[720px] border-collapse">
+            <thead>
+              <tr>
+                <TableHeading>Inventory name</TableHeading>
+                <TableHeading>Provided by</TableHeading>
+                <TableHeading>Notes</TableHeading>
+              </tr>
+            </thead>
+            <tbody className="bg-surface-panel">
+              {FAMILY_COVERAGE.map(([name, api, note]) => (
+                <tr key={name}>
+                  <TableCell>
+                    <code className="text-ui-small font-mono">{name}</code>
+                  </TableCell>
+                  <TableCell>
+                    <code className="text-ui-small text-content-secondary font-mono">
+                      {api}
+                    </code>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-ui-small text-content-tertiary">
+                      {note}
+                    </span>
+                  </TableCell>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </TableFrame>
       </CatalogSection>
 
       <CatalogSection
