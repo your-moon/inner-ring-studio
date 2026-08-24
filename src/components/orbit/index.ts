@@ -155,6 +155,26 @@ export type {
   TruncatedTextProps,
   TimestampProps,
 } from "./data-display";
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "./table";
+export type {
+  SortDirection,
+  TableRowProps,
+  TableHeadProps,
+  TableCellProps,
+} from "./table";
+export { Tree, TreeItem } from "./tree";
+export type { TreeItemProps } from "./tree";
+export { Timeline, TimelineItem } from "./timeline";
+export type { TimelineItemProps } from "./timeline";
+export { CodeBlock } from "./code-block";
+export type { CodeBlockProps } from "./code-block";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
