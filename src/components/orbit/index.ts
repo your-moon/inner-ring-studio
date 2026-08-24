@@ -165,6 +165,7 @@ export { Input } from "@/components/ui/input";
 export {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 export {
@@ -193,6 +194,16 @@ export {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
+export { Sheet, SheetTrigger, SheetClose, SheetContent } from "./sheet";
+export type { SheetContentProps } from "./sheet";
+export {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+} from "./alert-dialog";
+export type { AlertDialogProps } from "./alert-dialog";
 export { Separator } from "@/components/ui/separator";
 export { QuickOpen } from "@/components/ui/quick-open";
