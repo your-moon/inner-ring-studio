@@ -78,26 +78,28 @@
     transform: scale(0.98);
   }
 }
-/* Centered modals keep their translate() centering baked into the keyframe so
-   the scale doesn't wipe out the -50%/-50% offset mid-animation. */
+/* Centered modals: animate scale via `transform` only. Centering is the
+   separate `translate` CSS property (Tailwind v4 translate-x/y utilities), so
+   the two never fight — baking translate() into transform here would double
+   the offset and push the modal off-center. */
 @keyframes orbit-dialog-in {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.98);
+    transform: scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
   }
 }
 @keyframes orbit-dialog-out {
   from {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
   }
   to {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.98);
+    transform: scale(0.98);
   }
 }
 @keyframes orbit-sheet-in-right {
