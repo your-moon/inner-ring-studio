@@ -27,7 +27,7 @@ const TooltipContent = React.forwardRef<
     ref={ref}
     sideOffset={sideOffset}
     className={cn(
-      "animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 overflow-hidden rounded-[var(--radius-control)] border border-border-default bg-surface-overlay px-2 py-1 text-ui-small [color:var(--content-primary)] shadow-[var(--shadow-menu)]",
+      "z-50 overflow-hidden rounded-[var(--radius-control)] border border-border-default bg-surface-overlay px-2 py-1 text-ui-small [color:var(--content-primary)] shadow-[var(--shadow-menu)] origin-[var(--radix-tooltip-content-transform-origin)] data-[state=delayed-open]:animate-[orbit-pop-in_var(--motion-fast)_var(--ease-out)] data-[state=instant-open]:animate-[orbit-pop-in_var(--motion-fast)_var(--ease-out)] data-[state=closed]:animate-[orbit-pop-out_var(--motion-fast)_var(--ease-out)] motion-reduce:animate-none",
       className
     )}
     {...props}

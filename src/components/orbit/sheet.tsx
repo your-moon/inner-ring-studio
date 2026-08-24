@@ -20,13 +20,13 @@ type Side = "right" | "left" | "top" | "bottom";
 
 const SIDE: Record<Side, string> = {
   right:
-    "inset-y-0 right-0 h-full w-[380px] max-w-[92vw] border-l data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right",
+    "inset-y-0 right-0 h-full w-[380px] max-w-[92vw] border-l data-[state=open]:animate-[orbit-sheet-in-right_var(--motion-base)_var(--ease-in-out-cubic)] data-[state=closed]:animate-[orbit-sheet-out-right_var(--motion-base)_var(--ease-in-out-cubic)]",
   left:
-    "inset-y-0 left-0 h-full w-[380px] max-w-[92vw] border-r data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left",
+    "inset-y-0 left-0 h-full w-[380px] max-w-[92vw] border-r data-[state=open]:animate-[orbit-sheet-in-left_var(--motion-base)_var(--ease-in-out-cubic)] data-[state=closed]:animate-[orbit-sheet-out-left_var(--motion-base)_var(--ease-in-out-cubic)]",
   top:
-    "inset-x-0 top-0 h-auto max-h-[92vh] border-b data-[state=open]:slide-in-from-top data-[state=closed]:slide-out-to-top",
+    "inset-x-0 top-0 h-auto max-h-[92vh] border-b data-[state=open]:animate-[orbit-sheet-in-top_var(--motion-base)_var(--ease-in-out-cubic)] data-[state=closed]:animate-[orbit-sheet-out-top_var(--motion-base)_var(--ease-in-out-cubic)]",
   bottom:
-    "inset-x-0 bottom-0 h-auto max-h-[92vh] border-t data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom",
+    "inset-x-0 bottom-0 h-auto max-h-[92vh] border-t data-[state=open]:animate-[orbit-sheet-in-bottom_var(--motion-base)_var(--ease-in-out-cubic)] data-[state=closed]:animate-[orbit-sheet-out-bottom_var(--motion-base)_var(--ease-in-out-cubic)]",
 };
 
 export type SheetContentProps = ComponentPropsWithoutRef<
@@ -46,12 +46,11 @@ export const SheetContent = forwardRef<
 ) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=open]:animate-[orbit-overlay-in_var(--motion-base)_var(--ease-out)] data-[state=closed]:animate-[orbit-overlay-out_var(--motion-fast)_var(--ease-out)] motion-reduce:animate-none" />
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "bg-surface-panel fixed z-50 flex flex-col gap-4 p-5 shadow-[var(--shadow-modal)] border-border-default",
-          "duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "bg-surface-panel fixed z-50 flex flex-col gap-4 p-5 shadow-[var(--shadow-modal)] border-border-default motion-reduce:animate-none",
           SIDE[side],
           className
         )}
