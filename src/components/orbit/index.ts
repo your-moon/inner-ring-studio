@@ -224,6 +224,19 @@ export {
 export type { FilterChipProps, FilterField } from "./filters";
 export { ViewTabs } from "./view-tabs";
 export type { ViewTab } from "./view-tabs";
+export { SortBuilder, GroupByPicker, SavedViewPicker } from "./view-controls";
+export type { ViewOption, SavedView } from "./view-controls";
+export {
+  BulkActionBar,
+  PropertyRow,
+  InspectorPanel,
+  SettingsSection,
+  SettingsRow,
+  DangerZone,
+  NotificationItem,
+  CommandRow,
+} from "./panels";
+export type { NotificationItemProps, CommandRowProps } from "./panels";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
