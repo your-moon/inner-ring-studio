@@ -60,7 +60,7 @@ export function Reactions({
 
 function Initial({ name }: { name: string }) {
   return (
-    <span className="bg-surface-selected [color:var(--content-secondary)] grid size-6 shrink-0 place-items-center rounded-full text-[10px] font-[var(--weight-semibold)]">
+    <span className="bg-surface-selected [color:var(--content-secondary)] grid size-6 shrink-0 place-items-center rounded-full text-[10px] font-[var(--weight-semibold)] leading-none">
       {name.charAt(0).toUpperCase()}
     </span>
   );

@@ -38,7 +38,7 @@ export function WorkspaceSwitcher({
           className
         )}
       >
-        <span className="bg-primary [color:var(--primary-foreground)] grid size-5 shrink-0 place-items-center rounded-[var(--radius-small)] text-[10px] font-[var(--weight-semibold)]">
+        <span className="bg-primary [color:var(--primary-foreground)] grid size-5 shrink-0 place-items-center rounded-[var(--radius-small)] text-[10px] font-[var(--weight-semibold)] leading-none">
           {active?.name.charAt(0).toUpperCase()}
         </span>
         <span className="text-ui-default [color:var(--content-primary)] min-w-0 flex-1 truncate text-left font-[var(--weight-medium)]">
@@ -53,7 +53,7 @@ export function WorkspaceSwitcher({
             onSelect={() => onSelect(w.id)}
             className="text-ui-default flex items-center gap-2"
           >
-            <span className="bg-surface-selected [color:var(--content-secondary)] grid size-5 place-items-center rounded-[var(--radius-small)] text-[10px] font-[var(--weight-semibold)]">
+            <span className="bg-surface-selected [color:var(--content-secondary)] grid size-5 place-items-center rounded-[var(--radius-small)] text-[10px] font-[var(--weight-semibold)] leading-none">
               {w.name.charAt(0).toUpperCase()}
             </span>
             <span className="flex-1 truncate">{w.name}</span>

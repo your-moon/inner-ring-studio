@@ -10,8 +10,8 @@ export type AvatarGroupProps = {
 };
 
 const SIZES = {
-  sm: "size-5 text-[9px]",
-  base: "size-6 text-[10px]",
+  sm: "size-5 text-[9px] leading-none",
+  base: "size-6 text-[10px] leading-none",
 } as const;
 
 /** Overlapping avatars (assignees, members) with a +N overflow, Linear-style. */
@@ -30,7 +30,7 @@ export function AvatarGroup({
           key={`${p.name}-${i}`}
           title={p.name}
           className={cn(
-            "border-surface-panel bg-surface-selected [color:var(--content-secondary)] grid place-items-center overflow-hidden rounded-full border-2 font-[var(--weight-semibold)]",
+            "border-surface-panel bg-surface-selected [color:var(--content-secondary)] grid place-items-center overflow-hidden rounded-full border-2 font-[var(--weight-semibold)] leading-none",
             SIZES[size]
           )}
         >
@@ -45,7 +45,7 @@ export function AvatarGroup({
       {extra > 0 ? (
         <span
           className={cn(
-            "border-surface-panel bg-surface-selected [color:var(--content-tertiary)] grid place-items-center rounded-full border-2 font-[var(--weight-medium)]",
+            "border-surface-panel bg-surface-selected [color:var(--content-tertiary)] grid place-items-center rounded-full border-2 font-[var(--weight-medium)] leading-none",
             SIZES[size]
           )}
         >
