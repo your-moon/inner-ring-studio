@@ -57,7 +57,7 @@ export const PeekModalContent = forwardRef<
         <div className="flex min-h-0 flex-1">
           <div className="min-w-0 flex-1 overflow-y-auto p-5">{children}</div>
           {aside ? (
-            <aside className="border-border-subtle w-60 shrink-0 overflow-y-auto border-l p-4">
+            <aside className="border-border-subtle w-72 shrink-0 overflow-y-auto border-l p-4">
               {aside}
             </aside>
           ) : null}
