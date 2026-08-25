@@ -285,6 +285,22 @@ export {
 export type { Cycle, Project, Team } from "./pickers2";
 export { SlashMenu } from "./slash-menu";
 export type { SlashCommand } from "./slash-menu";
+export {
+  MentionMenu,
+  EmojiPicker,
+  AttachmentRow,
+  ActivityFeedItem,
+  SubscriberList,
+} from "./collab";
+export type { Mentionable } from "./collab";
+export {
+  HealthBadge,
+  RoadmapBar,
+  InitiativeCard,
+  TemplatePicker,
+  IntegrationRow,
+} from "./project";
+export type { Health, Template } from "./project";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";

@@ -73,7 +73,7 @@ export function BoardCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "focus-ring border-border-default bg-surface-panel hover:border-border-strong flex w-full flex-col gap-2 rounded-[var(--radius-menu)] border p-3 text-left transition-colors",
+        "focus-ring border-border-default bg-surface-panel hover:border-border-strong flex w-full flex-col gap-2 rounded-[var(--radius-control)] border p-3 text-left transition-colors",
         className
       )}
       {...props}
