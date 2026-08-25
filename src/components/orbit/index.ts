@@ -267,6 +267,24 @@ export { KeyboardShortcutList } from "./shortcuts";
 export type { ShortcutEntry, ShortcutGroup } from "./shortcuts";
 export { WorkspaceSwitcher } from "./workspace-switcher";
 export type { Workspace } from "./workspace-switcher";
+export { BoardColumn, BoardCard } from "./board";
+export {
+  PeekModal,
+  PeekModalTrigger,
+  PeekModalContent,
+  SubIssueList,
+  RelationRow,
+} from "./issue-detail";
+export type { RelationKind } from "./issue-detail";
+export {
+  CyclePicker,
+  ProjectPicker,
+  TeamSwitcher,
+  MilestoneMarker,
+} from "./pickers2";
+export type { Cycle, Project, Team } from "./pickers2";
+export { SlashMenu } from "./slash-menu";
+export type { SlashCommand } from "./slash-menu";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
