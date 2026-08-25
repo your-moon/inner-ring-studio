@@ -301,6 +301,34 @@ export {
   IntegrationRow,
 } from "./project";
 export type { Health, Template } from "./project";
+export {
+  SidebarNavItem,
+  SidebarSection,
+  SidebarFavorite,
+  SidebarButton,
+  SidebarToggle,
+} from "./sidebar-nav";
+export type {
+  SidebarNavItemProps,
+  SidebarSectionProps,
+  SidebarFavoriteProps,
+  SidebarButtonProps,
+  SidebarToggleProps,
+} from "./sidebar-nav";
+export {
+  CommandMenu,
+  CommandInput,
+  CommandGroup,
+  CommandEmpty,
+  CommandFooter,
+} from "./command-menu";
+export type {
+  CommandMenuProps,
+  CommandGroupProps,
+  CommandHint,
+} from "./command-menu";
+export { SubscribeToggle } from "./subscribe";
+export type { SubscribeToggleProps } from "./subscribe";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
