@@ -208,6 +208,22 @@ export type {
   PaginationProps,
   PageHeaderProps,
 } from "./navigation";
+export { AvatarGroup } from "./avatar-group";
+export type { AvatarGroupPerson, AvatarGroupProps } from "./avatar-group";
+export { DatePicker } from "./date-picker";
+export type { DatePickerProps } from "./date-picker";
+export { StatusPicker, PriorityPicker, LabelPicker } from "./pickers";
+export type { LabelOption } from "./pickers";
+export {
+  FilterChip,
+  FilterBuilder,
+  AppliedFilters,
+  DisplayOptions,
+  DisplayOptionRow,
+} from "./filters";
+export type { FilterChipProps, FilterField } from "./filters";
+export { ViewTabs } from "./view-tabs";
+export type { ViewTab } from "./view-tabs";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
