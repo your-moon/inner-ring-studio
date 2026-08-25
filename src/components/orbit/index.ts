@@ -345,6 +345,25 @@ export {
 } from "./members";
 export type { MemberRole, MemberRowProps } from "./members";
 export { SettingsGroupHeader } from "./settings-nav";
+export {
+  LabelRow,
+  LabelGroupRow,
+  ColorSwatchPicker,
+  LabelForm,
+} from "./labels-admin";
+export type { LabelRowProps, LabelGroupRowProps } from "./labels-admin";
+export {
+  StatusTypeBadge,
+  WorkflowStatusRow,
+  StatusTypeSection,
+} from "./statuses-admin";
+export type { StatusType, WorkflowStatusRowProps } from "./statuses-admin";
+export {
+  SettingsListHeader,
+  SettingsList,
+  TemplateRow,
+} from "./settings-list";
+export type { TemplateRowProps } from "./settings-list";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
