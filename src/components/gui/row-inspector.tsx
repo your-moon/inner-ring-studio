@@ -1,6 +1,13 @@
-import EmptyState from "../orbit/empty-state";
-import Kbd from "@/components/ui/kbd";
+import {
+  Button,
+  DescriptionItem,
+  DescriptionList,
+  EmptyState,
+  IconButton,
+  Kbd,
+} from "@/components/orbit";
 import { convertDatabaseValueToString } from "@/drivers/sqlite/sql-helper";
+import { cn } from "@/lib/utils";
 import { ColumnType } from "@outerbase/sdk-transform";
 import { X } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
@@ -130,20 +137,16 @@ export default function RowInspector({
   }, [rowIndex, headers, state, snapshot.key]);
 
   return (
-    <div className="flex h-full flex-col bg-background animate-in duration-200 fade-in-0 slide-in-from-right-2">
-      <div className="flex h-10 shrink-0 items-center justify-between gap-2 border-b border-border px-3">
-        <span className="truncate text-[13px] font-medium text-foreground">
+    <div className="bg-surface-panel animate-in duration-200 fade-in-0 slide-in-from-right-2 flex h-full flex-col">
+      <div className="border-border-subtle flex h-10 shrink-0 items-center justify-between gap-2 border-b px-3">
+        <span className="text-ui-default [color:var(--content-primary)] truncate font-[var(--weight-medium)]">
           {rowIndex === null ? "No row selected" : identity}
         </span>
         <div className="flex shrink-0 items-center gap-2">
           <Kbd>Esc</Kbd>
-          <button
-            onClick={onClose}
-            className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
-            aria-label="Close inspector"
-          >
-            <X size={14} />
-          </button>
+          <IconButton aria-label="Close inspector" size="sm" onClick={onClose}>
+            <X />
+          </IconButton>
         </div>
       </div>
 
@@ -152,54 +155,60 @@ export default function RowInspector({
           Click any cell to inspect its row.
         </EmptyState>
       ) : (
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
-          {headers.map((h, x) => {
-            if (visibleSet && !visibleSet.has(x) && !showHidden) return null;
-            const value = state.getValue(rowIndex, x);
-            const changed = state.hasCellChange(rowIndex, x);
-            const type = typeLabel(h.metadata);
-            const numeric = isNumericType(h.metadata, value);
-            return (
-              <div key={h.name} className="py-2">
-                <div className="mb-0.5 flex items-baseline justify-between gap-2">
-                  <span className="truncate text-[12px] text-muted-foreground">
-                    {h.display?.text ?? h.name}
-                  </span>
-                  {type && (
-                    <span className="shrink-0 font-mono text-[10.5px] text-muted-foreground/70">
-                      {type}
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-1">
+          <DescriptionList>
+            {headers.map((h, x) => {
+              if (visibleSet && !visibleSet.has(x) && !showHidden) return null;
+              const value = state.getValue(rowIndex, x);
+              const changed = state.hasCellChange(rowIndex, x);
+              const type = typeLabel(h.metadata);
+              const numeric = isNumericType(h.metadata, value);
+              const isNull = value === null || value === undefined;
+              return (
+                <DescriptionItem
+                  key={h.name}
+                  term={
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="truncate">{h.display?.text ?? h.name}</span>
+                      {type ? (
+                        <span className="[color:var(--content-disabled)] shrink-0 font-mono text-[10.5px]">
+                          {type}
+                        </span>
+                      ) : null}
                     </span>
-                  )}
-                </div>
-                <div
-                  className={
-                    "text-[13px] break-words whitespace-pre-wrap " +
-                    (changed
-                      ? "text-amber-600 dark:text-amber-400"
-                      : "text-foreground") +
-                    (numeric ? " font-mono tabular-nums text-[12.5px]" : "")
                   }
                 >
-                  {value === null || value === undefined ? (
-                    <span className="text-muted-foreground/60 italic">
-                      NULL
-                    </span>
-                  ) : (
-                    convertDatabaseValueToString(value)
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                  <span
+                    className={cn(
+                      "break-words whitespace-pre-wrap",
+                      changed && "[color:var(--intent-warning)]",
+                      numeric && "text-ui-small font-mono [font-variant-numeric:tabular-nums]"
+                    )}
+                  >
+                    {isNull ? (
+                      <span className="[color:var(--content-tertiary)] italic">
+                        NULL
+                      </span>
+                    ) : (
+                      convertDatabaseValueToString(value)
+                    )}
+                  </span>
+                </DescriptionItem>
+              );
+            })}
+          </DescriptionList>
           {hiddenCount > 0 && (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
+              className="my-2 w-full justify-center"
               onClick={() => setShowHidden((v) => !v)}
-              className="mt-1 mb-2 w-full rounded-md py-1.5 text-[12px] text-muted-foreground hover:bg-secondary hover:text-foreground"
-            >
-              {showHidden
-                ? "Hide fields not in this view"
-                : `Show ${hiddenCount} hidden ${hiddenCount === 1 ? "field" : "fields"}`}
-            </button>
+              title={
+                showHidden
+                  ? "Hide fields not in this view"
+                  : `Show ${hiddenCount} hidden ${hiddenCount === 1 ? "field" : "fields"}`
+              }
+            />
           )}
         </div>
       )}
