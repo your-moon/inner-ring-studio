@@ -56,6 +56,12 @@ export { RadioGroup, RadioGroupItem } from "./radio-group";
 export type { RadioGroupProps, RadioGroupItemProps } from "./radio-group";
 export { Switch } from "./switch";
 export type { SwitchProps } from "./switch";
+export { Slider } from "./slider";
+export type { SliderProps } from "./slider";
+export { InlineEdit } from "./inline-edit";
+export type { InlineEditProps } from "./inline-edit";
+export { FileUpload } from "./file-upload";
+export type { FileUploadProps } from "./file-upload";
 export {
   Select,
   SelectContent,
@@ -272,5 +278,7 @@ export {
   AlertDialogContent,
 } from "./alert-dialog";
 export type { AlertDialogProps } from "./alert-dialog";
+export { ConfirmProvider, useConfirm } from "./use-confirm";
+export type { ConfirmOptions } from "./use-confirm";
 export { Separator } from "@/components/ui/separator";
 export { QuickOpen } from "@/components/ui/quick-open";

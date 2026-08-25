@@ -20,6 +20,9 @@ import { Field } from "./field";
 import { RadioGroup, RadioGroupItem } from "./radio-group";
 import { Switch } from "./switch";
 import { NumberField, PasswordField, TextField } from "./text-field";
+import { Slider } from "./slider";
+import { InlineEdit } from "./inline-edit";
+import { FileUpload } from "./file-upload";
 
 describe("Field", () => {
   it("wires the label to the control and marks it required", () => {
@@ -169,5 +172,61 @@ describe("Switch", () => {
       fireEvent.click(el);
     });
     expect(el).toHaveAttribute("aria-checked", "true");
+  });
+});
+
+describe("Slider", () => {
+  it("reports value changes and exposes range semantics", () => {
+    function Harness() {
+      const [v, setV] = useState(20);
+      return (
+        <Field label="Pool">
+          <Slider min={1} max={100} value={v} onValueChange={setV} />
+        </Field>
+      );
+    }
+    render(<Harness />);
+    const slider = screen.getByLabelText("Pool") as HTMLInputElement;
+    expect(slider).toHaveAttribute("type", "range");
+    fireEvent.change(slider, { target: { value: "55" } });
+    expect(slider.value).toBe("55");
+  });
+});
+
+describe("InlineEdit", () => {
+  it("edits in place and commits on Enter", () => {
+    function Harness() {
+      const [v, setV] = useState("old");
+      return <InlineEdit value={v} onCommit={setV} aria-label="Name" />;
+    }
+    render(<Harness />);
+    fireEvent.click(screen.getByRole("button", { name: "old" }));
+    const input = screen.getByLabelText("Name") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "new" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(screen.getByRole("button", { name: "new" })).toBeInTheDocument();
+  });
+
+  it("reverts on Escape", () => {
+    const onCommit = jest.fn();
+    render(<InlineEdit value="keep" onCommit={onCommit} aria-label="N" />);
+    fireEvent.click(screen.getByRole("button", { name: "keep" }));
+    const input = screen.getByLabelText("N");
+    fireEvent.change(input, { target: { value: "changed" } });
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect(onCommit).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "keep" })).toBeInTheDocument();
+  });
+});
+
+describe("FileUpload", () => {
+  it("lists a picked file and reports it", () => {
+    const onFiles = jest.fn();
+    render(<FileUpload onFiles={onFiles} label="Drop here" />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(["x"], "dump.sql", { type: "text/plain" });
+    fireEvent.change(input, { target: { files: [file] } });
+    expect(onFiles).toHaveBeenCalledWith([file]);
+    expect(screen.getByText("dump.sql")).toBeInTheDocument();
   });
 });

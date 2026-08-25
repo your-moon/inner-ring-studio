@@ -5,12 +5,15 @@ import {
   Combobox,
   Field,
   FieldLabel,
+  FileUpload,
+  InlineEdit,
   MultiSelect,
   NumberField,
   PasswordField,
   RadioGroup,
   RadioGroupItem,
   SearchField,
+  Slider,
   Select,
   SelectContent,
   SelectItem,
@@ -72,6 +75,8 @@ export default function FormStorybook() {
   const [env, setEnv] = useState("staging");
   const [live, setLive] = useState(true);
   const [readonly, setReadonly] = useState(false);
+  const [poolSize, setPoolSize] = useState(20);
+  const [connName, setConnName] = useState("Production replica");
   const [dialect, setDialect] = useState("postgres");
   const [driver, setDriver] = useState<string | null>("postgres");
   const [tags, setTags] = useState<string[]>(["postgres", "clickhouse"]);
@@ -94,7 +99,7 @@ export default function FormStorybook() {
           </p>
         </div>
         <div className="text-ui-small text-content-secondary flex items-center gap-2">
-          <StatusDot status="live" />11 controls · ready
+          <StatusDot status="live" />14 controls · ready
         </div>
       </header>
 
@@ -264,6 +269,41 @@ export default function FormStorybook() {
                 placeholder="Add dialects"
               />
             </Field>
+          </Card>
+        </div>
+      </CatalogSection>
+
+      <CatalogSection
+        title="Slider, inline edit & file upload"
+        description="A range slider for a bounded value; edit-in-place for rename-in-context; a drop zone for imports."
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Card label="Slider">
+            <Field label="Pool size">
+              <Slider
+                min={1}
+                max={100}
+                value={poolSize}
+                onValueChange={setPoolSize}
+                showValue
+              />
+            </Field>
+          </Card>
+          <Card label="Inline edit — click to rename">
+            <Field label="Connection name">
+              <InlineEdit
+                value={connName}
+                onCommit={setConnName}
+                aria-label="Connection name"
+              />
+            </Field>
+          </Card>
+          <Card label="File upload">
+            <FileUpload
+              onFiles={() => {}}
+              accept=".sql,.csv"
+              hint=".sql or .csv, up to 10 MB"
+            />
           </Card>
         </div>
       </CatalogSection>
