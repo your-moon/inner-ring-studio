@@ -247,7 +247,7 @@
   --radius-sm: calc(var(--radius) - 4px);
   --radius-small: 4px;
   --radius-control: 8px;
-  --radius-menu: 10px;
+  --radius-menu: 12px;
   --radius-panel: 12px;
   --radius-modal: 16px;
   --radius-full: 9999px;

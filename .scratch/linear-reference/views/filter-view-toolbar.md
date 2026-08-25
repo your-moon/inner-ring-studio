@@ -32,3 +32,13 @@ FilterChip, AppliedFilters, FilterBuilder (pill → field menu → operator/valu
 DisplayOptions, StatusPicker, PriorityPicker, LabelPicker, AvatarGroup,
 DatePicker, ViewTabs — all on Orbit tokens (menu radius 10px, pill radius full,
 12–13px text, house motion).
+
+## Backfill reconciliation (2026-08-24)
+Cross-checked our primitives against Linear's live values:
+- Filter/Add pill: 28px / 12px / radius 9999px — **matches exactly**.
+- View tabs: Linear 28px; ours were 32px → **fixed to 28px**.
+- Menu/popover radius: Linear **12px**; ours was 10px → **bumped --radius-menu to 12px** (aligns Popover, Dropdown, Context, Select, Combobox, HoverCard, pickers).
+- Menu item: Linear 13px / ~31px tall; ours 13px / 28px — within range, kept.
+- Menu shadow: Linear `0 3px 8px lch(0 0 0/.125)` (soft) — ours (--shadow-menu 0 8px 24px) is comparable.
+- Modal card: Linear create-modal 22px radius; ours --radius-modal 16px — intentional (Linear's confirm dialogs are smaller); left as-is.
+- Focus ring #5e69d1, control radius 8px, weights 450/500 — already match.

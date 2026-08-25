@@ -160,7 +160,7 @@ export const SPACING_TOKENS = [
 export const RADIUS_TOKENS = [
   { name: "Small", variable: "--radius-small", value: "4px" },
   { name: "Control", variable: "--radius-control", value: "8px" },
-  { name: "Menu", variable: "--radius-menu", value: "10px" },
+  { name: "Menu", variable: "--radius-menu", value: "12px" },
   { name: "Panel", variable: "--radius-panel", value: "12px" },
   { name: "Modal", variable: "--radius-modal", value: "16px" },
   { name: "Full", variable: "--radius-full", value: "9999px" },
