@@ -92,6 +92,11 @@ export default function StorybookRootLayout({
               text="PMSQL product"
               href="/storybook/product"
             />
+            <SidebarMenuItem
+              icon={Layers2}
+              text="Linear patterns"
+              href="/storybook/linear"
+            />
           </aside>
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <header className="bg-surface-panel flex h-12 shrink-0 items-center justify-between border-b border-border-subtle px-3 md:hidden">

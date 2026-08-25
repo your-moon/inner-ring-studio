@@ -255,6 +255,18 @@ export {
   ProductionEnvironmentBanner,
   WriteConfirmationDialog,
 } from "./db";
+export { IssueRow } from "./issue-row";
+export type { IssueRowProps } from "./issue-row";
+export { ProgressDonut, SegmentedProgress } from "./progress-viz";
+export type { ProgressSegment } from "./progress-viz";
+export { AssigneePicker, EstimatePicker } from "./assignee";
+export type { Person } from "./assignee";
+export { Reactions, CommentComposer, CommentItem } from "./comments";
+export type { Reaction } from "./comments";
+export { KeyboardShortcutList } from "./shortcuts";
+export type { ShortcutEntry, ShortcutGroup } from "./shortcuts";
+export { WorkspaceSwitcher } from "./workspace-switcher";
+export type { Workspace } from "./workspace-switcher";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
