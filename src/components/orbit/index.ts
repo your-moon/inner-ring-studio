@@ -237,6 +237,24 @@ export {
   CommandRow,
 } from "./panels";
 export type { NotificationItemProps, CommandRowProps } from "./panels";
+export {
+  ConnectionCard,
+  ConnectionStatus,
+  VaultSyncStatus,
+} from "./connection";
+export type { ConnState, SyncState } from "./connection";
+export {
+  QueryTabBar,
+  RunQueryButton,
+  QueryToolbar,
+  ResultStatusBar,
+} from "./query";
+export type { QueryTab } from "./query";
+export {
+  ColumnTypeBadge,
+  ProductionEnvironmentBanner,
+  WriteConfirmationDialog,
+} from "./db";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
