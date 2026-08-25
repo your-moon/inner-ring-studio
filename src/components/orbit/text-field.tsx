@@ -209,3 +209,17 @@ export const TextareaField = forwardRef<
     />
   );
 });
+
+/** Native date input, sharing the text-field shell. */
+export const DateField = forwardRef<HTMLInputElement, TextFieldProps>(
+  function DateField(props, ref) {
+    return <TextField ref={ref} type="date" {...props} />;
+  }
+);
+
+/** Native time input, sharing the text-field shell. */
+export const TimeField = forwardRef<HTMLInputElement, TextFieldProps>(
+  function TimeField(props, ref) {
+    return <TextField ref={ref} type="time" {...props} />;
+  }
+);

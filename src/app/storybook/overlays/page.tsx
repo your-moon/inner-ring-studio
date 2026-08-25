@@ -13,6 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
   Field,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  KeyValue,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -116,6 +120,31 @@ export default function OverlaysStorybook() {
               </Popover>
             </Card>
           </div>
+        </CatalogSection>
+
+        <CatalogSection
+          title="Hover card"
+          description="A rich hover preview for a connection or record — more than a tooltip's one line, and not announced as a label."
+        >
+          <Card label="Hover the trigger">
+            <HoverCard openDelay={150}>
+              <HoverCardTrigger asChild>
+                <Button variant="secondary" title="prod-replica" />
+              </HoverCardTrigger>
+              <HoverCardContent>
+                <Stack gap="sm">
+                  <div className="flex items-center gap-2">
+                    <StatusDot status="live" />
+                    <span className="text-ui-default font-[var(--weight-medium)]">
+                      Production replica
+                    </span>
+                  </div>
+                  <KeyValue label="Host">db.internal:5432</KeyValue>
+                  <KeyValue label="Dialect">PostgreSQL 16</KeyValue>
+                </Stack>
+              </HoverCardContent>
+            </HoverCard>
+          </Card>
         </CatalogSection>
 
         <CatalogSection

@@ -23,6 +23,8 @@ import { NumberField, PasswordField, TextField } from "./text-field";
 import { Slider } from "./slider";
 import { InlineEdit } from "./inline-edit";
 import { FileUpload } from "./file-upload";
+import { TokenInput } from "./token-input";
+import { ColorField } from "./color-field";
 
 describe("Field", () => {
   it("wires the label to the control and marks it required", () => {
@@ -228,5 +230,49 @@ describe("FileUpload", () => {
     fireEvent.change(input, { target: { files: [file] } });
     expect(onFiles).toHaveBeenCalledWith([file]);
     expect(screen.getByText("dump.sql")).toBeInTheDocument();
+  });
+});
+
+describe("TokenInput", () => {
+  it("adds a token on Enter and removes with the chip button", () => {
+    function Harness() {
+      const [v, setV] = useState<string[]>(["a"]);
+      return <TokenInput value={v} onChange={setV} />;
+    }
+    render(<Harness />);
+    const input = screen.getByRole("textbox");
+    fireEvent.change(input, { target: { value: "b" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(screen.getByText("b")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Remove a" }));
+    expect(screen.queryByText("a")).not.toBeInTheDocument();
+  });
+
+  it("removes the last token on Backspace when empty", () => {
+    function Harness() {
+      const [v, setV] = useState<string[]>(["x", "y"]);
+      return <TokenInput value={v} onChange={setV} />;
+    }
+    render(<Harness />);
+    fireEvent.keyDown(screen.getByRole("textbox"), { key: "Backspace" });
+    expect(screen.queryByText("y")).not.toBeInTheDocument();
+    expect(screen.getByText("x")).toBeInTheDocument();
+  });
+});
+
+describe("ColorField", () => {
+  it("reports color changes and shows the hex", () => {
+    function Harness() {
+      const [c, setC] = useState("#5e6ad2");
+      return (
+        <Field label="Color">
+          <ColorField value={c} onValueChange={setC} />
+        </Field>
+      );
+    }
+    render(<Harness />);
+    const input = screen.getByLabelText("Color") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "#ff0000" } });
+    expect(screen.getByText("#ff0000")).toBeInTheDocument();
   });
 });

@@ -2,11 +2,15 @@
 
 import {
   Checkbox,
+  ColorField,
   Combobox,
+  DateField,
   Field,
   FieldLabel,
   FileUpload,
   InlineEdit,
+  TimeField,
+  TokenInput,
   MultiSelect,
   NumberField,
   PasswordField,
@@ -77,6 +81,8 @@ export default function FormStorybook() {
   const [readonly, setReadonly] = useState(false);
   const [poolSize, setPoolSize] = useState(20);
   const [connName, setConnName] = useState("Production replica");
+  const [labelColor, setLabelColor] = useState("#5e6ad2");
+  const [labels, setLabels] = useState<string[]>(["backend", "sql"]);
   const [dialect, setDialect] = useState("postgres");
   const [driver, setDriver] = useState<string | null>("postgres");
   const [tags, setTags] = useState<string[]>(["postgres", "clickhouse"]);
@@ -304,6 +310,34 @@ export default function FormStorybook() {
               accept=".sql,.csv"
               hint=".sql or .csv, up to 10 MB"
             />
+          </Card>
+        </div>
+      </CatalogSection>
+
+      <CatalogSection
+        title="Date, time, color & tokens"
+        description="Native date/time/color inputs on the shared shell, plus a token input for tags and params."
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Card label="DateField">
+            <Field label="Created after">
+              <DateField defaultValue="2026-08-01" />
+            </Field>
+          </Card>
+          <Card label="TimeField">
+            <Field label="Run at">
+              <TimeField defaultValue="09:30" />
+            </Field>
+          </Card>
+          <Card label="ColorField">
+            <Field label="Label color">
+              <ColorField value={labelColor} onValueChange={setLabelColor} />
+            </Field>
+          </Card>
+          <Card label="TokenInput">
+            <Field label="Tags">
+              <TokenInput value={labels} onChange={setLabels} placeholder="Add a tag" />
+            </Field>
           </Card>
         </div>
       </CatalogSection>

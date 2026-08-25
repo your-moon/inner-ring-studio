@@ -43,6 +43,13 @@ const JUSTIFY: Record<Justify, string> = {
 
 type BaseProps = HTMLAttributes<HTMLDivElement> & { asChild?: boolean };
 
+/** The lowest-level box — a plain div (or asChild slot) with a className. The
+ * escape hatch when no semantic primitive fits. */
+export function Box({ asChild, className, ...props }: BaseProps) {
+  const Comp = asChild ? Slot : "div";
+  return <Comp className={className} {...props} />;
+}
+
 /** Vertical flow. The default building block for stacked content. */
 export type StackProps = BaseProps & {
   gap?: Gap;
