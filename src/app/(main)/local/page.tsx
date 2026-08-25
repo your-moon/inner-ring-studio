@@ -24,6 +24,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import {
+  AlertDialog,
+  AlertDialogContent,
   Button,
   Chip,
   DropdownMenu,
@@ -211,6 +213,7 @@ export default function HomePage() {
   const [lastOpened, setLastOpened] = useState<Record<string, number>>({});
   const [recentWork, setRecentWork] = useState<RecentWork[]>([]);
   const [busyConnections, setBusyConnections] = useState<Set<string>>(new Set());
+  const [pendingDelete, setPendingDelete] = useState<Conn | null>(null);
 
   useEffect(() => setLastOpened(connectionLastOpened()), []);
 
@@ -280,15 +283,21 @@ export default function HomePage() {
     [mutate, setBusy]
   );
 
-  const deleteConnection = useCallback(
-    async (connection: Conn) => {
-      if (!window.confirm(`Delete connection "${connection.name}"?`)) return;
+  const deleteConnection = useCallback((connection: Conn) => {
+    setPendingDelete(connection);
+  }, []);
+
+  const confirmDelete = useCallback(
+    async () => {
+      const connection = pendingDelete;
+      if (!connection) return;
       await fetch(`/api/connections?id=${encodeURIComponent(connection.id)}`, {
         method: "DELETE",
       }).catch(() => null);
+      setPendingDelete(null);
       mutate();
     },
-    [mutate]
+    [pendingDelete, mutate]
   );
 
   const resumeWork = (work: RecentWork) => {
@@ -641,6 +650,21 @@ export default function HomePage() {
           </motion.div>
         )}
       </div>
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <AlertDialogContent
+          title={`Delete connection “${pendingDelete?.name ?? ""}”?`}
+          description="This removes the connection from your vault. This can't be undone."
+          confirmLabel="Delete"
+          cancelLabel="Keep it"
+          onConfirm={confirmDelete}
+        />
+      </AlertDialog>
     </NavigationLayout>
   );
 }

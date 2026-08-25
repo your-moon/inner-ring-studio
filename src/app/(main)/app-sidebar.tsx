@@ -25,7 +25,13 @@ import {
 } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
-import { Chip, IconButton, StatusDot } from "@/components/orbit";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  Chip,
+  IconButton,
+  StatusDot,
+} from "@/components/orbit";
 import { WEBSITE_NAME } from "@/const";
 import { groupByFolder } from "@/lib/folder-grouping";
 import { scopedStore } from "@/lib/scoped-store";
@@ -201,15 +207,26 @@ export default function AppSidebar() {
     [setBusy]
   );
 
-  const deleteConnection = useCallback(
-    async (id: string, name: string) => {
-      if (!window.confirm(`Delete connection "${name}"?`)) return;
-      await fetch(`/api/connections?id=${encodeURIComponent(id)}`, {
-        method: "DELETE",
-      }).catch(() => null);
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  const deleteConnection = useCallback((id: string, name: string) => {
+    setPendingDelete({ id, name });
+  }, []);
+
+  const confirmDelete = useCallback(
+    async () => {
+      if (!pendingDelete) return;
+      await fetch(
+        `/api/connections?id=${encodeURIComponent(pendingDelete.id)}`,
+        { method: "DELETE" }
+      ).catch(() => null);
+      setPendingDelete(null);
       mutateConnections();
     },
-    [mutateConnections]
+    [pendingDelete, mutateConnections]
   );
 
   const groupedConnections = groupByFolder(connectionData?.connections ?? []);
@@ -492,6 +509,21 @@ export default function AppSidebar() {
       >
         {sidebar}
       </div>
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <AlertDialogContent
+          title={`Delete connection “${pendingDelete?.name ?? ""}”?`}
+          description="This removes the connection from your vault. This can't be undone."
+          confirmLabel="Delete"
+          cancelLabel="Keep it"
+          onConfirm={confirmDelete}
+        />
+      </AlertDialog>
     </>
   );
 }
