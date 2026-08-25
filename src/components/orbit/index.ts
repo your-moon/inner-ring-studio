@@ -329,6 +329,22 @@ export type {
 } from "./command-menu";
 export { SubscribeToggle } from "./subscribe";
 export type { SubscribeToggleProps } from "./subscribe";
+export { PresenceDot, PresenceAvatar, PersonChip } from "./presence";
+export type {
+  Presence,
+  PresenceAvatarProps,
+  PersonChipProps,
+} from "./presence";
+export {
+  RoleBadge,
+  RoleSelect,
+  MemberRow,
+  PendingInviteRow,
+  MemberList,
+  InviteField,
+} from "./members";
+export type { MemberRole, MemberRowProps } from "./members";
+export { SettingsGroupHeader } from "./settings-nav";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
