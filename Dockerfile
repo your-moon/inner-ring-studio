@@ -5,8 +5,11 @@ FROM oven/bun:1-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies from the lockfile (reproducible).
+# Install dependencies from the lockfile (reproducible). The crisp design
+# system resolves from local tarballs (file:vendor/crisp/*.tgz), so vendor/
+# must be present before install.
 COPY package.json bun.lock ./
+COPY vendor ./vendor
 RUN bun install --frozen-lockfile
 
 # Copy source and build the standalone output.
