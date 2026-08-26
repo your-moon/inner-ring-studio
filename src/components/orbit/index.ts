@@ -104,6 +104,7 @@ export type { Priority, PriorityIconProps } from "./priority-icon";
 export { default as EnvBadge } from "./env-badge";
 export { default as StatusDot } from "./status-dot";
 export { default as EmptyState } from "./empty-state";
+export { OrbitIllustration, EmptyIllustration } from "./illustration";
 export { Alert, Callout, Skeleton, Progress, Spinner } from "./feedback";
 export type {
   AlertProps,
