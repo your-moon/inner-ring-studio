@@ -3,12 +3,13 @@ import type { Metadata } from "next";
 
 import "./codemirror-override.css";
 import "./globals.css";
-// crisp design system (generated in the crisp repo; see src/styles/crisp/*).
-import "@/styles/crisp/tokens.css";
-import "@/styles/crisp/action-button.css";
-import "@/styles/crisp/text-input.css";
-import "@/styles/crisp/menu.css";
-import "@/styles/crisp/menu-item.css";
+// crisp design system — consumed directly from the linked crisp repo
+// (vendor/crisp → ~/crisp/packages, wired via file: deps in package.json).
+import "@seed-design/css/base.css";
+import "@seed-design/css/recipes/action-button.css";
+import "@seed-design/css/recipes/text-input.css";
+import "@seed-design/css/recipes/menu.css";
+import "@seed-design/css/recipes/menu-item.css";
 
 const siteDescription = `${WEBSITE_NAME} is a fast, self-hosted database workspace — connect to your own PostgreSQL, browse and edit data in a grid, and run SQL, with connections stored in an encrypted vault.`;
 
