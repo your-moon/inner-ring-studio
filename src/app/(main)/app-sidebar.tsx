@@ -309,7 +309,7 @@ export default function AppSidebar() {
         <button
           type="button"
           onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
-          className="focus-ring border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover flex h-7 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] border py-0 pr-2 pl-2.5 [color:var(--content-secondary)]"
+          className="focus-ring border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover flex h-7 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] border py-0 pr-2 pl-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] [color:var(--content-secondary)]"
         >
           <Command className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
           <span className="min-w-0 flex-1 truncate text-left">Quick actions</span>
@@ -319,7 +319,7 @@ export default function AppSidebar() {
           type="button"
           aria-label="Search"
           onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
-          className="focus-ring border-border-default bg-surface-panel hover:bg-surface-hover grid size-7 shrink-0 place-items-center rounded-[var(--radius-control)] border [color:var(--content-tertiary)] hover:[color:var(--content-primary)] [&_svg]:size-3.5"
+          className="focus-ring border-border-default bg-surface-panel hover:bg-surface-hover grid size-7 shrink-0 place-items-center rounded-[var(--radius-control)] border shadow-[0_1px_2px_rgba(0,0,0,0.04)] [color:var(--content-tertiary)] hover:[color:var(--content-primary)] [&_svg]:size-3.5"
         >
           <Search />
         </button>
