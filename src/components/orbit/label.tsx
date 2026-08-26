@@ -21,7 +21,7 @@ export const Label = ({
   return (
     <label
       className={cn(
-        "text-ob-base-200 relative block w-full items-center gap-1 text-sm transition-colors *:w-full",
+        "[color:var(--content-secondary)] relative block w-full items-center gap-1 text-ui-small transition-colors *:w-full",
         className
       )}
       {...props}
@@ -32,7 +32,7 @@ export const Label = ({
           <>
             <span className="ml-0.5 inline-block">*</span>
             {requiredDescription && !isValid && (
-              <span className="text-ob-destructive ml-1 inline-block transition-colors">
+              <span className="[color:var(--intent-danger)] ml-1 inline-block transition-colors">
                 {requiredDescription}
               </span>
             )}

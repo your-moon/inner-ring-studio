@@ -8,12 +8,12 @@ const Block = ({ children, title }: BlockProps) => {
     <>
       {title && (
         <header>
-          <h2 className="mt-10 mb-4 text-2xl font-bold tracking-tight">
+          <h2 className="mt-10 mb-4 text-heading-medium font-semibold tracking-[var(--tracking-heading)]">
             {title}
           </h2>
         </header>
       )}
-      <div className="flex aspect-video w-full items-center justify-center gap-4 rounded-lg border border-neutral-200 bg-neutral-50 p-10 transition-colors dark:border-neutral-800 dark:bg-neutral-950">
+      <div className="flex aspect-video w-full items-center justify-center gap-4 rounded-[var(--radius-panel)] border border-border-default bg-surface-canvas p-10 transition-colors">
         {children}
       </div>
     </>

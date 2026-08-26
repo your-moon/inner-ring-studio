@@ -20,14 +20,14 @@ export const Select = ({
   return (
     <select
       className={cn(
-        "ob-focus ob-btn btn-secondary interactive relative appearance-none truncate bg-no-repeat",
+        "focus-ring interactive relative appearance-none truncate border border-border-default bg-surface-canvas bg-no-repeat rounded-[var(--radius-control)] [color:var(--content-primary)] hover:bg-surface-hover",
         {
-          "ob-size-sm !pr-6.5": size === "sm",
-          "ob-size-base !pr-8": size === "base",
-          "ob-size-lg !pr-9": size === "lg",
+          "h-[26px] px-2 text-ui-small !pr-6.5": size === "sm",
+          "h-8 px-2.5 text-ui-default !pr-8": size === "base",
+          "h-9 px-3 text-ui-default !pr-9": size === "lg",
         },
         {
-          "!text-muted-foreground": !value,
+          "![color:var(--content-tertiary)]": !value,
         },
         className
       )}
