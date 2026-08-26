@@ -270,12 +270,12 @@ export default function AppSidebar() {
     <aside
       aria-label="Application navigation"
       className={cn(
-        "bg-sidebar flex h-full min-h-0 flex-col",
+        "bg-surface-panel flex h-full min-h-0 flex-col",
         collapsed ? "w-0 overflow-hidden" : "w-[272px]"
       )}
     >
       {/* Workspace switcher (Attio-style, borderless) */}
-      <div className="flex h-12 shrink-0 items-center gap-1 px-2 lg:mt-2">
+      <div className="flex h-12 shrink-0 items-center gap-1 px-2">
         <Link
           href="/local"
           className="focus-ring flex h-8 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-1.5 hover:bg-black/[0.035] dark:hover:bg-white/[0.05]"
@@ -290,7 +290,7 @@ export default function AppSidebar() {
         <IconButton
           aria-label="Collapse sidebar"
           size="sm"
-          className="hidden lg:inline-grid"
+          className="hidden [&_svg]:size-3.5 lg:inline-grid"
           onClick={() => setCollapsed(true)}
         >
           <PanelLeft />
@@ -505,7 +505,7 @@ export default function AppSidebar() {
         </div>
       ) : null}
 
-      <div className="sticky top-0 z-30 flex h-12 w-full shrink-0 items-center justify-between border-b border-border-default bg-sidebar px-3 lg:hidden">
+      <div className="sticky top-0 z-30 flex h-12 w-full shrink-0 items-center justify-between border-b border-border-default bg-surface-panel px-3 lg:hidden">
         <Link href="/local" className="flex items-center gap-2.5">
           <BrandMark />
           <span className="text-ui-small font-semibold">{WEBSITE_NAME}</span>
