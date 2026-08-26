@@ -162,7 +162,7 @@ export function CodeBlockHeader({
   return (
     <div
       className={cn(
-        "border-border-subtle bg-surface-panel flex h-8 items-center justify-between rounded-t-[var(--radius-control)] border border-b-0 px-2.5",
+        "border-border-subtle bg-surface-canvas flex h-8 items-center justify-between rounded-t-[var(--radius-control)] border border-b-0 px-2.5",
         className
       )}
     >
