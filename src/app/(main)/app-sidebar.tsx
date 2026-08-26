@@ -270,7 +270,7 @@ export default function AppSidebar() {
     <aside
       aria-label="Application navigation"
       className={cn(
-        "bg-surface-panel flex h-full min-h-0 flex-col",
+        "bg-surface-canvas flex h-full min-h-0 flex-col",
         collapsed ? "w-0 overflow-hidden" : "w-[272px]"
       )}
     >
@@ -339,7 +339,7 @@ export default function AppSidebar() {
       <div className="border-border-subtle mx-2 my-1 border-b" />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
-        <nav aria-label="Workspace">
+        <nav aria-label="Workspace" className="flex flex-col gap-px">
           <NavRow
             href="/local"
             label="Home"
