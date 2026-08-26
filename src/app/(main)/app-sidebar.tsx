@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartColumn, ChevronDown, ChevronRight, Clock, CloudUpload, Command, House, List, LogOut, Plus, Search, User, X } from "lucide-react";
+import { ChartColumn, ChevronDown, ChevronRight, Clock, CloudUpload, Command, House, List, LogOut, PanelLeft, Plus, Search, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -110,6 +110,7 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => setMobileOpen(false), [pathname]);
   useEffect(() => {
@@ -268,13 +269,16 @@ export default function AppSidebar() {
   const sidebar = (
     <aside
       aria-label="Application navigation"
-      className="bg-sidebar flex h-full min-h-0 w-[272px] flex-col"
+      className={cn(
+        "bg-sidebar flex h-full min-h-0 flex-col",
+        collapsed ? "w-0 overflow-hidden" : "w-[272px]"
+      )}
     >
-      {/* Workspace switcher */}
+      {/* Workspace switcher (Attio-style, borderless) */}
       <div className="flex h-12 shrink-0 items-center gap-1 px-2 lg:mt-2">
         <Link
           href="/local"
-          className="focus-ring border-border-default bg-surface-panel hover:bg-surface-hover hover:border-border-strong flex h-8 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] border px-2"
+          className="focus-ring flex h-8 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-1.5 hover:bg-black/[0.035] dark:hover:bg-white/[0.05]"
         >
           <BrandMark />
           <span className="text-ui-small min-w-0 flex-1 truncate font-semibold tracking-tight [color:var(--content-primary)]">
@@ -283,6 +287,14 @@ export default function AppSidebar() {
           <ChevronDown className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
         </Link>
         {isCloud && <NotificationsBell />}
+        <IconButton
+          aria-label="Collapse sidebar"
+          size="sm"
+          className="hidden lg:inline-grid"
+          onClick={() => setCollapsed(true)}
+        >
+          <PanelLeft />
+        </IconButton>
         <IconButton
           aria-label="Close navigation"
           size="sm"
@@ -294,7 +306,7 @@ export default function AppSidebar() {
       </div>
 
       {/* Quick actions + search (Attio-style) */}
-      <div className="flex items-center gap-1.5 px-2 pb-1">
+      <div className="flex items-center gap-1.5 px-2 pb-2">
         <button
           type="button"
           onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
@@ -313,6 +325,9 @@ export default function AppSidebar() {
           <Search />
         </button>
       </div>
+
+      {/* Divider */}
+      <div className="border-border-subtle mx-2 mb-1 border-b" />
 
       {isCloud ? (
         <WorkspaceSwitcher
@@ -477,6 +492,18 @@ export default function AppSidebar() {
   return (
     <>
       <CommandPalette />
+
+      {/* Floating expand control shown when the sidebar is collapsed (desktop) */}
+      {collapsed ? (
+        <div className="fixed top-3 left-2 z-40 hidden lg:block">
+          <IconButton
+            aria-label="Expand sidebar"
+            onClick={() => setCollapsed(false)}
+          >
+            <PanelLeft />
+          </IconButton>
+        </div>
+      ) : null}
 
       <div className="sticky top-0 z-30 flex h-12 w-full shrink-0 items-center justify-between border-b border-border-default bg-sidebar px-3 lg:hidden">
         <Link href="/local" className="flex items-center gap-2.5">

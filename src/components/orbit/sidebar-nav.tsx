@@ -52,10 +52,10 @@ export function SidebarNavItem({
       onClick={onClick}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "focus-ring text-ui-small group/nav flex h-7 w-full items-center gap-2 rounded-[var(--radius-control)] px-2 text-left [&_svg]:size-4",
+        "focus-ring text-ui-small group/nav flex h-7 w-full items-center gap-1.5 rounded-[var(--radius-control)] px-2 text-left [&_svg]:size-4",
         active
-          ? "bg-surface-hover [color:var(--content-primary)] font-[var(--weight-medium)]"
-          : "[color:var(--content-secondary)] hover:bg-surface-hover hover:[color:var(--content-primary)]",
+          ? "bg-black/[0.05] dark:bg-white/[0.07] [color:var(--content-primary)] font-[var(--weight-medium)]"
+          : "[color:var(--content-secondary)] hover:bg-black/[0.035] dark:hover:bg-white/[0.05] hover:[color:var(--content-primary)]",
         className
       )}
     >

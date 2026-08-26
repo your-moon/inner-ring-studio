@@ -16,7 +16,7 @@ export default function Kbd({
   return (
     <kbd
       className={cn(
-        "rounded border border-border bg-secondary/50 px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted-foreground",
+        "border-border-subtle bg-surface-panel inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[var(--radius-small)] border px-1 font-sans text-[11px] font-medium [color:var(--content-tertiary)]",
         className
       )}
     >

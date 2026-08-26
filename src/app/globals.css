@@ -559,10 +559,10 @@
     /* Type */
     --type-ui-micro: 11px;
     --type-ui-micro-line-height: 15px;
-    --type-ui-caption: 12px;
-    --type-ui-caption-line-height: 16px;
-    --type-ui-small: 13px;
-    --type-ui-small-line-height: 18px;
+    --type-ui-caption: 13px;
+    --type-ui-caption-line-height: 17px;
+    --type-ui-small: 14px;
+    --type-ui-small-line-height: 19px;
     --type-ui-default: 14px;
     --type-ui-default-line-height: 20px;
     --type-body-small: 14px;
