@@ -50,39 +50,61 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
     const field = useFieldControl();
     const merged = { ...field, ...props };
     const isInvalid = invalid || merged["aria-invalid"] === true;
+    const { onFocus, onBlur, ...inputProps } = merged;
+    const [focused, setFocused] = useState(false);
 
-    if (!leading && !trailing) {
-      return (
-        <input
-          ref={ref}
-          className={cn(fieldShell(isInvalid), FIELD_SIZES[size], "px-2.5", className)}
-          {...merged}
-        />
-      );
-    }
+    // crisp text-input recipe: Orbit sm/base → medium (32px), lg → large (36px).
+    const crispSize = size === "lg" ? "large" : "medium";
 
     return (
       <div
         className={cn(
-          fieldShell(isInvalid),
-          FIELD_SIZES[size],
-          "flex items-center gap-1.5 px-2.5 focus-within:border-border-focus focus-within:shadow-[var(--shadow-focus)]",
-          "has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50",
+          "seed-text-input__root seed-text-input__root--variant_outline",
+          `seed-text-input__root--variant_outline-size_${crispSize}`,
+          "w-full cursor-text has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50",
           className
         )}
+        data-focus={focused || undefined}
+        data-invalid={isInvalid || undefined}
+        data-disabled={merged.disabled || undefined}
       >
         {leading ? (
-          <span className="[color:var(--content-tertiary)] [&_svg]:size-[var(--icon-sm)]">
+          <span
+            className={cn(
+              "seed-text-input__prefixText",
+              `seed-text-input__prefixText--variant_outline-size_${crispSize}`,
+              "flex shrink-0 items-center [color:var(--content-tertiary)] [&_svg]:size-[var(--icon-sm)]"
+            )}
+          >
             {leading}
           </span>
         ) : null}
         <input
           ref={ref}
-          className="min-w-0 flex-1 bg-transparent [color:inherit] placeholder:[color:var(--content-tertiary)] focus:outline-none disabled:cursor-not-allowed"
-          {...merged}
+          className={cn(
+            "seed-text-input__value",
+            `seed-text-input__value--size_${crispSize}`,
+            `seed-text-input__value--variant_outline-size_${crispSize}`,
+            "w-full min-w-0 flex-1 bg-transparent outline-none placeholder:[color:var(--content-tertiary)]"
+          )}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
+          {...inputProps}
         />
         {trailing ? (
-          <span className="[color:var(--content-tertiary)] [&_svg]:size-[var(--icon-sm)]">
+          <span
+            className={cn(
+              "seed-text-input__suffixText",
+              `seed-text-input__suffixText--variant_outline-size_${crispSize}`,
+              "flex shrink-0 items-center [color:var(--content-tertiary)] [&_svg]:size-[var(--icon-sm)]"
+            )}
+          >
             {trailing}
           </span>
         ) : null}

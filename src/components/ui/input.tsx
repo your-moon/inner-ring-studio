@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -5,20 +7,45 @@ import { cn } from "@/lib/utils";
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-// The app-shell text input. Hairline border, indigo focus ring, soft motion —
-// matches the connection form and the rest of the Attio/Linear-family shell.
+/*
+ * The app-shell text input, rendered on the crisp design system's generated
+ * text-input recipe (src/styles/crisp/text-input.css — Attio-measured: 32px,
+ * 8px radius, 1px hairline at rest, 2px neutral-contrast ring on focus).
+ * The recipe's chrome lives on the root wrapper (::after keyed by data-focus /
+ * data-invalid); the ref still points at the real <input>.
+ */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, onFocus, onBlur, ...props }, ref) => {
+    const [focused, setFocused] = React.useState(false);
     return (
-      <input
-        type={type}
+      <div
         className={cn(
-          "u-smooth flex h-9 w-full rounded-md border border-input bg-card px-3 text-[14px] text-foreground outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50 file:border-0 file:bg-transparent file:text-sm file:font-medium",
+          "seed-text-input__root seed-text-input__root--variant_outline seed-text-input__root--variant_outline-size_medium",
+          "w-full cursor-text has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50",
           className
         )}
-        ref={ref}
-        {...props}
-      />
+        data-focus={focused || undefined}
+        data-disabled={props.disabled || undefined}
+      >
+        <input
+          type={type}
+          className={cn(
+            "seed-text-input__value seed-text-input__value--size_medium seed-text-input__value--variant_outline-size_medium",
+            "w-full min-w-0 bg-transparent outline-none placeholder:[color:var(--content-tertiary)]",
+            "file:border-0 file:bg-transparent file:text-sm file:font-medium"
+          )}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
+          ref={ref}
+          {...props}
+        />
+      </div>
     );
   }
 );
