@@ -6,6 +6,7 @@ import "./globals.css";
 // crisp design system (generated in the crisp repo; see src/styles/crisp/*).
 import "@/styles/crisp/tokens.css";
 import "@/styles/crisp/action-button.css";
+import "@/styles/crisp/text-input.css";
 
 const siteDescription = `${WEBSITE_NAME} is a fast, self-hosted database workspace — connect to your own PostgreSQL, browse and edit data in a grid, and run SQL, with connections stored in an encrypted vault.`;
 

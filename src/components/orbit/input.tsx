@@ -1,9 +1,30 @@
 import { cn } from "@/lib/utils";
 import { useMemo, useRef, useState } from "react";
 
-export const inputClasses = cn(
-  "bg-surface-canvas [color:var(--content-primary)] border-border-default focus:border-[var(--border-focus)] placeholder:[color:var(--content-tertiary)] disabled:cursor-not-allowed disabled:opacity-50 border transition-colors focus:outline-none"
-);
+/*
+ * The visual layer is the crisp design system's generated text-input recipe
+ * (src/styles/crisp/text-input.css, generated in the crisp repo from the
+ * Attio-measured token sources). This file maps the Orbit Input API onto the
+ * generated `.seed-text-input` classes; the border/focus/invalid chrome lives
+ * in the recipe (root ::after keyed by data-focus / data-invalid).
+ */
+
+// Orbit sm/base → crisp medium (32px); lg → large (36px).
+const CRISP_SIZE = { sm: "medium", base: "medium", lg: "large" } as const;
+
+const rootClasses = (size: "sm" | "base" | "lg") =>
+  cn(
+    "seed-text-input__root seed-text-input__root--variant_outline",
+    `seed-text-input__root--variant_outline-size_${CRISP_SIZE[size]}`,
+    "cursor-text has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50"
+  );
+
+const valueClasses = (size: "sm" | "base" | "lg") =>
+  cn(
+    "seed-text-input__value",
+    `seed-text-input__value--size_${CRISP_SIZE[size]}`,
+    `seed-text-input__value--variant_outline-size_${CRISP_SIZE[size]}`
+  );
 
 export type InputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -28,9 +49,12 @@ export const Input = ({
   preText,
   postText,
   size = "base",
+  onFocus,
+  onBlur,
   ...props
 }: InputProps) => {
   const [currentValue, setCurrentValue] = useState(initialValue ?? "");
+  const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useMemo(() => {
@@ -50,62 +74,45 @@ export const Input = ({
     }
   };
 
-  const handlePreTextInputClick = () => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
-
-  return preText ? (
+  return (
     <div
-      className={cn(
-        "has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 has-[:enabled]:active:border-[var(--border-focus)] has-[:focus]:border-[var(--border-focus)] flex cursor-text",
-        inputClasses,
-        {
-          "h-[26px] px-2 rounded-[var(--radius-control)] text-ui-small": size === "sm",
-          "h-8 px-2.5 rounded-[var(--radius-control)] text-ui-default": size === "base",
-          "h-9 px-3 rounded-[var(--radius-control)] text-ui-default": size === "lg",
-        },
-        className
-      )}
-      onClick={handlePreTextInputClick}
+      className={cn(rootClasses(size), className)}
+      data-focus={focused || undefined}
+      data-invalid={!isValid || undefined}
+      data-disabled={props.disabled || undefined}
+      onClick={() => inputRef.current?.focus()}
     >
-      <span className="[color:var(--content-secondary)] pointer-events-none mr-0.5 flex items-center gap-2 transition-colors select-none">
-        {preText}
-      </span>
+      {preText ? (
+        <span className="seed-text-input__prefix pointer-events-none flex select-none items-center gap-2 [color:var(--content-secondary)]">
+          {preText}
+        </span>
+      ) : null}
 
       <input
         className={cn(
-          "placeholder:[color:var(--content-tertiary)] w-full bg-transparent focus:outline-none",
-          {
-            "[color:var(--intent-danger)]": !isValid,
-          }
+          valueClasses(size),
+          "w-full min-w-0 bg-transparent focus:outline-none",
+          !isValid && "[color:var(--intent-danger)]"
         )}
         onChange={updateCurrentValue}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
         ref={inputRef}
         value={currentValue}
         {...props}
       />
 
-      <span className="[color:var(--content-secondary)] mr-0.5 flex items-center gap-2 transition-colors select-none">
-        {postText}
-      </span>
+      {postText ? (
+        <span className="seed-text-input__suffix flex select-none items-center gap-2 [color:var(--content-secondary)]">
+          {postText}
+        </span>
+      ) : null}
     </div>
-  ) : (
-    <input
-      className={cn(
-        inputClasses,
-        {
-          "[color:var(--intent-danger)] transition-colors": !isValid,
-          "h-[26px] px-2 rounded-[var(--radius-control)] text-ui-small": size === "sm",
-          "h-8 px-2.5 rounded-[var(--radius-control)] text-ui-default": size === "base",
-          "h-9 px-3 rounded-[var(--radius-control)] text-ui-default": size === "lg",
-        },
-        className
-      )}
-      onChange={updateCurrentValue}
-      value={currentValue}
-      {...props}
-    />
   );
 };
