@@ -31,6 +31,7 @@ export default function StorybookRootLayout({
             <SidebarMenuItem icon={Layers2} text="Button" href="/storybook/button" />
             <SidebarMenuItem icon={Layers2} text="Input & fields" href="/storybook/input" />
             <SidebarMenuItem icon={Layers2} text="Form controls" href="/storybook/form" />
+            <SidebarMenuItem icon={Layers2} text="Select" href="/storybook/select" />
             <SidebarMenuItem icon={Layers2} text="Menus & overlays" href="/storybook/overlays" />
             <SidebarMenuItem icon={Layers2} text="Collection table" href="/storybook/table" />
             <SidebarMenuItem icon={Layers2} text="Patterns: record & controls" href="/storybook/attio" />
