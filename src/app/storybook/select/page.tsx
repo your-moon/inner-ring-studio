@@ -4,6 +4,7 @@ import Block from "@/components/orbit/block";
 import Inset from "@/components/orbit/inset";
 import Section from "@/components/orbit/section";
 import { Select } from "@/components/orbit/select";
+import { Combobox, MultiSelect } from "@/components/orbit/combobox";
 import {
   Select as CrispSelect,
   SelectContent,
@@ -25,6 +26,8 @@ const dbs = [
 
 export default function SelectStorybook() {
   const [value, setValue] = useState(dbs[0].value);
+  const [comboValue, setComboValue] = useState<string | null>(null);
+  const [multiValue, setMultiValue] = useState<string[]>([]);
 
   return (
     <Section>
@@ -48,6 +51,30 @@ export default function SelectStorybook() {
             value={value}
             size="lg"
           />
+        </Block>
+
+        <Block title="Searchable select (Combobox) — Attio's attribute-picker pattern: 40px search row over a hairline divider, filtered 32px rows">
+          <div className="max-w-[240px]">
+            <Combobox
+              options={dbs}
+              value={comboValue}
+              onChange={setComboValue}
+              placeholder="Pick a database"
+              searchPlaceholder="Search databases…"
+            />
+          </div>
+        </Block>
+
+        <Block title="Searchable multi-select — chips in the trigger, checkboxes in the list">
+          <div className="max-w-[320px]">
+            <MultiSelect
+              options={dbs}
+              value={multiValue}
+              onChange={setMultiValue}
+              placeholder="Pick databases"
+              searchPlaceholder="Search databases…"
+            />
+          </div>
         </Block>
 
         <Block title="Crisp select (Radix) — trigger is the crisp input box, menu is the crisp menu recipe">
