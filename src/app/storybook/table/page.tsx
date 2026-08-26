@@ -25,7 +25,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 
 /*
  * Attio collection & table — a feature-complete, exact-spec clone (no DB).
@@ -223,6 +223,46 @@ function Popover({
 
 const menuItem =
   "text-ui-small flex h-8 w-full items-center gap-2 rounded-[6px] px-2 text-left [color:var(--content-secondary)] hover:bg-surface-hover hover:[color:var(--content-primary)] [&_svg]:size-3.5";
+
+/* ------------------------------------------------------------ ColumnHeaderCell */
+
+/**
+ * Slot-based table column header — left icon · label · right action.
+ * Compose any leading icon, label (typically a sort button), and a trailing
+ * action control (a menu chevron). `overlay` renders inside the cell's relative
+ * box so a column popover anchors to the cell, not the action. An optional
+ * resize grip lives on the right edge.
+ */
+function ColumnHeaderCell({
+  leftIcon,
+  label,
+  action,
+  overlay,
+  onResizeStart,
+}: {
+  leftIcon?: ReactNode;
+  label: ReactNode;
+  action?: ReactNode;
+  overlay?: ReactNode;
+  onResizeStart?: (e: React.MouseEvent) => void;
+}) {
+  return (
+    <div className="group/th border-border-subtle relative flex h-full items-center gap-1 border-r px-2">
+      {leftIcon ? (
+        <span className="shrink-0 [color:var(--content-tertiary)] [&_svg]:size-3.5">{leftIcon}</span>
+      ) : null}
+      <div className="flex min-w-0 grow items-center">{label}</div>
+      {action}
+      {overlay}
+      {onResizeStart ? (
+        <span
+          onMouseDown={onResizeStart}
+          className="absolute top-0 right-0 z-20 h-full w-1 cursor-col-resize hover:bg-[var(--content-link)]/40"
+        />
+      ) : null}
+    </div>
+  );
+}
 
 /* --------------------------------------------------------------- record page */
 
@@ -636,59 +676,57 @@ export default function AttioTablePage() {
             </div>
             {columns.map((c) => {
               const s = sortOf(c.key);
+              const menuOpen = typeof pop === "object" && pop && "colmenu" in pop && pop.colmenu === c.key;
               return (
-                <div
+                <ColumnHeaderCell
                   key={c.key}
-                  className="group/th border-border-subtle relative flex h-full items-center gap-1 border-r px-2"
-                >
-                  <c.icon className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
-                  <button
-                    type="button"
-                    onClick={() => cycleSort(c.key)}
-                    className={cn(
-                      "flex grow items-center gap-1 truncate text-[13px] font-medium [color:var(--content-tertiary)]",
-                      s && "[color:var(--content-secondary)]"
-                    )}
-                  >
-                    {c.label}
-                    {s ? s.dir === "asc" ? <SortAsc className="size-3" /> : <SortDesc className="size-3" /> : null}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPop({ colmenu: c.key })}
-                    className={cn(
-                      "grid size-5 shrink-0 place-items-center rounded-[4px] hover:bg-surface-hover [color:var(--content-tertiary)] [&_svg]:size-3.5",
-                      typeof pop === "object" && pop && "colmenu" in pop && pop.colmenu === c.key
-                        ? "opacity-100"
-                        : "opacity-0 group-hover/th:opacity-100"
-                    )}
-                  >
-                    <ChevronDown />
-                  </button>
-                  {/* column menu */}
-                  {typeof pop === "object" && pop && "colmenu" in pop && pop.colmenu === c.key ? (
-                    <Popover onClose={() => setPop(null)} className="top-[calc(100%+2px)] left-0 w-[200px]">
-                      <button type="button" className={menuItem} onClick={() => { setSorts([{ key: c.key, dir: "asc" }]); setPop(null); }}>
-                        <SortAsc /> Sort ascending
-                      </button>
-                      <button type="button" className={menuItem} onClick={() => { setSorts([{ key: c.key, dir: "desc" }]); setPop(null); }}>
-                        <SortDesc /> Sort descending
-                      </button>
-                      <button type="button" className={menuItem} onClick={() => { setFilters((a) => [...a, { key: c.key, value: "" }]); setPop("filter"); }}>
-                        <Filter /> Filter by this column
-                      </button>
-                      <div className="my-1 h-px bg-[var(--border-subtle)]" />
-                      <button type="button" className={menuItem} onClick={() => { setHidden((h) => new Set(h).add(c.key)); setPop(null); }}>
-                        <EyeOff /> Hide column
-                      </button>
-                    </Popover>
-                  ) : null}
-                  {/* resize handle */}
-                  <span
-                    onMouseDown={(e) => onResizeStart(c.key, e)}
-                    className="absolute top-0 right-0 z-20 h-full w-1 cursor-col-resize hover:bg-[var(--content-link)]/40"
-                  />
-                </div>
+                  leftIcon={<c.icon />}
+                  onResizeStart={(e) => onResizeStart(c.key, e)}
+                  label={
+                    <button
+                      type="button"
+                      onClick={() => cycleSort(c.key)}
+                      className={cn(
+                        "flex grow items-center gap-1 truncate text-[13px] font-medium [color:var(--content-tertiary)]",
+                        s && "[color:var(--content-secondary)]"
+                      )}
+                    >
+                      {c.label}
+                      {s ? s.dir === "asc" ? <SortAsc className="size-3" /> : <SortDesc className="size-3" /> : null}
+                    </button>
+                  }
+                  action={
+                    <button
+                      type="button"
+                      onClick={() => setPop({ colmenu: c.key })}
+                      className={cn(
+                        "grid size-5 shrink-0 place-items-center rounded-[4px] hover:bg-surface-hover [color:var(--content-tertiary)] [&_svg]:size-3.5",
+                        menuOpen ? "opacity-100" : "opacity-0 group-hover/th:opacity-100"
+                      )}
+                    >
+                      <ChevronDown />
+                    </button>
+                  }
+                  overlay={
+                    menuOpen ? (
+                      <Popover onClose={() => setPop(null)} className="top-[calc(100%+2px)] left-0 w-[200px]">
+                        <button type="button" className={menuItem} onClick={() => { setSorts([{ key: c.key, dir: "asc" }]); setPop(null); }}>
+                          <SortAsc /> Sort ascending
+                        </button>
+                        <button type="button" className={menuItem} onClick={() => { setSorts([{ key: c.key, dir: "desc" }]); setPop(null); }}>
+                          <SortDesc /> Sort descending
+                        </button>
+                        <button type="button" className={menuItem} onClick={() => { setFilters((a) => [...a, { key: c.key, value: "" }]); setPop("filter"); }}>
+                          <Filter /> Filter by this column
+                        </button>
+                        <div className="my-1 h-px bg-[var(--border-subtle)]" />
+                        <button type="button" className={menuItem} onClick={() => { setHidden((h) => new Set(h).add(c.key)); setPop(null); }}>
+                          <EyeOff /> Hide column
+                        </button>
+                      </Popover>
+                    ) : null
+                  }
+                />
               );
             })}
             <div className="border-border-subtle h-full border-r" />
