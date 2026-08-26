@@ -3,30 +3,40 @@ import { cn } from "@/lib/utils";
 import Link, { type LinkProps } from "next/link";
 import type { ButtonHTMLAttributes, ElementType, ReactNode } from "react";
 
+/*
+ * The visual layer is the crisp design system's generated ActionButton recipe
+ * (src/styles/crisp/action-button.css, generated in the crisp repo from the
+ * Attio-measured token sources). This file only maps the Orbit Button API onto
+ * the generated `.seed-action-button` classes — no styling is authored here.
+ */
 const BUTTON_VARIANTS = {
-  primary:
-    "border-primary bg-primary [color:var(--primary-foreground)] shadow-[var(--shadow-raised)] hover:border-[var(--primary-hover)] hover:bg-[var(--primary-hover)]",
-  secondary:
-    "border-border-default bg-surface-raised [color:var(--content-primary)] shadow-[var(--shadow-raised)] hover:border-border-strong hover:bg-surface-hover",
-  ghost:
-    "border-transparent bg-transparent [color:var(--content-secondary)] hover:bg-surface-hover hover:[color:var(--content-primary)]",
-  destructive:
-    "border-intent-danger bg-intent-danger [color:var(--content-inverse)] shadow-[var(--shadow-raised)] hover:brightness-105",
+  primary: "seed-action-button--variant_brandSolid",
+  secondary: "seed-action-button--variant_neutralOutline",
+  ghost: "seed-action-button--variant_ghost",
+  destructive: "seed-action-button--variant_criticalSolid",
 } as const;
 
-const BUTTON_TOGGLED_VARIANTS = {
-  primary: "border-[var(--primary-hover)] bg-[var(--primary-hover)]",
-  secondary: "border-border-strong bg-surface-selected",
-  ghost:
-    "border-border-subtle bg-surface-selected [color:var(--content-primary)]",
-  destructive: "brightness-105",
-} as const;
-
+// Orbit sm/base/lg → crisp small(28) / medium(32) / large(36).
 const BUTTON_SIZES = {
-  sm: "h-7 gap-1.5 px-2.5 text-ui-small [line-height:var(--type-ui-small-line-height)] [&_svg]:size-[var(--icon-sm)]",
-  base:
-    "h-8 gap-1.5 px-3 text-ui-default [line-height:var(--type-ui-default-line-height)] [&_svg]:size-[var(--icon-md)]",
-  lg: "h-9 gap-2 px-3.5 text-ui-default [line-height:var(--type-ui-default-line-height)] [&_svg]:size-[var(--icon-md)]",
+  sm: "seed-action-button--size_small [&_svg]:size-[var(--icon-sm)]",
+  base: "seed-action-button--size_medium [&_svg]:size-[var(--icon-md)]",
+  lg: "seed-action-button--size_large [&_svg]:size-[var(--icon-md)]",
+} as const;
+
+// qvism emits size×layout compounds as single concatenated classes.
+const CRISP_SIZE = { sm: "small", base: "medium", lg: "large" } as const;
+const crispLayout = (shape: "base" | "square") =>
+  shape === "square" ? "iconOnly" : "withText";
+const crispCompound = (size: ButtonSize, shape: "base" | "square") =>
+  `seed-action-button--layout_${crispLayout(shape)} seed-action-button--size_${CRISP_SIZE[size]}-layout_${crispLayout(shape)}`;
+
+// Persistent "on" state — the recipe's pressed styles key off aria-pressed,
+// this adds the selected surface for the quiet variants.
+const BUTTON_TOGGLED_VARIANTS = {
+  primary: "brightness-[1.06]",
+  secondary: "!bg-surface-selected",
+  ghost: "!bg-surface-selected [color:var(--content-primary)]",
+  destructive: "brightness-[1.06]",
 } as const;
 
 export type ButtonVariant = keyof typeof BUTTON_VARIANTS;
@@ -125,14 +135,14 @@ export function Button({
 }: ButtonProps) {
   const isDisabled = disabled || loading;
   const classes = cn(
-    "focus-ring press relative inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] border font-[var(--weight-medium)] select-none",
-    "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-    "data-[loading=true]:opacity-100",
-    "aria-disabled:pointer-events-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
+    "seed-action-button relative shrink-0",
     BUTTON_VARIANTS[variant],
     BUTTON_SIZES[size],
+    crispCompound(size, shape),
+    // Link-mode disabling is aria-only; native buttons get :disabled from crisp.
+    "aria-disabled:pointer-events-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
+    "data-[loading=true]:opacity-100",
     toggled && BUTTON_TOGGLED_VARIANTS[variant],
-    shape === "square" && "aspect-square px-0",
     className,
   );
   const content = (
