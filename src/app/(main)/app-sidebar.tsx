@@ -30,6 +30,7 @@ import {
   AlertDialogContent,
   Chip,
   IconButton,
+  SidebarNavItem,
   StatusDot,
 } from "@/components/orbit";
 import { WEBSITE_NAME } from "@/const";
@@ -58,8 +59,8 @@ interface CloudLinkState {
 
 function BrandMark() {
   return (
-    <span className="border-foreground/70 grid h-5 w-5 shrink-0 place-items-center rounded-md border">
-      <span className="bg-foreground/75 h-1.5 w-1.5 rounded-full" />
+    <span className="border-border-strong grid h-5 w-5 shrink-0 place-items-center rounded-md border">
+      <span className="h-1.5 w-1.5 rounded-full bg-[var(--content-primary)]" />
     </span>
   );
 }
@@ -72,8 +73,8 @@ function SectionLabel({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mt-5 mb-1 flex h-6 items-center justify-between px-4">
-      <span className="text-muted-foreground text-[11px] font-medium">
+    <div className="mt-5 mb-1 flex h-7 items-center justify-between px-3">
+      <span className="text-ui-small font-[var(--weight-medium)] [color:var(--content-tertiary)]">
         {children}
       </span>
       {action}
@@ -97,21 +98,19 @@ function NavRow({
   external?: boolean;
 }) {
   return (
-    <Link
-      href={href}
-      target={external ? "_blank" : undefined}
-      aria-current={selected ? "page" : undefined}
-      className={cn(
-        "u-smooth mx-3 flex h-7 items-center gap-2 rounded-md px-2 text-[13px]",
-        selected
-          ? "bg-secondary font-medium text-foreground"
-          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-      )}
-    >
-      <Icon size={15} className="shrink-0" />
-      <span className="min-w-0 flex-1 truncate">{label}</span>
-      {suffix}
-    </Link>
+    <SidebarNavItem
+      icon={<Icon />}
+      label={label}
+      active={selected}
+      count={suffix}
+      href={external ? undefined : href}
+      onClick={
+        external
+          ? () => window.open(href, "_blank", "noopener")
+          : undefined
+      }
+      className="mx-1"
+    />
   );
 }
 
@@ -284,10 +283,10 @@ export default function AppSidebar() {
       aria-label="Application navigation"
       className="bg-sidebar flex h-full min-h-0 w-[244px] flex-col"
     >
-      <div className="flex h-12 shrink-0 items-center gap-2 px-3">
+      <div className="flex h-12 shrink-0 items-center gap-2 px-3 lg:mt-2">
         <Link href="/local" className="flex min-w-0 flex-1 items-center gap-2.5">
           <BrandMark />
-          <span className="truncate text-[13px] font-semibold tracking-tight">
+          <span className="text-ui-small truncate font-semibold tracking-tight">
             {WEBSITE_NAME}
           </span>
         </Link>
@@ -351,13 +350,11 @@ export default function AppSidebar() {
 
         <SectionLabel
           action={
-            <Link
-              href="/connections/new"
-              aria-label="New connection"
-              className="u-smooth press grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
-            >
-              <Plus />
-            </Link>
+            <IconButton aria-label="New connection" size="sm" asChild>
+              <Link href="/connections/new">
+                <Plus />
+              </Link>
+            </IconButton>
           }
         >
           Connections
@@ -373,7 +370,7 @@ export default function AppSidebar() {
                   <button
                     onClick={() => toggleFolder(folder)}
                     aria-expanded={!collapsed}
-                    className="u-smooth group text-muted-foreground hover:text-foreground flex h-7 w-full items-center gap-1.5 px-4 text-left text-[11px] font-medium"
+                    className="text-ui-small flex h-7 w-full items-center gap-1.5 px-3 text-left font-[var(--weight-medium)] [color:var(--content-tertiary)] hover:[color:var(--content-secondary)]"
                   >
                     {collapsed ? (
                       <CaretRight size={11} weight="bold" />
@@ -403,7 +400,7 @@ export default function AppSidebar() {
           {(connectionData?.connections.length ?? 0) === 0 && (
             <Link
               href="/connections/new"
-              className="mx-3 flex items-center gap-2 rounded-md border border-dashed border-border px-2.5 py-2 text-[12px] text-muted-foreground hover:bg-secondary hover:text-foreground"
+              className="text-ui-caption mx-3 flex items-center gap-2 rounded-[var(--radius-control)] border border-dashed border-border-default px-2.5 py-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
             >
               <Plus size={14} /> Add your first connection
             </Link>
@@ -425,7 +422,7 @@ export default function AppSidebar() {
         {linked && !cloudSignedIn && (
           <button
             onClick={connectCloud}
-            className="u-smooth mx-2 flex h-8 w-[calc(100%-1rem)] items-center gap-2 rounded-md px-2 text-[12px] text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="text-ui-caption mx-2 flex h-8 w-[calc(100%-1rem)] items-center gap-2 rounded-[var(--radius-control)] px-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
           >
             <CloudArrowUp size={15} />
             <span className="flex-1 text-left">Connect to Cloud</span>
@@ -435,7 +432,7 @@ export default function AppSidebar() {
         {cloudSignedIn && !isCloud && (
           <button
             onClick={disconnectCloud}
-            className="u-smooth group mx-2 flex h-8 w-[calc(100%-1rem)] items-center gap-2 rounded-md px-2 text-[12px] text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="text-ui-caption group mx-2 flex h-8 w-[calc(100%-1rem)] items-center gap-2 rounded-[var(--radius-control)] px-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
             title="Disconnect from Cloud"
           >
             <StatusDot status="live" />
@@ -449,14 +446,14 @@ export default function AppSidebar() {
             <Link
               href="/account"
               className={cn(
-                "u-smooth flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md px-2 hover:bg-secondary",
-                pathname === "/account" && "bg-secondary"
+                "flex h-9 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-2 hover:bg-surface-hover",
+                pathname === "/account" && "bg-surface-hover"
               )}
             >
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-secondary text-[10px] font-semibold text-foreground">
+              <span className="text-ui-caption grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-control)] bg-surface-hover font-semibold [color:var(--content-primary)]">
                 {(auth.email ?? "?").slice(0, 1).toUpperCase()}
               </span>
-              <span className="min-w-0 flex-1 truncate text-[12px] text-muted-foreground">
+              <span className="text-ui-caption min-w-0 flex-1 truncate [color:var(--content-tertiary)]">
                 {auth.email}
               </span>
             </Link>
@@ -467,7 +464,7 @@ export default function AppSidebar() {
         )}
 
         {!isCloud && !cloudSignedIn && (
-          <div className="flex h-8 items-center gap-2 px-3 text-[11.5px] text-muted-foreground">
+          <div className="text-ui-caption flex h-8 items-center gap-2 px-3 [color:var(--content-tertiary)]">
             <User size={14} />
             <span>Local workspace</span>
           </div>
@@ -480,10 +477,10 @@ export default function AppSidebar() {
     <>
       <CommandPalette />
 
-      <div className="sticky top-0 z-30 flex h-12 w-full shrink-0 items-center justify-between border-b border-border bg-sidebar px-3 lg:hidden">
+      <div className="sticky top-0 z-30 flex h-12 w-full shrink-0 items-center justify-between border-b border-border-default bg-sidebar px-3 lg:hidden">
         <Link href="/local" className="flex items-center gap-2.5">
           <BrandMark />
-          <span className="text-[13px] font-semibold">{WEBSITE_NAME}</span>
+          <span className="text-ui-small font-semibold">{WEBSITE_NAME}</span>
         </Link>
         <IconButton
           aria-label="Open navigation"
@@ -503,7 +500,7 @@ export default function AppSidebar() {
 
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 -translate-x-full border-r border-border shadow-xl transition-transform duration-200 ease-out lg:relative lg:z-0 lg:translate-x-0 lg:shadow-none",
+          "fixed inset-y-0 left-0 z-50 -translate-x-full border-r border-border-default shadow-xl transition-transform duration-200 ease-out lg:relative lg:z-0 lg:translate-x-0 lg:shadow-none",
           mobileOpen && "translate-x-0"
         )}
       >

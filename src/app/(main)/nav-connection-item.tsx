@@ -44,7 +44,7 @@ export default function NavConnectionItem({
       <CircleNotch
         size={12}
         weight="bold"
-        className="animate-spin text-muted-foreground"
+        className="animate-spin [color:var(--content-tertiary)]"
       />
     </span>
   ) : connected ? (
@@ -53,7 +53,10 @@ export default function NavConnectionItem({
       className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"
     />
   ) : (
-    <span title="Idle" className="inline-block h-1.5 w-1.5 rounded-full bg-border" />
+    <span
+      title="Idle"
+      className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--border-strong)]"
+    />
   );
   return (
     <ContextMenu>
@@ -63,10 +66,10 @@ export default function NavConnectionItem({
           onClick={() => onOpen?.(conn.id)}
           aria-current={selected ? "page" : undefined}
           className={cn(
-            "u-smooth group mx-3 flex h-7 items-center gap-2 rounded-md px-2 text-[12.5px]",
+            "focus-ring text-ui-small group mx-1 flex h-7 items-center gap-2 rounded-[var(--radius-control)] px-2",
             selected
-              ? "bg-secondary font-medium text-foreground"
-              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              ? "bg-surface-hover font-[var(--weight-medium)] [color:var(--content-primary)]"
+              : "[color:var(--content-secondary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
           )}
         >
           <Database size={14} className="shrink-0 opacity-75" />
@@ -76,7 +79,7 @@ export default function NavConnectionItem({
         </Link>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <div className="px-2 py-1.5 text-xs text-muted-foreground">
+        <div className="px-2 py-1.5 text-xs [color:var(--content-tertiary)]">
           {connected ? "Connected" : "Not connected"}
         </div>
         <ContextMenuSeparator />
