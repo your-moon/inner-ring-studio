@@ -9,6 +9,7 @@ import {
   LabelRow,
   SettingsList,
   SettingsListHeader,
+  StatusEditorPanel,
   StatusTypeSection,
   TemplateRow,
   WorkflowStatusRow,
@@ -120,20 +121,25 @@ export default function LinearSettingsStorybook() {
 
       <CatalogSection
         title="Workflow statuses"
-        description="Statuses grouped by type; each row is a shape-first icon + name, draggable."
+        description="Linear's current card editor: a 640px / 10px-radius panel of type sections; each status is a 36px raised card (6px radius) with a shape-first icon, draggable."
       >
-        <div className="border-border-default bg-surface-panel flex flex-col gap-5 rounded-[var(--radius-panel)] border px-4 py-4">
+        <StatusEditorPanel>
+          <StatusTypeSection type="backlog" onAdd={() => {}}>
+            <WorkflowStatusRow name="Backlog" status="backlog" count={12} />
+          </StatusTypeSection>
           <StatusTypeSection type="unstarted" onAdd={() => {}}>
-            <WorkflowStatusRow name="Todo" status="todo" count={4} actions={rowActions} />
-            <WorkflowStatusRow name="Backlog" status="backlog" count={12} actions={rowActions} />
+            <WorkflowStatusRow name="Todo" status="todo" count={4} />
           </StatusTypeSection>
           <StatusTypeSection type="started" onAdd={() => {}}>
-            <WorkflowStatusRow name="In Progress" status="started" description="Actively worked on" count={3} actions={rowActions} />
+            <WorkflowStatusRow name="In Progress" status="started" description="Actively worked on" count={3} />
           </StatusTypeSection>
           <StatusTypeSection type="completed" onAdd={() => {}}>
-            <WorkflowStatusRow name="Done" status="done" count={87} actions={rowActions} />
+            <WorkflowStatusRow name="Done" status="done" count={87} />
           </StatusTypeSection>
-        </div>
+          <StatusTypeSection type="cancelled" onAdd={() => {}}>
+            <WorkflowStatusRow name="Canceled" status="cancelled" count={9} />
+          </StatusTypeSection>
+        </StatusEditorPanel>
       </CatalogSection>
 
       <CatalogSection

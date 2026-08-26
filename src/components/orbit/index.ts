@@ -356,6 +356,7 @@ export {
   StatusTypeBadge,
   WorkflowStatusRow,
   StatusTypeSection,
+  StatusEditorPanel,
 } from "./statuses-admin";
 export type { StatusType, WorkflowStatusRowProps } from "./statuses-admin";
 export {

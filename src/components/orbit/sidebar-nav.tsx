@@ -54,7 +54,7 @@ export function SidebarNavItem({
       className={cn(
         "focus-ring text-ui-small group/nav flex h-7 w-full items-center gap-2 rounded-[var(--radius-control)] px-2 text-left [&_svg]:size-4",
         active
-          ? "bg-surface-selected [color:var(--content-primary)] font-[var(--weight-medium)]"
+          ? "bg-surface-hover [color:var(--content-primary)] font-[var(--weight-medium)]"
           : "[color:var(--content-secondary)] hover:bg-surface-hover hover:[color:var(--content-primary)]",
         className
       )}
