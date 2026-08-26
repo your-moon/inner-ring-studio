@@ -1499,16 +1499,29 @@
   }
 }
 
-/* Consistent custom chevron for our native <select> fields — the OS arrow
-   ignores padding and crowds the edge; this replaces it with proper spacing. */
+/* Native <select> fields, crisp-styled: same box as the crisp text-input
+   trigger (32px, 8px radius, hairline inset ring, 2px contrast ring on focus)
+   plus a custom chevron — the OS arrow ignores padding and crowds the edge. */
 .irs-select {
   appearance: none;
   -webkit-appearance: none;
+  height: var(--seed-dimension-x8);
+  border: none;
+  border-radius: var(--seed-radius-r2);
+  background-color: var(--seed-color-bg-layer-default);
+  box-shadow: inset 0 0 0 1px var(--seed-color-stroke-neutral-weak);
+  color: var(--seed-color-fg-neutral);
+  font-size: var(--seed-font-size-t4);
+  padding-left: var(--seed-dimension-x2_5);
+  padding-right: 2rem;
+  outline: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.625rem center;
   background-size: 1rem;
-  padding-right: 2rem;
+}
+.irs-select:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--seed-color-stroke-neutral-contrast);
 }
 
 /* crisp glue: Radix marks keyboard-highlighted menu items with data-highlighted;
