@@ -365,6 +365,22 @@ export {
   TemplateRow,
 } from "./settings-list";
 export type { TemplateRowProps } from "./settings-list";
+export {
+  EditorToolbarButton,
+  FloatingFormatToolbar,
+  ToolbarDivider,
+  LinkPopover,
+  EditorPlaceholder,
+  BlockHandle,
+} from "./editor";
+export type { EditorToolbarButtonProps } from "./editor";
+export {
+  QuoteBlock,
+  ToggleBlock,
+  TodoItem,
+  ListBlock,
+  CodeBlockHeader,
+} from "./editor-blocks";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
