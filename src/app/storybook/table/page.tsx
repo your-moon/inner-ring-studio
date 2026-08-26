@@ -7,6 +7,7 @@ import {
   Calendar,
   Check,
   ChevronDown,
+  ChevronLeft,
   Download,
   EyeOff,
   Filter,
@@ -24,7 +25,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 /*
  * Attio collection & table — a feature-complete, exact-spec clone (no DB).
@@ -223,15 +224,15 @@ function Popover({
 const menuItem =
   "text-ui-small flex h-8 w-full items-center gap-2 rounded-[6px] px-2 text-left [color:var(--content-secondary)] hover:bg-surface-hover hover:[color:var(--content-primary)] [&_svg]:size-3.5";
 
-/* ---------------------------------------------------------------- record peek */
+/* --------------------------------------------------------------- record page */
 
-function RecordPeek({ row, onClose }: { row: Row; onClose: () => void }) {
+/**
+ * Full record PAGE (matches Attio: clicking a row opens a whole page, not a
+ * drawer). Breadcrumb + back, record header with Overview/Activity tabs, a
+ * ~320px Record Details rail, and the main content column.
+ */
+function RecordView({ row, onClose }: { row: Row; onClose: () => void }) {
   const [tab, setTab] = useState<"overview" | "activity">("overview");
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setShown(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
   const fields: [React.ComponentType<{ className?: string }>, string, string][] = [
     [Globe, "Domain", row.Domain],
     [Users, "Employees", row.Employees.toLocaleString()],
@@ -240,31 +241,31 @@ function RecordPeek({ row, onClose }: { row: Row; onClose: () => void }) {
     [Building2, "Categories", "Search · Advertising · Cloud"],
   ];
   return (
-    <>
-      {/* transparent click-catcher: the table stays visible behind the peek */}
-      <div className="absolute inset-0 z-40" onClick={onClose} />
-      <aside
-        className={cn(
-          "bg-surface-panel border-border-subtle absolute inset-y-0 right-0 z-50 flex w-[420px] flex-col border-l shadow-[var(--shadow-menu)] transition-transform duration-[var(--motion-default)] [transition-timing-function:var(--ease-out)]",
-          shown ? "translate-x-0" : "translate-x-full"
-        )}
-      >
-        <div className="border-border-subtle flex h-[52px] items-center gap-2 border-b px-3">
-          <span className="bg-surface-hover grid size-6 place-items-center rounded-[6px] text-[12px] font-semibold [color:var(--content-secondary)]">
-            {row.Company.slice(0, 1)}
-          </span>
-          <span className="text-[16px] font-[var(--weight-semibold)] [color:var(--content-primary)]">
-            {row.Company}
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="hover:bg-surface-hover ml-auto grid size-7 place-items-center rounded-[8px] [color:var(--content-tertiary)] [&_svg]:size-4"
-          >
-            <X />
-          </button>
-        </div>
-        <div className="flex items-center gap-1 px-3 pt-2">
+    <div className="bg-surface-panel flex h-screen flex-col">
+      {/* breadcrumb / back */}
+      <header className="border-border-subtle flex h-[49px] shrink-0 items-center gap-1 border-b px-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="hover:bg-surface-hover grid size-7 place-items-center rounded-[8px] [color:var(--content-tertiary)] [&_svg]:size-4"
+          aria-label="Back to Companies"
+        >
+          <ChevronLeft />
+        </button>
+        <button type="button" onClick={onClose} className="text-ui-small hover:[color:var(--content-primary)] [color:var(--content-tertiary)]">
+          Companies
+        </button>
+        <span className="text-ui-small [color:var(--content-tertiary)]">/</span>
+        <span className="text-ui-small [color:var(--content-primary)]">{row.Company}</span>
+      </header>
+
+      {/* record header + tabs */}
+      <div className="border-border-subtle flex h-[56px] shrink-0 items-center gap-2 border-b px-4">
+        <span className="bg-surface-hover grid size-7 place-items-center rounded-[8px] text-[13px] font-semibold [color:var(--content-secondary)]">
+          {row.Company.slice(0, 1)}
+        </span>
+        <span className="text-[16px] font-[var(--weight-semibold)] [color:var(--content-primary)]">{row.Company}</span>
+        <div className="ml-4 flex items-center gap-1">
           {(["overview", "activity"] as const).map((t) => (
             <button
               key={t}
@@ -281,22 +282,39 @@ function RecordPeek({ row, onClose }: { row: Row; onClose: () => void }) {
             </button>
           ))}
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      </div>
+
+      {/* body: 320px detail rail + main content */}
+      <div className="flex min-h-0 flex-1">
+        <aside className="border-border-subtle w-[320px] shrink-0 overflow-y-auto border-r p-4">
           <div className="text-ui-caption mb-2 font-[var(--weight-medium)] [color:var(--content-tertiary)]">
             Record Details
           </div>
+          <div className="flex flex-col">
+            {fields.map(([Icon, label, value]) => (
+              <div key={label} className="flex h-9 items-center gap-2 rounded-[6px] px-1 hover:bg-surface-hover">
+                <Icon className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
+                <span className="text-ui-small w-[92px] shrink-0 [color:var(--content-tertiary)]">{label}</span>
+                <span className="text-ui-small truncate [color:var(--content-primary)]">{value}</span>
+              </div>
+            ))}
+          </div>
+        </aside>
+        <main className="min-w-0 flex-1 overflow-y-auto p-6">
           {tab === "overview" ? (
-            <div className="flex flex-col">
-              {fields.map(([Icon, label, value]) => (
-                <div key={label} className="flex h-9 items-center gap-2 rounded-[6px] px-1 hover:bg-surface-hover">
-                  <Icon className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
-                  <span className="text-ui-small w-[92px] shrink-0 [color:var(--content-tertiary)]">{label}</span>
-                  <span className="text-ui-small truncate [color:var(--content-primary)]">{value}</span>
-                </div>
-              ))}
+            <div className="max-w-[640px]">
+              <div className="text-ui-caption mb-2 font-[var(--weight-medium)] [color:var(--content-tertiary)]">
+                Overview
+              </div>
+              <p className="text-ui-default [color:var(--content-secondary)]">
+                {row.Company} — founded {row.Founded}, {row.Employees.toLocaleString()} employees,
+                headquartered in {row.Location}. This is the record page: the Record Details rail on
+                the left holds attributes; the main column carries the summary and, under Activity,
+                the timeline of emails, notes and tasks.
+              </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-3 pt-1">
+            <div className="flex max-w-[640px] flex-col gap-3">
               {["Email · Re: Partnership", "Note · Kickoff call", "Task · Send proposal"].map((a) => (
                 <div key={a} className="text-ui-small flex items-center gap-2 [color:var(--content-secondary)]">
                   <span className="size-1.5 rounded-full bg-[var(--content-tertiary)]" />
@@ -305,9 +323,9 @@ function RecordPeek({ row, onClose }: { row: Row; onClose: () => void }) {
               ))}
             </div>
           )}
-        </div>
-      </aside>
-    </>
+        </main>
+      </div>
+    </div>
   );
 }
 
@@ -437,8 +455,11 @@ export default function AttioTablePage() {
 
   const sortOf = (key: ColKey) => sorts.find((s) => s.key === key);
 
+  // Clicking a row opens a full record PAGE (like Attio), replacing the table.
+  if (peek) return <RecordView row={peek} onClose={() => setPeek(null)} />;
+
   return (
-    <div className="bg-surface-panel relative flex h-screen flex-col overflow-hidden">
+    <div className="bg-surface-panel relative flex h-screen flex-col overflow-hidden [letter-spacing:-0.01em]">
       {/* Bar 1 — view header */}
       <header className="border-border-subtle flex h-[49px] shrink-0 items-center gap-2 border-b px-3">
         <span className="text-ui-default font-[var(--weight-semibold)] [color:var(--content-primary)]">
@@ -552,6 +573,9 @@ export default function AttioTablePage() {
             </Popover>
           ) : null}
         </div>
+
+        {/* vertical divider between the sort and filter groups (Attio: 1px×20px #EEEFF1) */}
+        <div className="mx-0.5 h-5 w-px bg-[rgb(238,239,241)] dark:bg-[rgba(255,255,255,0.1)]" />
 
         <div className="relative">
           <GhostChip active={pop === "filter" || filters.length > 0} onClick={() => setPop(pop === "filter" ? null : "filter")}>
@@ -714,14 +738,13 @@ export default function AttioTablePage() {
               </div>
             );
           })}
-        </div>
-      </div>
 
-      {/* Footer — count/selection + per-column calculations */}
-      <div
-        className="bg-surface-panel border-border-subtle text-ui-caption sticky bottom-0 z-10 grid h-8 shrink-0 items-center border-t [color:var(--content-tertiary)]"
-        style={{ gridTemplateColumns: gridTemplate }}
-      >
+          {/* Footer — inside the scroll flow: sits directly under the last row
+              when the list is short, sticks to the bottom when it scrolls. */}
+          <div
+            className="bg-surface-panel border-border-subtle text-ui-caption sticky bottom-0 z-10 grid h-8 items-center border-t [color:var(--content-tertiary)]"
+            style={{ gridTemplateColumns: gridTemplate }}
+          >
         <div className="flex h-full items-center justify-center" />
         {columns.map((c, ci) => {
           const calc = calcs[c.key];
@@ -802,9 +825,9 @@ export default function AttioTablePage() {
           );
         })}
         <div />
+          </div>
+        </div>
       </div>
-
-      {peek ? <RecordPeek row={peek} onClose={() => setPeek(null)} /> : null}
     </div>
   );
 }
