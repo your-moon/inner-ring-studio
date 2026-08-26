@@ -351,7 +351,9 @@ export default function OptimizeTable<HeaderMetadata = unknown>({
       >
         <div
           style={{
-            height: (internalState.getRowsCount() + 1) * rowHeight + 10,
+            // Reserve the 40px sticky header (see table-header.tsx) + the rows,
+            // rather than assuming header height == rowHeight.
+            height: internalState.getRowsCount() * rowHeight + 40 + 10,
           }}
         >
           {renderCellList(common)}

@@ -591,7 +591,7 @@
     --icon-xl: 24px;
     --shadow-hairline: inset 0 0 0 1px var(--border-subtle);
     --shadow-raised: 0 1px 2px rgb(18 18 20 / 6%);
-    --shadow-menu: 0 8px 24px rgb(18 18 20 / 12%), 0 1px 3px rgb(18 18 20 / 8%);
+    --shadow-menu: 0 0 0 1px rgb(28 40 64 / 4%), 0 4px 8px -4px rgb(28 40 64 / 12%), 0 4px 12px -2px rgb(24 41 75 / 16%);
     --shadow-modal: 0 20px 56px rgb(18 18 20 / 18%), 0 2px 8px rgb(18 18 20 / 8%);
     --shadow-focus: 0 0 0 1px var(--surface-panel), 0 0 0 3px color-mix(in srgb, var(--border-focus) 55%, transparent);
     --z-base: 0;

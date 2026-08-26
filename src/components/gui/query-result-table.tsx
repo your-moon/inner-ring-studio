@@ -121,7 +121,7 @@ function Header({
   // Quiet header row (Attio): medium-weight UI type in secondary ink; the
   // data below carries the contrast. Selection tints the header, nothing bold.
   let textClass = cn(
-    "grow line-clamp-1 text-[12.5px] font-medium text-muted-foreground",
+    "grow line-clamp-1 text-[13px] font-medium text-muted-foreground",
     numeric && "text-right"
   );
   let thClass = "group/th flex grow items-center px-2 overflow-hidden";
@@ -568,7 +568,7 @@ export default function ResultTable({
         arrangeHeaderIndex={headerIndex}
         renderAhead={20}
         renderHeader={renderHeader}
-        rowHeight={35}
+        rowHeight={36}
         onKeyDown={onKeyDown}
         renderCell={tableResultCellRenderer}
         onScrollToBottom={onScrollToBottom}

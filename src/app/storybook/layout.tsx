@@ -142,6 +142,17 @@ export default function StorybookRootLayout({
               text="Linear projects & cycles"
               href="/storybook/linear-project-cycle"
             />
+            <SidebarMenuHeader text="Attio patterns" />
+            <SidebarMenuItem
+              icon={Layers2}
+              text="Attio collection & table"
+              href="/storybook/table"
+            />
+            <SidebarMenuItem
+              icon={Layers2}
+              text="Attio controls, menus & record"
+              href="/storybook/attio"
+            />
             <SidebarMenuItem
               icon={Layers2}
               text="Illustrations"
