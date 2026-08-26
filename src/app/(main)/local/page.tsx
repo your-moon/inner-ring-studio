@@ -144,7 +144,9 @@ function SectionLabel({
 }) {
   return (
     <div className="mb-2.5 flex items-baseline justify-between">
-      <h2 className="text-xs font-semibold text-muted-foreground">{children}</h2>
+      <h2 className="text-ui-small font-[var(--weight-medium)] [color:var(--content-tertiary)]">
+        {children}
+      </h2>
       {aside}
     </div>
   );
@@ -162,20 +164,22 @@ function StatusRow({
   tone?: "quiet" | "good";
 }) {
   return (
-    <div className="flex items-start gap-2.5 border-t border-border/60 px-3 py-3 first:border-t-0">
+    <div className="border-border-subtle flex items-start gap-2.5 border-t px-3 py-3 first:border-t-0">
       <span
         className={
           "mt-0.5 shrink-0 " +
           (tone === "good"
-            ? "text-emerald-600 dark:text-emerald-400"
-            : "text-muted-foreground")
+            ? "[color:var(--intent-success)]"
+            : "[color:var(--content-tertiary)]")
         }
       >
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[12px] font-medium text-foreground">{label}</span>
-        <span className="mt-0.5 block truncate text-[11.5px] text-muted-foreground">
+        <span className="text-ui-small block font-[var(--weight-medium)] [color:var(--content-primary)]">
+          {label}
+        </span>
+        <span className="text-ui-caption mt-0.5 block truncate [color:var(--content-tertiary)]">
           {value}
         </span>
       </span>
@@ -321,22 +325,33 @@ export default function HomePage() {
     ...(scheduleData?.schedules.map((schedule) => schedule.lastRunAt ?? 0) ?? [])
   );
 
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    return hour < 5
+      ? "Working late"
+      : hour < 12
+        ? "Good morning"
+        : hour < 18
+          ? "Good afternoon"
+          : "Good evening";
+  })();
+
   return (
     <NavigationLayout>
       <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
-        <header className="mb-8 flex items-center justify-between gap-4">
-          <h1 className="text-[19px] font-semibold tracking-tight text-foreground">
-            {(() => {
-              const hour = new Date().getHours();
-              return hour < 5
-                ? "Working late"
-                : hour < 12
-                  ? "Good morning"
-                  : hour < 18
-                    ? "Good afternoon"
-                    : "Good evening";
-            })()}
-          </h1>
+        <header className="mb-8 flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-heading-medium font-semibold tracking-[var(--tracking-heading)] [color:var(--content-primary)]">
+              {greeting}
+            </h1>
+            {connections.length > 0 ? (
+              <p className="text-ui-small mt-1 [color:var(--content-tertiary)]">
+                {connections.length}{" "}
+                {connections.length === 1 ? "database" : "databases"} · pick up
+                where you left off
+              </p>
+            ) : null}
+          </div>
           <Button as="link" href="/connections/new" size="sm" variant="primary">
             <Plus size={15} weight="bold" />
             New connection
@@ -345,26 +360,22 @@ export default function HomePage() {
 
         {isLoading ? (
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_250px]">
-            <div className="overflow-hidden rounded-lg border border-border bg-background">
+            <div className="border-border-default bg-surface-panel divide-border-subtle divide-y overflow-hidden rounded-[var(--radius-panel)] border">
               {Array.from({ length: 5 }).map((_, index) => (
-                <div
-                  key={index}
-                  className={
-                    "h-12 animate-pulse bg-secondary/50 " +
-                    (index > 0 ? "border-t border-border" : "")
-                  }
-                />
+                <div key={index} className="bg-surface-hover h-12 animate-pulse" />
               ))}
             </div>
-            <div className="h-52 animate-pulse rounded-lg border border-border bg-secondary/40" />
+            <div className="border-border-default bg-surface-hover h-52 animate-pulse rounded-[var(--radius-panel)] border" />
           </div>
         ) : connections.length === 0 ? (
-          <div className="rounded-lg border border-border bg-background px-8 py-16 text-center">
-            <div className="mx-auto mb-4 grid h-11 w-11 place-items-center rounded-lg border border-border text-muted-foreground">
+          <div className="border-border-default bg-surface-panel rounded-[var(--radius-panel)] border px-8 py-16 text-center">
+            <div className="border-border-default mx-auto mb-4 grid h-11 w-11 place-items-center rounded-[var(--radius-control)] border [color:var(--content-tertiary)]">
               <Database size={22} />
             </div>
-            <p className="text-[15px] font-medium text-foreground">No databases connected</p>
-            <p className="mx-auto mt-1.5 max-w-xs text-[13px] text-muted-foreground">
+            <p className="text-body font-[var(--weight-medium)] [color:var(--content-primary)]">
+              No databases connected
+            </p>
+            <p className="text-ui-small mx-auto mt-1.5 max-w-xs [color:var(--content-tertiary)]">
               Connect Postgres, MySQL, or ClickHouse to browse data and run SQL.
             </p>
             <Button
@@ -388,18 +399,15 @@ export default function HomePage() {
               {recentWork.length > 0 && (
                 <motion.section variants={listItem}>
                   <SectionLabel>Continue working</SectionLabel>
-                  <div className="overflow-hidden rounded-lg border border-border bg-background">
+                  <div className="border-border-default bg-surface-panel divide-border-subtle divide-y overflow-hidden rounded-[var(--radius-panel)] border">
                     {recentWork.map((work, index) => (
                       <Link
                         key={`${work.kind}-${work.connId}-${work.at}-${index}`}
                         href={`/vault/${work.connId}`}
                         onClick={() => resumeWork(work)}
-                        className={
-                          "group flex min-h-11 items-center gap-3 px-3.5 py-2.5 transition-colors hover:bg-secondary " +
-                          (index > 0 ? "border-t border-border/60" : "")
-                        }
+                        className="group hover:bg-surface-hover flex min-h-11 items-center gap-3 px-4 py-2.5 transition-colors"
                       >
-                        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-secondary text-muted-foreground">
+                        <span className="bg-surface-hover grid size-6 shrink-0 place-items-center rounded-[var(--radius-small)] [color:var(--content-tertiary)]">
                           {work.kind === "query" ? (
                             <TerminalWindow size={14} />
                           ) : (
@@ -409,22 +417,22 @@ export default function HomePage() {
                         <span className="min-w-0 flex-1">
                           <span
                             className={
-                              "block truncate text-[12.5px] text-foreground/90 " +
-                              (work.kind === "query" ? "font-mono" : "font-medium")
+                              "block truncate text-ui-small [color:var(--content-primary)] " +
+                              (work.kind === "query" ? "font-mono" : "font-[var(--weight-medium)]")
                             }
                           >
                             {work.kind === "query" ? queryPreview(work.sql) : work.table}
                           </span>
-                          <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                          <span className="text-ui-caption mt-0.5 block [color:var(--content-tertiary)]">
                             {work.connName} · {work.kind === "query" ? "Query" : "Table"}
                           </span>
                         </span>
-                        <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground/70">
+                        <span className="text-ui-caption shrink-0 [color:var(--content-tertiary)] [font-variant-numeric:tabular-nums]">
                           {timeAgo(work.at)}
                         </span>
                         <ArrowRight
                           size={13}
-                          className="shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                          className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 [color:var(--content-tertiary)]"
                         />
                       </Link>
                     ))}
@@ -435,7 +443,7 @@ export default function HomePage() {
               <motion.section variants={listItem}>
                 <SectionLabel
                   aside={
-                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                    <span className="text-ui-caption [color:var(--content-tertiary)] [font-variant-numeric:tabular-nums]">
                       {connections.length}
                     </span>
                   }
@@ -448,46 +456,46 @@ export default function HomePage() {
                     return (
                       <div key={folder || "_ungrouped"}>
                         {groupedConnections.keys.length > 1 && (
-                          <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[10.5px] font-medium tracking-wide text-muted-foreground uppercase">
-                            <Folder size={12} />
+                          <div className="text-ui-small mb-1 flex h-7 items-center gap-1.5 px-1 font-[var(--weight-medium)] [color:var(--content-tertiary)]">
+                            <Folder size={13} />
                             <span>{folder || "Ungrouped"}</span>
-                            <span className="tabular-nums opacity-60">{folderConnections.length}</span>
+                            <span className="[font-variant-numeric:tabular-nums] opacity-70">
+                              {folderConnections.length}
+                            </span>
                           </div>
                         )}
-                        <div className="overflow-hidden rounded-lg border border-border bg-background">
-                          {folderConnections.map((connection, index) => {
+                        <div className="border-border-default bg-surface-panel divide-border-subtle divide-y overflow-hidden rounded-[var(--radius-panel)] border">
+                          {folderConnections.map((connection) => {
                             const connected = !!connection.status?.connected;
                             const busy = busyConnections.has(connection.id);
+                            const host = connection.host
+                              ? `${connection.host}${connection.port ? `:${connection.port}` : ""}${connection.database ? `/${connection.database}` : ""}`
+                              : connection.folder ?? "";
                             return (
                               <div
                                 key={connection.id}
-                                className={
-                                  "group flex h-12 items-center transition-colors hover:bg-secondary " +
-                                  (index > 0 ? "border-t border-border/60" : "")
-                                }
+                                className="group hover:bg-surface-hover flex h-12 items-center transition-colors"
                               >
                                 <Link
                                   href={`/vault/${connection.id}`}
                                   onClick={() => bumpConnection(connection.id)}
-                                  className="grid min-w-0 flex-1 grid-cols-[8px_minmax(105px,1fr)_max-content_minmax(0,1.25fr)_50px_8px] items-center gap-2.5 px-3.5 sm:grid-cols-[8px_minmax(130px,1fr)_max-content_max-content_minmax(0,1.5fr)_58px_8px] sm:gap-3"
+                                  className="flex min-w-0 flex-1 items-center gap-2.5 px-4"
                                 >
                                   <span
-                                    className="h-2 w-2 rounded-[3px]"
+                                    className="size-2 shrink-0 rounded-[3px]"
                                     style={{ background: identityColor(connection.name) }}
                                   />
-                                  <span className="min-w-0 truncate text-[13px] font-medium text-foreground">
+                                  <span className="text-ui-default max-w-[45%] shrink-0 truncate font-[var(--weight-medium)] [color:var(--content-primary)]">
                                     {connection.name}
                                   </span>
-                                  <Chip className="hidden sm:inline-flex">
+                                  <Chip className="hidden shrink-0 sm:inline-flex">
                                     {DRIVER_LABEL[connection.driver] ?? connection.driver}
                                   </Chip>
                                   <EnvBadge environment={connection.environment} />
-                                  <span className="hidden truncate font-mono text-[11px] text-muted-foreground/80 sm:block">
-                                    {connection.host
-                                      ? `${connection.host}${connection.port ? `:${connection.port}` : ""}${connection.database ? `/${connection.database}` : ""}`
-                                      : connection.folder ?? ""}
+                                  <span className="text-ui-caption hidden min-w-0 flex-1 truncate font-mono [color:var(--content-tertiary)] md:block">
+                                    {host}
                                   </span>
-                                  <span className="text-right text-[11px] tabular-nums text-muted-foreground">
+                                  <span className="text-ui-caption ml-auto hidden shrink-0 [color:var(--content-tertiary)] [font-variant-numeric:tabular-nums] sm:block">
                                     {lastOpened[connection.id]
                                       ? timeAgo(lastOpened[connection.id])
                                       : ""}
@@ -541,7 +549,7 @@ export default function HomePage() {
                                       </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
-                                      className="text-red-600 focus:text-red-600"
+                                      className="[color:var(--intent-danger)] focus:[color:var(--intent-danger)]"
                                       onClick={() => deleteConnection(connection)}
                                     >
                                       <Trash size={14} className="mr-2" />
@@ -567,7 +575,7 @@ export default function HomePage() {
                       <Link
                         key={board.id}
                         href={`/boards/${board.id}`}
-                        className="rounded-md border border-border bg-background px-3 py-2 text-[13px] transition-colors hover:bg-secondary"
+                        className="border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover rounded-[var(--radius-control)] border px-3 py-2 transition-colors [color:var(--content-primary)]"
                       >
                         {board.name}
                       </Link>
@@ -579,7 +587,7 @@ export default function HomePage() {
 
             <motion.aside variants={listItem} className="lg:sticky lg:top-8">
               <SectionLabel>Status</SectionLabel>
-              <div className="overflow-hidden rounded-lg border border-border bg-background">
+              <div className="border-border-default bg-surface-panel overflow-hidden rounded-[var(--radius-panel)] border">
                 <StatusRow
                   icon={
                     connectedCount === connections.length ? (
@@ -640,7 +648,7 @@ export default function HomePage() {
 
               <button
                 onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
-                className="mt-3 flex w-full items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 text-left text-[12px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover mt-3 flex w-full items-center gap-2 rounded-[var(--radius-control)] border px-3 py-2.5 text-left [color:var(--content-tertiary)] hover:[color:var(--content-primary)]"
               >
                 <MagnifyingGlass size={14} />
                 <span className="flex-1">Jump anywhere</span>
