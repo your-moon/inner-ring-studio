@@ -76,7 +76,7 @@ export function PresenceAvatar({
     <span className={cn("relative inline-flex shrink-0", className)}>
       <span
         className={cn(
-          "bg-surface-selected grid place-items-center overflow-hidden rounded-full font-[var(--weight-semibold)] [color:var(--content-secondary)]",
+          "bg-surface-hover grid place-items-center overflow-hidden rounded-full font-[var(--weight-semibold)] [color:var(--content-secondary)]",
           AVATAR_SIZE[size]
         )}
       >
@@ -125,7 +125,7 @@ export function PersonChip({
       className={cn(
         "inline-flex items-center gap-1.5",
         onRemove &&
-          "bg-surface-selected rounded-[var(--radius-full)] py-0.5 pr-1 pl-1",
+          "bg-surface-hover rounded-[var(--radius-full)] py-0.5 pr-1 pl-1",
         className
       )}
     >

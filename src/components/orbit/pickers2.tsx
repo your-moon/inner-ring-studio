@@ -119,7 +119,7 @@ export function TeamSwitcher({
       <DropdownMenuContent align="start" className="min-w-52">
         {teams.map((t) => (
           <DropdownMenuItem key={t.id} onSelect={() => onSelect(t.id)} className={ROW}>
-            <span className="bg-surface-selected [color:var(--content-tertiary)] grid size-5 place-items-center rounded-[var(--radius-small)] text-[9px] leading-none font-[var(--weight-semibold)] uppercase">
+            <span className="bg-surface-hover [color:var(--content-tertiary)] grid size-5 place-items-center rounded-[var(--radius-small)] text-[9px] leading-none font-[var(--weight-semibold)] uppercase">
               {t.key ?? t.name.slice(0, 2)}
             </span>
             <span className="flex-1">{t.name}</span>

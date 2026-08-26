@@ -25,6 +25,11 @@ export default function StorybookRootLayout({
               text="Guideline"
               href="/storybook"
             />
+            <SidebarMenuItem
+              icon={Layers2}
+              text="Example: Dashboard"
+              href="/storybook/dashboard"
+            />
             <SidebarMenuHeader text="Foundation" />
             <SidebarMenuItem
               icon={Palette}

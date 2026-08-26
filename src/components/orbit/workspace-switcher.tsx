@@ -53,7 +53,7 @@ export function WorkspaceSwitcher({
             onSelect={() => onSelect(w.id)}
             className="text-ui-default flex items-center gap-2"
           >
-            <span className="bg-surface-selected [color:var(--content-secondary)] grid size-5 place-items-center rounded-[var(--radius-small)] text-[10px] font-[var(--weight-semibold)] leading-none">
+            <span className="bg-surface-hover [color:var(--content-secondary)] grid size-5 place-items-center rounded-[var(--radius-small)] text-[10px] font-[var(--weight-semibold)] leading-none">
               {w.name.charAt(0).toUpperCase()}
             </span>
             <span className="flex-1 truncate">{w.name}</span>

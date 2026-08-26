@@ -183,13 +183,13 @@ export function PendingInviteRow({
         className
       )}
     >
-      <span className="bg-surface-selected grid size-6 shrink-0 place-items-center rounded-full text-[10px] leading-none font-[var(--weight-semibold)] [color:var(--content-tertiary)]">
+      <span className="bg-surface-hover grid size-6 shrink-0 place-items-center rounded-full text-[10px] leading-none font-[var(--weight-semibold)] [color:var(--content-tertiary)]">
         @
       </span>
       <div className="text-ui-default min-w-0 flex-1 truncate [color:var(--content-secondary)]">
         {email}
       </div>
-      <span className="text-ui-caption bg-surface-selected shrink-0 rounded-[var(--radius-full)] px-2 py-0.5 [color:var(--content-tertiary)]">
+      <span className="text-ui-caption bg-surface-hover shrink-0 rounded-[var(--radius-full)] px-2 py-0.5 [color:var(--content-tertiary)]">
         {status}
       </span>
       {actions ? (

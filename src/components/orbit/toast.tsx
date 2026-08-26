@@ -24,7 +24,7 @@ export function Toaster(props: ToasterProps) {
           actionButton:
             "!bg-primary !text-[color:var(--primary-foreground)] !rounded-[var(--radius-control)]",
           cancelButton:
-            "!bg-surface-selected !text-[color:var(--content-secondary)] !rounded-[var(--radius-control)]",
+            "!bg-surface-overlay !text-[color:var(--content-secondary)] !rounded-[var(--radius-control)]",
           icon: "!size-[var(--icon-sm)]",
         },
       }}

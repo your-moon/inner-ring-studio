@@ -12,7 +12,7 @@ function Initial({ name, className }: { name: string; className?: string }) {
   return (
     <span
       className={cn(
-        "bg-surface-selected [color:var(--content-secondary)] grid size-5 shrink-0 place-items-center rounded-full text-[9px] leading-none font-[var(--weight-semibold)]",
+        "bg-surface-hover [color:var(--content-secondary)] grid size-5 shrink-0 place-items-center rounded-full text-[9px] leading-none font-[var(--weight-semibold)]",
         className
       )}
     >

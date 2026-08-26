@@ -52,7 +52,7 @@ export function ProjectRow({
         className
       )}
     >
-      <span className="bg-surface-selected grid size-6 shrink-0 place-items-center rounded-[var(--radius-small)] [color:var(--content-tertiary)] [&_svg]:size-4">
+      <span className="bg-surface-hover grid size-6 shrink-0 place-items-center rounded-[var(--radius-small)] [color:var(--content-tertiary)] [&_svg]:size-4">
         {icon ?? "◇"}
       </span>
       <span className="text-ui-default min-w-0 flex-1 truncate [color:var(--content-primary)]">
@@ -103,7 +103,7 @@ export function ProjectOverviewHeader({
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       <div className="flex items-start gap-3">
-        <span className="bg-surface-selected grid size-8 shrink-0 place-items-center rounded-[var(--radius-control)] [color:var(--content-tertiary)] [&_svg]:size-5">
+        <span className="bg-surface-hover grid size-8 shrink-0 place-items-center rounded-[var(--radius-control)] [color:var(--content-tertiary)] [&_svg]:size-5">
           {icon ?? "◇"}
         </span>
         <div className="min-w-0 flex-1">
