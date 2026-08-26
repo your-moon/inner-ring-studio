@@ -15,16 +15,15 @@ import {
   ToolbarDivider,
 } from "@/components/orbit";
 import {
+  CaretDown,
   Code,
   LinkSimple,
   ListBullets,
-  ListNumbers,
   Quotes,
   TextB,
-  TextHOne,
-  TextHTwo,
   TextItalic,
   TextStrikethrough,
+  TextUnderline,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -78,7 +77,19 @@ export default function LinearEditorStorybook() {
         description="The selection format bar and the link editor popover."
       >
         <div className="flex flex-wrap items-start gap-6">
+          {/* Button set mirrors Linear's live toolbar (captured on linear.app):
+              block-type · Bold Italic Strikethrough Underline · inline code ·
+              Quote List · Link. Container: 8px radius, ~35px, elevated. */}
           <FloatingFormatToolbar>
+            <button
+              type="button"
+              aria-label="Text style"
+              className="focus-ring text-ui-small flex h-6 items-center gap-1 rounded-[6px] px-1.5 [color:var(--content-secondary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
+            >
+              Regular text
+              <CaretDown className="size-3" />
+            </button>
+            <ToolbarDivider />
             <EditorToolbarButton aria-label="Bold" active>
               <TextB />
             </EditorToolbarButton>
@@ -88,26 +99,20 @@ export default function LinearEditorStorybook() {
             <EditorToolbarButton aria-label="Strikethrough">
               <TextStrikethrough />
             </EditorToolbarButton>
-            <EditorToolbarButton aria-label="Code">
+            <EditorToolbarButton aria-label="Underline">
+              <TextUnderline />
+            </EditorToolbarButton>
+            <EditorToolbarButton aria-label="Inline code">
               <Code />
-            </EditorToolbarButton>
-            <ToolbarDivider />
-            <EditorToolbarButton aria-label="Heading 1">
-              <TextHOne />
-            </EditorToolbarButton>
-            <EditorToolbarButton aria-label="Heading 2">
-              <TextHTwo />
             </EditorToolbarButton>
             <ToolbarDivider />
             <EditorToolbarButton aria-label="Quote">
               <Quotes />
             </EditorToolbarButton>
-            <EditorToolbarButton aria-label="Bulleted list">
+            <EditorToolbarButton aria-label="List">
               <ListBullets />
             </EditorToolbarButton>
-            <EditorToolbarButton aria-label="Numbered list">
-              <ListNumbers />
-            </EditorToolbarButton>
+            <ToolbarDivider />
             <EditorToolbarButton aria-label="Link">
               <LinkSimple />
             </EditorToolbarButton>

@@ -13,9 +13,10 @@ import { cn } from "@/lib/utils";
 
 /*
  * Rich-text editor chrome, modelled on Linear's document/description editor.
- * Uses the verified overlay surface + menu shadow and the 6/8px control radii.
- * (Floating toolbar/blocks modelled on Linear's editor conventions — the
- * workspace had no description to pixel-capture the live toolbar.)
+ * Floating toolbar ground-truthed live on linear.app (issue description editor):
+ * 8px radius, ~35px tall, ~25px buttons, elevated overlay surface + border +
+ * subtle shadow; real button set — Bold/Italic/Strikethrough/Underline/Code,
+ * Quote/List/Link, block-type control.
  */
 
 /* ------------------------------------------------------------ EditorToolbarButton */
@@ -38,7 +39,7 @@ export function EditorToolbarButton({
       type="button"
       aria-pressed={active}
       className={cn(
-        "focus-ring grid size-7 place-items-center rounded-[6px] [&_svg]:size-4",
+        "focus-ring grid size-6 place-items-center rounded-[6px] [&_svg]:size-4",
         active
           ? "bg-surface-hover [color:var(--content-link)]"
           : "[color:var(--content-secondary)] hover:bg-surface-hover hover:[color:var(--content-primary)]",
