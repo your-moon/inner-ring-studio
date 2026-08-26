@@ -64,7 +64,7 @@ export const SheetContent = forwardRef<
               </DialogPrimitive.Title>
             ) : null}
             {description ? (
-              <DialogPrimitive.Description className="text-ui-small [color:var(--content-tertiary)]">
+              <DialogPrimitive.Description className="text-ui-small [color:var(--content-secondary)]">
                 {description}
               </DialogPrimitive.Description>
             ) : null}

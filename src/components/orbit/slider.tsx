@@ -52,7 +52,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
         onChange={(e) => onValueChange?.(Number(e.target.value))}
         className={cn(
           "focus-ring h-1.5 w-full cursor-pointer appearance-none rounded-[var(--radius-full)]",
-          "bg-surface-selected accent-[var(--primary)]",
+          "bg-surface-hover accent-[var(--primary)]",
           "disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}

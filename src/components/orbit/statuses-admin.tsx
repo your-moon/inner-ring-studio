@@ -11,8 +11,8 @@ import { StatusIcon, type WorkflowStatus } from "./status-icon";
 /*
  * Settings › Statuses — Linear's *current* card editor. Ground-truthed on
  * linear.app/settings/project-statuses:
- *   · panel  640px wide, 10px radius, surface-panel bg
- *   · card   36px tall, 6px radius, raised bg (lch 11 over the panel's lch 9.2)
+ *   · panel  640px wide, 10px radius, recessed surface-canvas bg
+ *   · card   36px tall, 6px radius, raised bg so cards pop over the panel
  *   · icon   14px StatusIcon, grouped by type
  */
 

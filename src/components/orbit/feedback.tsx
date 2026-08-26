@@ -27,7 +27,7 @@ const ALERT_INTENT: Record<
   success: { icon: CheckCircle, fill: "bg-[var(--intent-success-soft)]", ink: "[color:var(--intent-success)]" },
   warning: { icon: Warning, fill: "bg-[var(--intent-warning-soft)]", ink: "[color:var(--intent-warning)]" },
   danger: { icon: WarningOctagon, fill: "bg-[var(--intent-danger-soft)]", ink: "[color:var(--intent-danger)]" },
-  neutral: { icon: Info, fill: "bg-surface-selected", ink: "[color:var(--content-secondary)]" },
+  neutral: { icon: Info, fill: "bg-surface-hover", ink: "[color:var(--content-secondary)]" },
 };
 
 export type AlertProps = {
@@ -134,7 +134,7 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
     <div
       aria-hidden
       className={cn(
-        "bg-surface-selected animate-pulse rounded-[var(--radius-small)]",
+        "bg-surface-hover animate-pulse rounded-[var(--radius-small)]",
         className
       )}
       {...props}
@@ -163,7 +163,7 @@ export function Progress({ value, label, className }: ProgressProps) {
       aria-valuemax={indeterminate ? undefined : 100}
       aria-valuenow={indeterminate ? undefined : clamped}
       className={cn(
-        "bg-surface-selected h-1.5 w-full overflow-hidden rounded-[var(--radius-full)]",
+        "bg-surface-hover h-1.5 w-full overflow-hidden rounded-[var(--radius-full)]",
         className
       )}
     >

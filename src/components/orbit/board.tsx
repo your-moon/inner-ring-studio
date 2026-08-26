@@ -28,7 +28,7 @@ export function BoardColumn({
   className?: string;
 }) {
   return (
-    <div className={cn("flex w-72 shrink-0 flex-col gap-2", className)}>
+    <div className={cn("flex w-80 shrink-0 flex-col gap-2", className)}>
       <div className="flex h-8 items-center gap-2 px-1">
         {status ? <StatusIcon status={status} /> : null}
         <span className="text-ui-small [color:var(--content-primary)] font-[var(--weight-medium)]">

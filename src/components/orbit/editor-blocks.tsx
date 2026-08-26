@@ -100,7 +100,7 @@ export function TodoItem({
         aria-checked={checked}
         onClick={() => onCheckedChange(!checked)}
         className={cn(
-          "focus-ring mt-0.5 grid size-4 shrink-0 place-items-center rounded-[4px] border transition-colors [&_svg]:size-3",
+          "focus-ring mt-0.5 grid size-4 shrink-0 place-items-center rounded-[var(--radius-small)] border transition-colors [&_svg]:size-3",
           checked
             ? "border-primary bg-primary [color:var(--primary-foreground)]"
             : "border-border-strong hover:border-[var(--content-tertiary)]"

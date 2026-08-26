@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
  */
 const BADGE_INTENTS = {
   neutral:
-    "bg-surface-selected [color:var(--content-secondary)]",
+    "bg-surface-hover [color:var(--content-secondary)]",
   accent:
     "bg-[var(--intent-accent-soft)] [color:var(--intent-accent)]",
   success:

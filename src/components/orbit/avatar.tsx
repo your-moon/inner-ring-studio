@@ -43,7 +43,7 @@ export const Avatar = ({
           alt={username}
         />
       ) : (
-        <p className="text-ob-base-100 font-bold">{firstInitial}</p>
+        <p className="text-ob-base-100 font-bold leading-none">{firstInitial}</p>
       )}
     </Component>
   );

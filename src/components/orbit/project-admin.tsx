@@ -192,7 +192,7 @@ export function MilestoneRow({
           total={Math.max(total, 1)}
         />
       </div>
-      <span className="text-ui-caption w-8 shrink-0 text-right [color:var(--content-tertiary)]">
+      <span className="text-ui-caption w-8 shrink-0 text-right [color:var(--content-tertiary)] [font-variant-numeric:tabular-nums]">
         {pct}%
       </span>
       {date != null ? (

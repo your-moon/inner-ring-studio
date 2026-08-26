@@ -239,7 +239,7 @@ export function Code({ className, ...props }: HTMLAttributes<HTMLElement>) {
   return (
     <code
       className={cn(
-        "bg-surface-selected [color:var(--content-secondary)] rounded-[var(--radius-small)] px-1 py-0.5 font-mono text-[0.9em]",
+        "bg-surface-hover [color:var(--content-secondary)] rounded-[var(--radius-small)] px-1 py-0.5 font-mono text-[0.9em]",
         className
       )}
       {...props}

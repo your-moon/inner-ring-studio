@@ -15,7 +15,7 @@ export function CountBadge({ count, max = 99, className }: CountBadgeProps) {
   return (
     <span
       className={cn(
-        "bg-surface-selected [color:var(--content-secondary)] inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-[var(--radius-full)] px-1",
+        "bg-surface-hover [color:var(--content-secondary)] inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-[var(--radius-full)] px-1",
         "text-ui-caption [line-height:1] font-[var(--weight-medium)] [font-variant-numeric:tabular-nums]",
         className
       )}

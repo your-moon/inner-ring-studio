@@ -33,6 +33,8 @@ export function ViewTabs({
             role="tab"
             type="button"
             aria-selected={active}
+            tabIndex={active ? 0 : -1}
+            data-state={active ? "active" : "inactive"}
             onClick={() => onChange(t.value)}
             className={cn(
               "focus-ring press relative -mb-px flex h-7 items-center gap-1.5 border-b-2 text-ui-small font-[var(--weight-medium)]",

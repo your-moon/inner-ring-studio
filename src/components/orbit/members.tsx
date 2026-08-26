@@ -183,7 +183,7 @@ export function PendingInviteRow({
         className
       )}
     >
-      <span className="bg-surface-selected grid size-6 shrink-0 place-items-center rounded-full text-[10px] font-[var(--weight-semibold)] [color:var(--content-tertiary)]">
+      <span className="bg-surface-selected grid size-6 shrink-0 place-items-center rounded-full text-[10px] leading-none font-[var(--weight-semibold)] [color:var(--content-tertiary)]">
         @
       </span>
       <div className="text-ui-default min-w-0 flex-1 truncate [color:var(--content-secondary)]">

@@ -215,7 +215,7 @@ export function BreadcrumbItem({ href, current, children }: BreadcrumbItemProps)
       {href && !current ? (
         <a
           href={href}
-          className="focus-ring text-ui-small [color:var(--content-tertiary)] rounded-[4px] hover:[color:var(--content-primary)]"
+          className="focus-ring text-ui-small [color:var(--content-tertiary)] rounded-[var(--radius-small)] hover:[color:var(--content-primary)]"
         >
           {children}
         </a>
@@ -302,7 +302,7 @@ export function Pagination({
             className={cn(
               "focus-ring press text-ui-small grid size-7 place-items-center rounded-[var(--radius-control)] font-[var(--weight-medium)] [font-variant-numeric:tabular-nums]",
               p === page
-                ? "bg-surface-selected [color:var(--content-primary)]"
+                ? "bg-surface-hover [color:var(--content-primary)]"
                 : "[color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
             )}
           >

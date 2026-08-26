@@ -35,7 +35,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
         onClick={() => onCheckedChange?.(!checked)}
         className={cn(
           "focus-ring press inline-flex h-5 w-8 shrink-0 items-center rounded-full border border-transparent p-0.5",
-          checked ? "bg-primary" : "bg-surface-selected",
+          checked ? "bg-primary" : "bg-surface-hover",
           "disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}

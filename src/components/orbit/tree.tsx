@@ -62,7 +62,7 @@ export function TreeItem({
             if (hasChildren) setExpanded((v) => !v);
             onSelect?.();
           }}
-          className="focus-ring -ml-0.5 flex size-4 shrink-0 items-center justify-center rounded-[4px]"
+          className="focus-ring -ml-0.5 flex size-4 shrink-0 items-center justify-center rounded-[var(--radius-small)]"
         >
           {hasChildren ? (
             <CaretRight

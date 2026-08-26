@@ -31,6 +31,9 @@ export function ConnectionStatus({
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)}>
       <span
+        {...(showLabel
+          ? { "aria-hidden": true }
+          : { role: "img", "aria-label": meta.label, title: meta.label })}
         className={cn("size-1.5 shrink-0 rounded-full", meta.pulse && "animate-pulse")}
         style={{ backgroundColor: meta.color }}
       />

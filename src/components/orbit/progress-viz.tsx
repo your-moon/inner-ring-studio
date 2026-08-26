@@ -70,7 +70,7 @@ export function SegmentedProgress({
   return (
     <div
       className={cn(
-        "bg-surface-selected flex h-1.5 w-full overflow-hidden rounded-[var(--radius-full)]",
+        "bg-surface-hover flex h-1.5 w-full overflow-hidden rounded-[var(--radius-full)]",
         className
       )}
       role="progressbar"

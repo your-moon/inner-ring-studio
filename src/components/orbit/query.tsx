@@ -71,7 +71,7 @@ export function QueryTabBar({
                 type="button"
                 aria-label="Close tab"
                 onClick={() => onClose(t.id)}
-                className="focus-ring grid size-4 place-items-center rounded-[4px] opacity-0 hover:bg-surface-hover group-hover:opacity-100 [color:var(--content-tertiary)]"
+                className="focus-ring grid size-4 place-items-center rounded-[var(--radius-small)] opacity-0 hover:bg-surface-hover group-hover:opacity-100 [color:var(--content-tertiary)]"
               >
                 <X weight="bold" className="size-2.5" />
               </button>

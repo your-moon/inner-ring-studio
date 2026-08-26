@@ -89,7 +89,7 @@ export function TableHead({
           type="button"
           onClick={onSort}
           className={cn(
-            "focus-ring -mx-1 inline-flex items-center gap-1 rounded-[4px] px-1 hover:[color:var(--content-primary)]",
+            "focus-ring -mx-1 inline-flex items-center gap-1 rounded-[var(--radius-small)] px-1 hover:[color:var(--content-primary)]",
             numeric && "flex-row-reverse"
           )}
         >

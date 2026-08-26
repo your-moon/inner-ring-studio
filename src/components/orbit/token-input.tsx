@@ -55,7 +55,7 @@ export function TokenInput({
       {value.map((token) => (
         <span
           key={token}
-          className="bg-surface-selected text-ui-small inline-flex items-center gap-1 rounded-[6px] px-1.5 py-0.5"
+          className="bg-surface-hover text-ui-small inline-flex items-center gap-1 rounded-[6px] px-1.5 py-0.5"
         >
           {token}
           <span
