@@ -170,7 +170,7 @@ export function ColorSwatchPicker({
           aria-label={c}
           onClick={() => onChange(c)}
           className={cn(
-            "focus-ring relative grid size-6 place-items-center rounded-full transition-transform hover:scale-110",
+            "focus-ring relative grid size-6 place-items-center rounded-full",
             c === value && "ring-2 ring-offset-2 ring-offset-[var(--surface-panel)]"
           )}
           style={c === value ? { ["--tw-ring-color" as string]: LABEL_COLORS[c] } : undefined}
