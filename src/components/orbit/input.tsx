@@ -51,6 +51,7 @@ export const Input = ({
   size = "base",
   onFocus,
   onBlur,
+  onChange,
   ...props
 }: InputProps) => {
   const [currentValue, setCurrentValue] = useState(initialValue ?? "");
@@ -72,6 +73,9 @@ export const Input = ({
         onValueChange(newValue.slice(0, props.min), isValid);
       }
     }
+    // A caller-supplied onChange must compose with (not replace) the internal
+    // state handler, or the controlled value stops updating.
+    onChange?.(event);
   };
 
   return (
@@ -83,7 +87,16 @@ export const Input = ({
       onClick={() => inputRef.current?.focus()}
     >
       {preText ? (
-        <span className="seed-text-input__prefix pointer-events-none flex select-none items-center gap-2 [color:var(--content-secondary)]">
+        <span
+          className={cn(
+            // The recipe's slot classes carry the spacing: prefixText gets its
+            // margin-left via :first-child, and the value input then relies on
+            // the gap. Using the real slot class keeps the sizing generated.
+            "seed-text-input__prefixText",
+            `seed-text-input__prefixText--variant_outline-size_${CRISP_SIZE[size]}`,
+            "pointer-events-none flex shrink-0 select-none items-center [color:var(--content-secondary)]"
+          )}
+        >
           {preText}
         </span>
       ) : null}
@@ -109,7 +122,13 @@ export const Input = ({
       />
 
       {postText ? (
-        <span className="seed-text-input__suffix flex select-none items-center gap-2 [color:var(--content-secondary)]">
+        <span
+          className={cn(
+            "seed-text-input__suffixText",
+            `seed-text-input__suffixText--variant_outline-size_${CRISP_SIZE[size]}`,
+            "flex shrink-0 select-none items-center [color:var(--content-secondary)]"
+          )}
+        >
           {postText}
         </span>
       ) : null}
