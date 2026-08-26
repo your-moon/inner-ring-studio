@@ -47,8 +47,8 @@ interface CloudLinkState {
 
 function BrandMark() {
   return (
-    <span className="border-border-strong grid h-5 w-5 shrink-0 place-items-center rounded-md border">
-      <span className="h-1.5 w-1.5 rounded-full bg-[var(--content-primary)]" />
+    <span className="bg-primary grid size-6 shrink-0 place-items-center rounded-[6px] text-[13px] leading-none font-semibold [color:var(--primary-foreground)]">
+      {WEBSITE_NAME.slice(0, 1).toUpperCase()}
     </span>
   );
 }
@@ -278,7 +278,7 @@ export default function AppSidebar() {
       <div className="flex h-12 shrink-0 items-center gap-1 px-2">
         <Link
           href="/local"
-          className="focus-ring flex h-8 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-1.5 hover:bg-black/[0.035] dark:hover:bg-white/[0.05]"
+          className="focus-ring flex h-7 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-1.5 hover:bg-black/[0.035] dark:hover:bg-white/[0.05]"
         >
           <BrandMark />
           <span className="text-ui-small min-w-0 flex-1 truncate font-semibold tracking-tight [color:var(--content-primary)]">
@@ -310,7 +310,7 @@ export default function AppSidebar() {
         <button
           type="button"
           onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
-          className="focus-ring border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover flex h-8 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] border px-2.5 [color:var(--content-secondary)]"
+          className="focus-ring border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover flex h-7 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] border px-2.5 [color:var(--content-secondary)]"
         >
           <Command className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
           <span className="min-w-0 flex-1 truncate text-left">Quick actions</span>
@@ -320,7 +320,7 @@ export default function AppSidebar() {
           type="button"
           aria-label="Search"
           onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
-          className="focus-ring border-border-default bg-surface-panel hover:bg-surface-hover grid size-8 shrink-0 place-items-center rounded-[var(--radius-control)] border [color:var(--content-tertiary)] hover:[color:var(--content-primary)] [&_svg]:size-3.5"
+          className="focus-ring border-border-default bg-surface-panel hover:bg-surface-hover grid size-7 shrink-0 place-items-center rounded-[var(--radius-control)] border [color:var(--content-tertiary)] hover:[color:var(--content-primary)] [&_svg]:size-3.5"
         >
           <Search />
         </button>

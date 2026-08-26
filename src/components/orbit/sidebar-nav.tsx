@@ -64,7 +64,7 @@ export function SidebarNavItem({
           {icon}
         </span>
       ) : null}
-      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <span className="min-w-0 flex-1 truncate leading-none">{label}</span>
       {count != null ? (
         <span className="text-ui-caption shrink-0 [color:var(--content-tertiary)] [font-variant-numeric:tabular-nums]">
           {count}
@@ -219,7 +219,7 @@ export function SidebarButton({
       {icon ? (
         <span className="shrink-0 [color:var(--content-tertiary)]">{icon}</span>
       ) : null}
-      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <span className="min-w-0 flex-1 truncate leading-none">{label}</span>
     </button>
   );
 }

@@ -76,7 +76,7 @@ export default function VaultSwitcher() {
       <DropdownMenu>
         <DropdownMenuTrigger
           disabled={busy}
-          className="focus-ring hover:bg-surface-hover data-[state=open]:bg-surface-hover text-ui-small flex h-8 w-full items-center gap-2 rounded-[var(--radius-control)] px-2 text-left disabled:opacity-60"
+          className="focus-ring hover:bg-surface-hover data-[state=open]:bg-surface-hover text-ui-small flex h-7 w-full items-center gap-2 rounded-[var(--radius-control)] px-2 text-left disabled:opacity-60"
         >
           <span className="border-border-default bg-surface-panel grid size-5 shrink-0 place-items-center rounded-[var(--radius-small)] border text-[10px] font-semibold [color:var(--content-primary)]">
             {(active?.name ?? "V").slice(0, 1).toUpperCase()}
