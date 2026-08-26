@@ -24,7 +24,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 /*
  * Attio collection & table — a feature-complete, exact-spec clone (no DB).
@@ -112,6 +112,15 @@ const NUM_CALCS: { key: CalcType; label: string }[] = [
 
 /* ---------------------------------------------------------------- primitives */
 
+// Attio secondary button: white with a soft shadow ring (NOT ghost, NOT a border).
+const SECONDARY_SHADOW =
+  "shadow-[inset_0_0_0_1px_rgba(0,0,0,0),0_0_2px_0_rgba(28,40,64,0.18),0_1px_3px_0_rgba(0,0,0,0.04)]";
+// Primary: brand fill + inset hairline + brand-tinted drop.
+const PRIMARY_SHADOW =
+  "shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06),0_2px_4px_-2px_rgba(94,106,210,0.28),0_3px_6px_-2px_rgba(94,106,210,0.14)]";
+// Active chip: white with a 1px inset ring (like a pressed/applied pill).
+const CHIP_ACTIVE_SHADOW = "shadow-[inset_0_0_0_1px_rgb(230,231,234)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)]";
+
 function ToolButton({
   children,
   primary,
@@ -123,12 +132,10 @@ function ToolButton({
     <button
       type="button"
       className={cn(
-        "text-ui-small inline-flex h-7 items-center gap-1.5 rounded-[8px] px-2 font-[var(--weight-medium)] [&_svg]:size-3.5",
+        "text-ui-small inline-flex h-7 items-center gap-1.5 rounded-[8px] px-2 font-[var(--weight-medium)] transition-[filter,background-color] duration-[var(--motion-fast)] [&_svg]:size-3.5",
         primary
-          ? "bg-primary [color:var(--primary-foreground)] hover:brightness-105"
-          : active
-            ? "bg-surface-hover [color:var(--content-primary)]"
-            : "hover:bg-surface-hover [color:var(--content-secondary)]",
+          ? `bg-primary [color:var(--primary-foreground)] ${PRIMARY_SHADOW} hover:brightness-[1.05]`
+          : `bg-surface-panel ${SECONDARY_SHADOW} hover:bg-surface-hover ${active ? "[color:var(--content-primary)]" : "[color:var(--content-secondary)] hover:[color:var(--content-primary)]"}`,
         className
       )}
       {...props}
@@ -152,9 +159,9 @@ function GhostChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "text-ui-small inline-flex h-7 items-center gap-1.5 rounded-[8px] px-2 [&_svg]:size-3.5",
+        "text-ui-small inline-flex h-7 items-center gap-1.5 rounded-[8px] px-2 transition-[background-color,box-shadow] duration-[var(--motion-fast)] [&_svg]:size-3.5",
         active
-          ? "bg-surface-hover [color:var(--content-primary)]"
+          ? `bg-surface-panel ${CHIP_ACTIVE_SHADOW} [color:var(--content-primary)]`
           : "bg-black/[0.02] [color:var(--content-tertiary)] hover:[color:var(--content-secondary)] dark:bg-white/[0.03]"
       )}
     >
@@ -203,6 +210,7 @@ function Popover({
       <div
         className={cn(
           "bg-surface-overlay absolute z-50 rounded-[var(--radius-menu)] border border-border-subtle p-1 shadow-[var(--shadow-menu)]",
+          "origin-top animate-[orbit-pop-in_var(--motion-fast)_var(--ease-out)_both] motion-reduce:animate-none",
           className
         )}
       >
@@ -219,6 +227,11 @@ const menuItem =
 
 function RecordPeek({ row, onClose }: { row: Row; onClose: () => void }) {
   const [tab, setTab] = useState<"overview" | "activity">("overview");
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setShown(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
   const fields: [React.ComponentType<{ className?: string }>, string, string][] = [
     [Globe, "Domain", row.Domain],
     [Users, "Employees", row.Employees.toLocaleString()],
@@ -228,8 +241,14 @@ function RecordPeek({ row, onClose }: { row: Row; onClose: () => void }) {
   ];
   return (
     <>
-      <div className="absolute inset-0 z-40 bg-black/10" onClick={onClose} />
-      <aside className="bg-surface-panel border-border-subtle absolute inset-y-0 right-0 z-50 flex w-[420px] flex-col border-l shadow-[var(--shadow-menu)]">
+      {/* transparent click-catcher: the table stays visible behind the peek */}
+      <div className="absolute inset-0 z-40" onClick={onClose} />
+      <aside
+        className={cn(
+          "bg-surface-panel border-border-subtle absolute inset-y-0 right-0 z-50 flex w-[420px] flex-col border-l shadow-[var(--shadow-menu)] transition-transform duration-[var(--motion-default)] [transition-timing-function:var(--ease-out)]",
+          shown ? "translate-x-0" : "translate-x-full"
+        )}
+      >
         <div className="border-border-subtle flex h-[52px] items-center gap-2 border-b px-3">
           <span className="bg-surface-hover grid size-6 place-items-center rounded-[6px] text-[12px] font-semibold [color:var(--content-secondary)]">
             {row.Company.slice(0, 1)}
@@ -665,9 +684,7 @@ export default function AttioTablePage() {
                 style={{ gridTemplateColumns: gridTemplate, height: rowH }}
               >
                 <div className="flex h-full items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                  <span className={cn(isSel ? "opacity-100" : "opacity-0 group-hover/row:opacity-100")}>
-                    <Checkbox checked={isSel} onClick={() => toggleRow(r.id)} />
-                  </span>
+                  <Checkbox checked={isSel} onClick={() => toggleRow(r.id)} />
                 </div>
                 {columns.map((c, ci) => {
                   const v = r[c.key];

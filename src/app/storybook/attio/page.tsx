@@ -37,10 +37,10 @@ function ToolButton({
     <button
       type="button"
       className={cn(
-        "text-ui-small inline-flex h-7 items-center gap-1.5 rounded-[8px] px-2 font-[var(--weight-medium)] [&_svg]:size-3.5",
+        "text-ui-small inline-flex h-7 items-center gap-1.5 rounded-[8px] px-2 font-[var(--weight-medium)] transition-[filter,background-color] duration-[var(--motion-fast)] [&_svg]:size-3.5",
         primary
-          ? "bg-primary [color:var(--primary-foreground)] hover:brightness-105"
-          : "hover:bg-surface-hover [color:var(--content-secondary)]",
+          ? "bg-primary [color:var(--primary-foreground)] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06),0_2px_4px_-2px_rgba(94,106,210,0.28),0_3px_6px_-2px_rgba(94,106,210,0.14)] hover:brightness-[1.05]"
+          : "bg-surface-panel [color:var(--content-secondary)] shadow-[inset_0_0_0_1px_rgba(0,0,0,0),0_0_2px_0_rgba(28,40,64,0.18),0_1px_3px_0_rgba(0,0,0,0.04)] hover:bg-surface-hover hover:[color:var(--content-primary)]",
         className
       )}
       {...props}
