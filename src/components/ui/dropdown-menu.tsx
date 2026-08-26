@@ -88,7 +88,10 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center rounded-sm px-2 py-1.5 text-base outline-hidden transition-colors select-none data-disabled:pointer-events-none data-disabled:opacity-50",
+      // crisp menu-item recipe (Attio-measured 32px rows, 8px hover radius);
+      // label typography applied here since children are free-form.
+      "seed-menu-item__root seed-menu-item__root--size_small seed-menu-item__root--tone_neutral seed-menu-item__label--tone_neutral",
+      "relative flex min-h-8 w-full cursor-default items-center text-[14px] leading-5 font-medium outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50",
       inset && "pl-8",
       className
     )}
@@ -104,7 +107,10 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
-      "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden transition-colors select-none data-disabled:pointer-events-none data-disabled:opacity-50",
+      cn(
+      "seed-menu-item__root seed-menu-item__root--size_small seed-menu-item__root--tone_neutral seed-menu-item__label--tone_neutral",
+      "relative flex min-h-8 w-full cursor-default items-center pl-8 text-[14px] leading-5 font-medium outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50"
+    ),
       className
     )}
     checked={checked}
@@ -128,7 +134,10 @@ const DropdownMenuRadioItem = React.forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden transition-colors select-none data-disabled:pointer-events-none data-disabled:opacity-50",
+      cn(
+      "seed-menu-item__root seed-menu-item__root--size_small seed-menu-item__root--tone_neutral seed-menu-item__label--tone_neutral",
+      "relative flex min-h-8 w-full cursor-default items-center pl-8 text-[14px] leading-5 font-medium outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50"
+    ),
       className
     )}
     {...props}

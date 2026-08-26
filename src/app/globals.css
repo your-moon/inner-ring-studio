@@ -1510,3 +1510,9 @@
   background-size: 1rem;
   padding-right: 2rem;
 }
+
+/* crisp glue: Radix marks keyboard-highlighted menu items with data-highlighted;
+   map it onto the crisp menu-item hover surface. */
+.seed-menu-item__root[data-highlighted]::before {
+  background-color: var(--seed-color-bg-transparent-pressed);
+}

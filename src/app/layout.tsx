@@ -7,6 +7,8 @@ import "./globals.css";
 import "@/styles/crisp/tokens.css";
 import "@/styles/crisp/action-button.css";
 import "@/styles/crisp/text-input.css";
+import "@/styles/crisp/menu.css";
+import "@/styles/crisp/menu-item.css";
 
 const siteDescription = `${WEBSITE_NAME} is a fast, self-hosted database workspace — connect to your own PostgreSQL, browse and edit data in a grid, and run SQL, with connections stored in an encrypted vault.`;
 
