@@ -20,8 +20,10 @@ export type ComboboxOption = {
 };
 
 const TRIGGER_CLASS = cn(
-  "focus-ring press flex h-8 w-full items-center justify-between gap-2 rounded-[var(--radius-control)] border bg-surface-canvas px-2.5",
-  "text-ui-default [color:var(--content-primary)]",
+  // crisp text-input root: 32px, 8px radius, hairline ring; the recipe's
+  // ::after draws the focus and invalid rings (data-invalid below).
+  "seed-text-input__root seed-text-input__root--variant_outline seed-text-input__root--variant_outline-size_medium",
+  "flex h-8 w-full items-center justify-between gap-2 px-2.5 text-[14px] [color:var(--content-primary)] outline-hidden",
   "disabled:cursor-not-allowed disabled:opacity-50"
 );
 
@@ -42,11 +44,12 @@ function CommandShell({
         return haystack.includes(search.toLowerCase()) ? 1 : 0;
       }}
     >
-      <div className="border-border-subtle flex items-center gap-2 border-b px-2.5">
+      {/* Attio-measured: 40px search row, 10px inline padding, hairline divider. */}
+      <div className="border-border-subtle flex h-10 items-center gap-2 border-b px-2.5">
         <Search className="size-[var(--icon-sm)] shrink-0 [color:var(--content-tertiary)]" />
         <Command.Input
           placeholder={searchPlaceholder}
-          className="text-ui-default h-8 w-full bg-transparent [color:var(--content-primary)] placeholder:[color:var(--content-tertiary)] focus:outline-none"
+          className="h-full w-full bg-transparent text-[14px] [color:var(--content-primary)] placeholder:[color:var(--content-tertiary)] focus:outline-none"
         />
       </div>
       <Command.List className="max-h-64 overflow-y-auto p-1">
@@ -61,8 +64,10 @@ function CommandShell({
 
 function optionRowClass() {
   return cn(
-    "text-ui-default relative flex cursor-default items-center gap-2 rounded-[6px] px-2 py-1.5 outline-none select-none",
-    "[color:var(--content-secondary)] data-[selected=true]:bg-surface-hover data-[selected=true]:[color:var(--content-primary)]"
+    "relative flex min-h-8 cursor-default items-center gap-2 rounded-[var(--seed-radius-r2)] px-2 text-[14px] leading-5 font-medium outline-none select-none",
+    "[color:var(--seed-color-fg-neutral)]",
+    // cmdk marks the active row with data-selected
+    "data-[selected=true]:bg-[var(--seed-color-bg-layer-floating-pressed)]"
   );
 }
 
@@ -105,11 +110,9 @@ export function Combobox({
         aria-invalid={isInvalid || undefined}
         className={cn(
           TRIGGER_CLASS,
-          isInvalid
-            ? "border-intent-danger"
-            : "border-border-default data-[state=open]:border-border-focus",
           className
         )}
+        data-invalid={isInvalid || undefined}
       >
         <span
           className={cn(
@@ -123,7 +126,10 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="border-border-default bg-surface-overlay w-[--radix-popover-trigger-width] rounded-[var(--radius-menu)] p-0 shadow-[var(--shadow-menu)]"
+        className={cn(
+          "seed-menu__content seed-menu__content--size_small",
+          "w-[--radix-popover-trigger-width] min-w-[220px] border-0 p-0"
+        )}
       >
         <CommandShell
           searchPlaceholder={searchPlaceholder}
@@ -198,11 +204,9 @@ export function MultiSelect({
         className={cn(
           TRIGGER_CLASS,
           "h-auto min-h-8 flex-wrap py-1",
-          isInvalid
-            ? "border-intent-danger"
-            : "border-border-default data-[state=open]:border-border-focus",
           className
         )}
+        data-invalid={isInvalid || undefined}
       >
         <span className="flex flex-1 flex-wrap items-center gap-1">
           {selected.length === 0 ? (
@@ -236,7 +240,10 @@ export function MultiSelect({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="border-border-default bg-surface-overlay w-[--radix-popover-trigger-width] rounded-[var(--radius-menu)] p-0 shadow-[var(--shadow-menu)]"
+        className={cn(
+          "seed-menu__content seed-menu__content--size_small",
+          "w-[--radix-popover-trigger-width] min-w-[220px] border-0 p-0"
+        )}
       >
         <CommandShell
           searchPlaceholder={searchPlaceholder}
@@ -254,10 +261,10 @@ export function MultiSelect({
               >
                 <span
                   className={cn(
-                    "grid size-4 shrink-0 place-items-center rounded-[var(--radius-small)] border",
+                    "grid size-4 shrink-0 place-items-center rounded-[6px] border",
                     checked
-                      ? "border-primary bg-primary [color:var(--primary-foreground)]"
-                      : "border-border-strong"
+                      ? "border-transparent bg-[var(--seed-color-bg-brand-solid)] text-white"
+                      : "border-[var(--seed-color-stroke-neutral-muted)]"
                   )}
                 >
                   {checked ? <Check className="size-3" /> : null}
