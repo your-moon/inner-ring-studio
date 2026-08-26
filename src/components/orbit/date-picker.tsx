@@ -63,7 +63,7 @@ export function DatePicker({
       <PopoverTrigger
         {...field}
         className={cn(
-          "focus-ring press flex h-8 w-full items-center justify-between rounded-[var(--radius-control)] border border-border-default bg-surface-canvas px-2.5 text-ui-default data-[state=open]:border-border-focus",
+          "focus-ring flex h-8 w-full items-center justify-between rounded-[var(--radius-control)] border border-border-default bg-surface-canvas px-2.5 text-ui-default data-[state=open]:border-border-focus",
           className
         )}
       >

@@ -74,7 +74,7 @@ export default function AcceptInvitePage() {
                 <button
                   onClick={accept}
                   disabled={busy}
-                  className="press mt-6 w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:brightness-110 active:brightness-95 disabled:opacity-50"
+                  className="mt-6 w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:brightness-110 active:brightness-95 disabled:opacity-50"
                 >
                   {busy ? "Joining…" : `Join as ${info.role}`}
                 </button>

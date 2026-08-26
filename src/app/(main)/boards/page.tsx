@@ -16,7 +16,7 @@ interface BoardSummary {
 }
 
 const yellowBtn =
-  "rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50";
+  "seed-action-button seed-action-button--variant_brandSolid seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50";
 
 export default function BoardsPage() {
   const router = useRouter();
@@ -51,7 +51,7 @@ export default function BoardsPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setImporting(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-input px-3 py-2 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              className="flex items-center gap-1.5 seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
             >
               <Upload size={15} /> Import JSON
             </button>
@@ -172,12 +172,12 @@ function ImportDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Board name (optional)"
-              className="flex-1 rounded-lg border border-input px-3 py-2 text-sm outline-none bg-card u-smooth focus:border-ring focus:ring-2 focus:ring-ring/40"
+              className="flex-1 h-8 w-full rounded-[var(--seed-radius-r2)] border-0 bg-[var(--seed-color-bg-layer-default)] px-2.5 text-[14px] [color:var(--seed-color-fg-neutral)] shadow-[inset_0_0_0_1px_var(--seed-color-stroke-neutral-weak)] outline-none placeholder:[color:var(--content-tertiary)] focus:shadow-[inset_0_0_0_2px_var(--seed-color-stroke-neutral-contrast)]"
             />
             <input ref={fileRef} type="file" accept="application/json,.json" onChange={onFile} className="hidden" />
             <button
               onClick={() => fileRef.current?.click()}
-              className="rounded-lg border border-input px-3 py-2 text-sm hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+              className="seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
             >
               Upload .json
             </button>
@@ -197,7 +197,7 @@ function ImportDialog({
             <button
               onClick={doImport}
               disabled={busy || !text.trim()}
-              className="rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50"
+              className="seed-action-button seed-action-button--variant_brandSolid seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
             >
               {busy ? "Importing…" : "Import"}
             </button>

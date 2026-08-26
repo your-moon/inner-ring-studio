@@ -34,7 +34,7 @@ export function WorkspaceSwitcher({
       <DropdownMenuTrigger
         aria-label="Switch workspace"
         className={cn(
-          "focus-ring press flex h-8 w-full items-center gap-2 rounded-[var(--radius-control)] px-1.5 hover:bg-surface-hover data-[state=open]:bg-surface-hover",
+          "focus-ring flex h-8 w-full items-center gap-2 rounded-[var(--radius-control)] px-1.5 hover:bg-surface-hover data-[state=open]:bg-surface-hover",
           className
         )}
       >

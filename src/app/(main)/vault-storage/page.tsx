@@ -185,7 +185,7 @@ export default function VaultStoragePage() {
                 <button
                   disabled={busy}
                   onClick={() => vaultPost({ action: "switch", id: v.id }, true)}
-                  className="shrink-0 rounded-md border border-input px-2.5 py-1 text-xs font-medium hover:border-neutral-400 disabled:opacity-50 dark:border-neutral-700"
+                  className="shrink-0 seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_small seed-action-button--layout_withText seed-action-button--size_small-layout_withText disabled:opacity-50"
                 >
                   Switch
                 </button>
@@ -215,7 +215,7 @@ export default function VaultStoragePage() {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Name (e.g. Team, Client X)"
-              className="flex-1 rounded-lg border border-input px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950"
+              className="flex-1 h-8 w-full rounded-[var(--seed-radius-r2)] border-0 bg-[var(--seed-color-bg-layer-default)] px-2.5 text-[14px] [color:var(--seed-color-fg-neutral)] shadow-[inset_0_0_0_1px_var(--seed-color-stroke-neutral-weak)] outline-none placeholder:[color:var(--content-tertiary)] focus:shadow-[inset_0_0_0_2px_var(--seed-color-stroke-neutral-contrast)]"
             />
             <div className="flex overflow-hidden rounded-lg border border-input text-sm dark:border-neutral-700">
               {(["create", "link"] as const).map((m) => (
@@ -239,13 +239,13 @@ export default function VaultStoragePage() {
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
               placeholder="git@github.com:you/db-config.git"
-              className="mb-3 w-full rounded-lg border border-input bg-white px-3 py-2 font-mono text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950"
+              className="mb-3 w-full font-mono h-8 w-full rounded-[var(--seed-radius-r2)] border-0 bg-[var(--seed-color-bg-layer-default)] px-2.5 text-[14px] [color:var(--seed-color-fg-neutral)] shadow-[inset_0_0_0_1px_var(--seed-color-stroke-neutral-weak)] outline-none placeholder:[color:var(--content-tertiary)] focus:shadow-[inset_0_0_0_2px_var(--seed-color-stroke-neutral-contrast)]"
             />
           )}
           <button
             disabled={busy || !newName.trim() || (newMode === "link" && !newUrl.trim())}
             onClick={addVault}
-            className="rounded-lg border border-input px-4 py-2 text-sm font-medium hover:border-blue-500 disabled:opacity-50 dark:border-neutral-700"
+            className="seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
           >
             {newMode === "link" ? "Clone & add" : "Create vault"}
           </button>
@@ -294,12 +294,12 @@ export default function VaultStoragePage() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="git@github.com:you/db-config.git"
-            className="flex-1 rounded-lg border border-input bg-white px-3 py-2 font-mono text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950"
+            className="flex-1 font-mono h-8 w-full rounded-[var(--seed-radius-r2)] border-0 bg-[var(--seed-color-bg-layer-default)] px-2.5 text-[14px] [color:var(--seed-color-fg-neutral)] shadow-[inset_0_0_0_1px_var(--seed-color-stroke-neutral-weak)] outline-none placeholder:[color:var(--content-tertiary)] focus:shadow-[inset_0_0_0_2px_var(--seed-color-stroke-neutral-contrast)]"
           />
           <button
             disabled={busy || !url}
             onClick={() => post({ action: "link", url })}
-            className="rounded-lg border border-input px-4 py-2 text-sm font-medium hover:border-blue-500 disabled:opacity-50 dark:border-neutral-700"
+            className="seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
           >
             Connect
           </button>
@@ -308,7 +308,7 @@ export default function VaultStoragePage() {
         <button
           disabled={busy || !status?.remote}
           onClick={() => post({ action: "sync" })}
-          className="mt-4 rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50"
+          className="mt-4 seed-action-button seed-action-button--variant_brandSolid seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
         >
           {busy ? "Working…" : "Sync now (pull + push)"}
         </button>

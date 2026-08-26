@@ -42,7 +42,7 @@ export const SelectTrigger = forwardRef<
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        "focus-ring press flex w-full items-center justify-between gap-2 rounded-[var(--radius-control)] border bg-surface-canvas px-2.5",
+        "focus-ring flex w-full items-center justify-between gap-2 rounded-[var(--radius-control)] border bg-surface-canvas px-2.5",
         "[color:var(--content-primary)] data-[placeholder]:[color:var(--content-tertiary)]",
         "disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
         isInvalid

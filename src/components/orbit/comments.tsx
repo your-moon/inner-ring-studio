@@ -32,7 +32,7 @@ export function Reactions({
           onClick={() => onToggle?.(r.emoji)}
           aria-pressed={r.reacted}
           className={cn(
-            "focus-ring press inline-flex h-6 items-center gap-1 rounded-[var(--radius-full)] border px-2 text-ui-small [font-variant-numeric:tabular-nums]",
+            "focus-ring inline-flex h-6 items-center gap-1 rounded-[var(--radius-full)] border px-2 text-ui-small [font-variant-numeric:tabular-nums]",
             r.reacted
               ? "border-primary bg-[var(--intent-accent-soft)] [color:var(--intent-accent)]"
               : "border-border-default [color:var(--content-secondary)] hover:bg-surface-hover"
@@ -47,7 +47,7 @@ export function Reactions({
           type="button"
           aria-label="Add reaction"
           onClick={onAdd}
-          className="focus-ring press border-border-default [color:var(--content-tertiary)] grid size-6 place-items-center rounded-[var(--radius-full)] border hover:bg-surface-hover hover:[color:var(--content-primary)]"
+          className="focus-ring border-border-default [color:var(--content-tertiary)] grid size-6 place-items-center rounded-[var(--radius-full)] border hover:bg-surface-hover hover:[color:var(--content-primary)]"
         >
           <Smile className="size-3.5" />
         </button>

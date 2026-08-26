@@ -25,7 +25,7 @@ export type FieldSize = keyof typeof FIELD_SIZES;
 /** Shared shell for text-entry controls: border, fill, focus, invalid state. */
 const fieldShell = (invalid: boolean) =>
   cn(
-    "focus-ring press w-full rounded-[var(--radius-control)] border bg-surface-canvas",
+    "focus-ring w-full rounded-[var(--radius-control)] border bg-surface-canvas",
     "[color:var(--content-primary)] placeholder:[color:var(--content-tertiary)]",
     "disabled:cursor-not-allowed disabled:opacity-50",
     invalid ? "border-intent-danger" : "border-border-default focus:border-border-focus"

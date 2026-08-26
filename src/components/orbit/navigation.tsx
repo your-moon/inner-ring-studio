@@ -95,7 +95,7 @@ export function Tab({ value, className, children, ...props }: TabProps) {
       data-state={selected ? "active" : "inactive"}
       onClick={() => setValue(value)}
       className={cn(
-        "focus-ring press text-ui-default relative -mb-px h-9 border-b-2 border-transparent font-[var(--weight-medium)] whitespace-nowrap",
+        "focus-ring text-ui-default relative -mb-px h-9 border-b-2 border-transparent font-[var(--weight-medium)] whitespace-nowrap",
         selected
           ? "border-primary [color:var(--content-primary)]"
           : "[color:var(--content-tertiary)] hover:[color:var(--content-primary)]",
@@ -175,7 +175,7 @@ export function SegmentedControl<T extends string>({
             aria-checked={selected}
             onClick={() => onChange(opt.value)}
             className={cn(
-              "focus-ring press text-ui-small inline-flex h-full items-center gap-1.5 rounded-[6px] px-2.5 font-[var(--weight-medium)]",
+              "focus-ring text-ui-small inline-flex h-full items-center gap-1.5 rounded-[6px] px-2.5 font-[var(--weight-medium)]",
               selected
                 ? "bg-surface-raised [color:var(--content-primary)] shadow-[var(--shadow-hairline),var(--shadow-raised)]"
                 : "[color:var(--content-tertiary)] hover:[color:var(--content-primary)]"
@@ -299,7 +299,7 @@ export function Pagination({
             aria-current={p === page ? "page" : undefined}
             onClick={() => go(p)}
             className={cn(
-              "focus-ring press text-ui-small grid size-7 place-items-center rounded-[var(--radius-control)] font-[var(--weight-medium)] [font-variant-numeric:tabular-nums]",
+              "focus-ring text-ui-small grid size-7 place-items-center rounded-[var(--radius-control)] font-[var(--weight-medium)] [font-variant-numeric:tabular-nums]",
               p === page
                 ? "bg-surface-hover [color:var(--content-primary)]"
                 : "[color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"

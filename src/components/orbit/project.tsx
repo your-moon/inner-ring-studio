@@ -146,7 +146,7 @@ export function TemplatePicker({
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Templates"
-        className="focus-ring press border-border-default [color:var(--content-secondary)] inline-flex h-7 items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-ui-small hover:bg-surface-hover data-[state=open]:bg-surface-hover"
+        className="focus-ring border-border-default [color:var(--content-secondary)] inline-flex h-7 items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-ui-small hover:bg-surface-hover data-[state=open]:bg-surface-hover"
       >
         <File className="size-3.5" />
         {label}

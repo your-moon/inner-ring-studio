@@ -36,7 +36,7 @@ export default function AccountPage() {
           </div>
           <button
             onClick={signOut}
-            className="mt-3 rounded-lg border border-input px-3 py-1.5 text-sm hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            className="mt-3 seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_small seed-action-button--layout_withText seed-action-button--size_small-layout_withText disabled:opacity-50"
           >
             Sign out
           </button>
@@ -54,7 +54,7 @@ export default function AccountPage() {
 }
 
 const input =
-  "w-full rounded-lg border border-input px-3 py-2 text-sm outline-none bg-card u-smooth focus:border-ring focus:ring-2 focus:ring-ring/40";
+  "w-full h-8 w-full rounded-[var(--seed-radius-r2)] border-0 bg-[var(--seed-color-bg-layer-default)] px-2.5 text-[14px] [color:var(--seed-color-fg-neutral)] shadow-[inset_0_0_0_1px_var(--seed-color-stroke-neutral-weak)] outline-none placeholder:[color:var(--content-tertiary)] focus:shadow-[inset_0_0_0_2px_var(--seed-color-stroke-neutral-contrast)]";
 
 function ChangePassword() {
   const [current, setCurrent] = useState("");
@@ -107,7 +107,7 @@ function ChangePassword() {
         <button
           onClick={submit}
           disabled={busy || !current || next.length < 8}
-          className="rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50"
+          className="seed-action-button seed-action-button--variant_brandSolid seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
         >
           {busy ? "Updating…" : "Update password"}
         </button>

@@ -37,7 +37,7 @@ export function ViewTabs({
             data-state={active ? "active" : "inactive"}
             onClick={() => onChange(t.value)}
             className={cn(
-              "focus-ring press relative -mb-px flex h-7 items-center gap-1.5 border-b-2 text-ui-small font-[var(--weight-medium)]",
+              "focus-ring relative -mb-px flex h-7 items-center gap-1.5 border-b-2 text-ui-small font-[var(--weight-medium)]",
               active
                 ? "border-primary [color:var(--content-primary)]"
                 : "border-transparent [color:var(--content-tertiary)] hover:[color:var(--content-primary)]"

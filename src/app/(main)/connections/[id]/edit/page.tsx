@@ -140,7 +140,7 @@ export default function EditConnectionPage() {
             <button
               onClick={save}
               disabled={busy}
-              className="rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50"
+              className="rounded-lg bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50"
             >
               {busy ? "Saving…" : "Save"}
             </button>

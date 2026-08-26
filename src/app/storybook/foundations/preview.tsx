@@ -119,7 +119,7 @@ function DensityControl({
           aria-pressed={density === option}
           onClick={() => onChange(option)}
           className={cn(
-            "focus-ring press text-ui-small min-h-7 rounded-[6px] px-2.5 capitalize",
+            "focus-ring text-ui-small min-h-7 rounded-[6px] px-2.5 capitalize",
             density === option
               ? "bg-surface-selected text-content-primary shadow-[var(--shadow-hairline)]"
               : "text-content-tertiary hover:bg-surface-hover hover:text-content-primary",
@@ -357,7 +357,7 @@ export function FoundationsPreview() {
             <div className="border-border-default bg-surface-panel flex items-center gap-3 rounded-[var(--radius-panel)] border p-5">
               <button
                 type="button"
-                className="focus-ring press control-height border-border-default bg-surface-raised text-ui-small inline-flex items-center gap-2 rounded-[var(--radius-control)] border px-[var(--density-padding-x)] font-medium hover:bg-surface-hover"
+                className="focus-ring control-height border-border-default bg-surface-raised text-ui-small inline-flex items-center gap-2 rounded-[var(--radius-control)] border px-[var(--density-padding-x)] font-medium hover:bg-surface-hover"
               >
                 <MousePointerClick className="size-[var(--icon-md)]" />
                 Tab to focus

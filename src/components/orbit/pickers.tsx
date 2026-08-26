@@ -21,7 +21,7 @@ import { PriorityIcon, type Priority } from "./priority-icon";
 import { StatusIcon, type WorkflowStatus } from "./status-icon";
 
 const TRIGGER = cn(
-  "focus-ring press inline-flex h-7 items-center gap-1.5 rounded-[var(--radius-control)] px-2 text-ui-small [color:var(--content-secondary)] whitespace-nowrap",
+  "focus-ring inline-flex h-7 items-center gap-1.5 rounded-[var(--radius-control)] px-2 text-ui-small [color:var(--content-secondary)] whitespace-nowrap",
   "hover:bg-surface-hover data-[state=open]:bg-surface-hover"
 );
 const ROW = "text-ui-default flex items-center gap-2";

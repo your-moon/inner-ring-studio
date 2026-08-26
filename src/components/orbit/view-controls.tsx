@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const TRIGGER = cn(
-  "focus-ring press border-border-default [color:var(--content-secondary)] inline-flex h-7 items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-ui-small whitespace-nowrap",
+  "focus-ring border-border-default [color:var(--content-secondary)] inline-flex h-7 items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-ui-small whitespace-nowrap",
   "hover:bg-surface-hover data-[state=open]:bg-surface-hover"
 );
 const ROW = "text-ui-default flex items-center gap-2";
@@ -115,7 +115,7 @@ export function SavedViewPicker({
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Saved views"
-        className="focus-ring press [color:var(--content-primary)] inline-flex h-7 items-center gap-1.5 rounded-[var(--radius-control)] px-2 text-ui-default font-[var(--weight-medium)] hover:bg-surface-hover data-[state=open]:bg-surface-hover"
+        className="focus-ring [color:var(--content-primary)] inline-flex h-7 items-center gap-1.5 rounded-[var(--radius-control)] px-2 text-ui-default font-[var(--weight-medium)] hover:bg-surface-hover data-[state=open]:bg-surface-hover"
       >
         {current?.label ?? "View"}
       </DropdownMenuTrigger>

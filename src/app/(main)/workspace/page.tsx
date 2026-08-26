@@ -23,9 +23,9 @@ interface Member {
 }
 
 const input =
-  "rounded-lg border border-input px-3 py-2 text-sm outline-none bg-card u-smooth focus:border-ring focus:ring-2 focus:ring-ring/40";
+  "h-8 w-full rounded-[var(--seed-radius-r2)] border-0 bg-[var(--seed-color-bg-layer-default)] px-2.5 text-[14px] [color:var(--seed-color-fg-neutral)] shadow-[inset_0_0_0_1px_var(--seed-color-stroke-neutral-weak)] outline-none placeholder:[color:var(--content-tertiary)] focus:shadow-[inset_0_0_0_2px_var(--seed-color-stroke-neutral-contrast)]";
 const yellowBtn =
-  "rounded-lg press bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50";
+  "seed-action-button seed-action-button--variant_brandSolid seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50";
 
 export default function WorkspacePage() {
   const router = useRouter();
@@ -121,7 +121,7 @@ export default function WorkspacePage() {
             </p>
           </div>
           {isOwner && !isPersonal && (
-            <button onClick={rename} className="rounded-lg border border-input px-3 py-1.5 text-sm hover:bg-secondary">
+            <button onClick={rename} className="seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_small seed-action-button--layout_withText seed-action-button--size_small-layout_withText disabled:opacity-50">
               Rename
             </button>
           )}
@@ -156,7 +156,7 @@ export default function WorkspacePage() {
                 </p>
                 <div className="flex items-center gap-2">
                   <input readOnly value={invite.url} className={input + " flex-1 font-mono text-xs"} />
-                  <button onClick={copyInvite} className="rounded-lg border border-input px-3 py-2 text-sm hover:bg-secondary">
+                  <button onClick={copyInvite} className="seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50">
                     {copied ? "Copied" : "Copy"}
                   </button>
                 </div>

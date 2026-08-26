@@ -38,7 +38,7 @@ export const RadioGroupItem = forwardRef<
     <RadioGroupPrimitive.Item
       ref={ref}
       className={cn(
-        "focus-ring press grid size-4 shrink-0 place-items-center rounded-full border",
+        "focus-ring grid size-4 shrink-0 place-items-center rounded-full border",
         "border-border-strong bg-surface-canvas",
         "data-[state=checked]:border-primary",
         "disabled:cursor-not-allowed disabled:opacity-50",

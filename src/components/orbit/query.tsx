@@ -174,7 +174,7 @@ export function QueryToolbar({
         <DropdownMenu>
           <DropdownMenuTrigger
             aria-label="Row limit"
-            className="focus-ring press border-border-default [color:var(--content-secondary)] inline-flex h-7 items-center gap-1 rounded-[var(--radius-control)] border px-2 text-ui-small hover:bg-surface-hover"
+            className="focus-ring border-border-default [color:var(--content-secondary)] inline-flex h-7 items-center gap-1 rounded-[var(--radius-control)] border px-2 text-ui-small hover:bg-surface-hover"
           >
             Limit {limit}
             <ChevronDown className="size-2.5" />

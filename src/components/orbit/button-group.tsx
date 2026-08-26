@@ -19,7 +19,7 @@ export const GROUP_FRAME_CLASS =
  */
 export function groupItemClass(selected: boolean, className?: string) {
   return cn(
-    "focus-ring press text-ui-small inline-flex h-6 items-center justify-center gap-1.5 rounded-[6px] px-2 [line-height:var(--type-ui-small-line-height)] font-[var(--weight-medium)]",
+    "focus-ring text-ui-small inline-flex h-6 items-center justify-center gap-1.5 rounded-[6px] px-2 [line-height:var(--type-ui-small-line-height)] font-[var(--weight-medium)]",
     "hover:bg-surface-hover [color:var(--content-tertiary)] hover:[color:var(--content-primary)]",
     "disabled:pointer-events-none disabled:opacity-50",
     selected &&
