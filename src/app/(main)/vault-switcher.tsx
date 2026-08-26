@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/orbit";
 import { Check, ChevronsUpDown, Plus, Settings, Vault } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -26,7 +33,6 @@ interface VaultsResponse {
  * which one the server reads, so we reload to re-run every vault-scoped fetch.
  */
 export default function VaultSwitcher() {
-  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const { data, mutate } = useSWR<VaultsResponse>("/api/vaults", fetcher);
   const vaults = data?.vaults ?? [];
@@ -41,7 +47,7 @@ export default function VaultSwitcher() {
   }
 
   async function switchTo(id: string) {
-    if (active?.id === id) return setOpen(false);
+    if (active?.id === id) return;
     setBusy(true);
     await post({ action: "switch", id });
     // Reload so every vault-scoped fetch (connections, boards, …) re-runs.
@@ -66,67 +72,57 @@ export default function VaultSwitcher() {
   if (!data || data.enabled === false) return null;
 
   return (
-    <div className="relative px-3 pb-2">
-      <button
-        disabled={busy}
-        onClick={() => setOpen((v) => !v)}
-        className="u-smooth hover:bg-secondary flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] disabled:opacity-60"
-      >
-        <span className="border-border bg-background flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border text-[9px] font-semibold">
-          {(active?.name ?? "V").slice(0, 1).toUpperCase()}
-        </span>
-        <span className="min-w-0 flex-1 truncate font-medium">
-          {active?.name ?? "Default"}
-        </span>
-        <ChevronsUpDown size={12} className="text-muted-foreground shrink-0" />
-      </button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="border-border bg-popover absolute right-3 left-3 z-50 mt-1 overflow-hidden rounded-lg border shadow-lg">
-            <div className="max-h-64 overflow-y-auto py-1">
-              {vaults.map((v) => (
-                <button
-                  key={v.id}
-                  onClick={() => switchTo(v.id)}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                >
-                  <Vault size={14} className="shrink-0 text-neutral-400" />
-                  <span className="min-w-0 flex-1 truncate">
-                    {v.name}
-                    {v.repoUrl && (
-                      <span className="ml-1 text-xs text-neutral-400">synced</span>
-                    )}
+    <div className="px-2 pb-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          disabled={busy}
+          className="focus-ring hover:bg-surface-hover data-[state=open]:bg-surface-hover text-ui-small flex h-8 w-full items-center gap-2 rounded-[var(--radius-control)] px-2 text-left disabled:opacity-60"
+        >
+          <span className="border-border-default bg-surface-panel grid size-5 shrink-0 place-items-center rounded-[var(--radius-small)] border text-[10px] font-semibold [color:var(--content-primary)]">
+            {(active?.name ?? "V").slice(0, 1).toUpperCase()}
+          </span>
+          <span className="min-w-0 flex-1 truncate font-[var(--weight-medium)] [color:var(--content-primary)]">
+            {active?.name ?? "Default"}
+          </span>
+          <ChevronsUpDown className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-[236px]">
+          {vaults.map((v) => (
+            <DropdownMenuItem
+              key={v.id}
+              onSelect={() => switchTo(v.id)}
+              className="flex items-center gap-2"
+            >
+              <Vault className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
+              <span className="min-w-0 flex-1 truncate">
+                {v.name}
+                {v.repoUrl ? (
+                  <span className="text-ui-caption ml-1 [color:var(--content-tertiary)]">
+                    synced
                   </span>
-                  {v.active && (
-                    <Check size={14} className="text-primary" />
-                  )}
-                </button>
-              ))}
-              {vaults.length === 0 && (
-                <div className="px-3 py-2 text-xs text-neutral-400">Loading…</div>
-              )}
+                ) : null}
+              </span>
+              {v.active ? (
+                <Check className="size-3.5 shrink-0 [color:var(--content-link)]" />
+              ) : null}
+            </DropdownMenuItem>
+          ))}
+          {vaults.length === 0 ? (
+            <div className="text-ui-caption px-2 py-1.5 [color:var(--content-tertiary)]">
+              Loading…
             </div>
-            <div className="border-t border-neutral-100 dark:border-neutral-800">
-              <button
-                onClick={create}
-                disabled={busy}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-neutral-100 disabled:opacity-60 dark:hover:bg-neutral-800"
-              >
-                <Plus size={14} /> New vault
-              </button>
-              <Link
-                href="/vault-storage"
-                onClick={() => setOpen(false)}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              >
-                <Settings size={14} /> Manage vaults
-              </Link>
-            </div>
-          </div>
-        </>
-      )}
+          ) : null}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={create} disabled={busy} className="flex items-center gap-2">
+            <Plus className="size-3.5 shrink-0" /> New vault
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className="flex items-center gap-2">
+            <Link href="/vault-storage">
+              <Settings className="size-3.5 shrink-0" /> Manage vaults
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

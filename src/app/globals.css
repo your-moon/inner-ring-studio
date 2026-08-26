@@ -557,13 +557,13 @@
     --overlay-scrim: rgb(27 28 31 / 42%);
 
     /* Type */
-    --type-ui-micro: 10px;
-    --type-ui-micro-line-height: 14px;
-    --type-ui-caption: 11px;
+    --type-ui-micro: 11px;
+    --type-ui-micro-line-height: 15px;
+    --type-ui-caption: 12px;
     --type-ui-caption-line-height: 16px;
-    --type-ui-small: 12px;
-    --type-ui-small-line-height: 16px;
-    --type-ui-default: 13px;
+    --type-ui-small: 13px;
+    --type-ui-small-line-height: 18px;
+    --type-ui-default: 14px;
     --type-ui-default-line-height: 20px;
     --type-body-small: 14px;
     --type-body-small-line-height: 22px;

@@ -268,16 +268,16 @@ export default function AppSidebar() {
   const sidebar = (
     <aside
       aria-label="Application navigation"
-      className="bg-sidebar flex h-full min-h-0 w-[260px] flex-col"
+      className="bg-sidebar flex h-full min-h-0 w-[272px] flex-col"
     >
       {/* Workspace switcher */}
       <div className="flex h-12 shrink-0 items-center gap-1 px-2 lg:mt-2">
         <Link
           href="/local"
-          className="focus-ring hover:bg-surface-hover flex min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1"
+          className="focus-ring border-border-default bg-surface-panel hover:bg-surface-hover hover:border-border-strong flex h-8 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] border px-2"
         >
           <BrandMark />
-          <span className="text-ui-small truncate font-semibold tracking-tight [color:var(--content-primary)]">
+          <span className="text-ui-small min-w-0 flex-1 truncate font-semibold tracking-tight [color:var(--content-primary)]">
             {WEBSITE_NAME}
           </span>
           <ChevronDown className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
@@ -401,7 +401,7 @@ export default function AppSidebar() {
           {(connectionData?.connections.length ?? 0) === 0 && (
             <Link
               href="/connections/new"
-              className="text-ui-caption flex w-full items-center gap-2 rounded-[var(--radius-control)] border border-dashed border-border-default px-2.5 py-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
+              className="text-ui-caption flex w-full items-center gap-2 rounded-[var(--radius-control)] border border-dashed border-border-strong px-2.5 py-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
             >
               <Plus size={14} /> Add your first connection
             </Link>
