@@ -22,12 +22,34 @@ The same build serves all modes; the mode is chosen by `DEPLOY_MODE` at runtime.
    A record → grape-2's IP (same as `db.carrot-soft.tech`). Traefik issues the
    cert automatically on first request.
 
-## Steps (on grape-2)
+## How it's deployed
+
+Prod is **grape-2** (`root@187.52.116.86`), served by Traefik at
+`https://cloud.carrot-soft.tech`. There is **no CI/registry** — the image is
+built *on the box* from a plain source copy at `/opt/inner-ring-cloud/app`
+(not a git checkout). Deploying = rsync the repo up, then
+`docker compose … up -d --build`. The Dockerfile builds a Next **standalone**
+bundle with bun and runs it on Node (`node server.js`).
+
+> The `npm run deploy` script (OpenNext → Cloudflare) is **not** the prod path
+> and does not work here — it fails to bundle the inherited `runtime = "edge"`
+> routes. Ignore it; use the rsync + compose flow below.
+
+Layout on grape-2:
+
+```
+/opt/inner-ring-cloud/
+├── app/                        # rsync'd repo source (image build context)
+├── docker-compose.cloud.yml    # the stack (app + irs-cloud-db)
+└── cloud.env                   # secrets, chmod 600 — NOT under app/, never synced
+```
+
+## First-time setup (on grape-2)
 
 ```bash
 mkdir -p /opt/inner-ring-cloud && cd /opt/inner-ring-cloud
-# sync this repo to ./app (same as the self-hosted deploy), and copy:
-#   deploy/docker-compose.cloud.yml -> ./docker-compose.cloud.yml
+# Copy the compose file next to cloud.env (once):
+#   deploy/docker-compose.cloud.yml -> /opt/inner-ring-cloud/docker-compose.cloud.yml
 
 # 1. Create cloud.env (chmod 600) with strong secrets:
 cat > cloud.env <<ENV
@@ -36,13 +58,50 @@ IRS_CLOUD_DB_PASSWORD=$(openssl rand -hex 24)
 IRS_CLOUD_KEY=$(openssl rand -hex 32)
 ENV
 chmod 600 cloud.env
-
-# 2. Bring it up
-docker compose -f docker-compose.cloud.yml --env-file cloud.env up -d --build
 ```
+
+Then sync the source and build (same commands as an update — see below).
 
 The schema (`users`, `connections`) is created automatically on first request
 (`CREATE TABLE IF NOT EXISTS`). No migration step.
+
+## Updating / redeploying
+
+Run from a clean checkout of the branch you want live (`main`). Two steps:
+
+```bash
+# 1. Push source up (from the repo root on your machine). The excludes keep
+#    build caches, local secrets, and the dead Cloudflare artifacts off the box.
+rsync -az --delete \
+  --exclude '.git' --exclude 'node_modules' --exclude '.next' --exclude '.swc' \
+  --exclude '.scratch' --exclude '.open-next' --exclude 'cloud.env' \
+  ./ grape-2:/opt/inner-ring-cloud/app/
+
+# 2. Rebuild + restart on the box (bun install + next build run inside Docker,
+#    ~2–4 min; the app container swaps once the new image is ready).
+ssh grape-2 'cd /opt/inner-ring-cloud && \
+  docker compose -f docker-compose.cloud.yml --env-file cloud.env up -d --build'
+```
+
+`--delete` mirrors the repo (removes stale files on the box); `cloud.env` lives
+in the parent dir so it is never touched. Verify:
+
+```bash
+ssh grape-2 'docker ps --filter name=inner-ring-cloud --format "{{.Status}}"'
+curl -sI https://cloud.carrot-soft.tech | head -1
+```
+
+### Rollback
+
+`up --build` retags `inner-ring-studio:latest`, but the previous image is still
+present by ID. To revert without a rebuild:
+
+```bash
+ssh grape-2 'docker images inner-ring-studio'          # find the prior image ID
+ssh grape-2 'docker tag <PRIOR_ID> inner-ring-studio:latest && \
+  cd /opt/inner-ring-cloud && \
+  docker compose -f docker-compose.cloud.yml --env-file cloud.env up -d'
+```
 
 ## Verify
 
