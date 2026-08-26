@@ -4,6 +4,10 @@ import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import NavigationLayout from "../../nav-layout";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/orbit/button";
+import { Checkbox } from "@/components/orbit/checkbox";
+import { cn } from "@/lib/utils";
 
 interface Importable {
   id: string;
@@ -240,22 +244,16 @@ export default function NewConnectionPage() {
     }
   }
 
-  const input =
-    "w-full rounded-md border border-input bg-card px-3 h-9 text-[14px] text-foreground outline-none u-smooth placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/40";
-
   const driverBtn = (d: Driver, label: string) => (
-    <button
-      type="button"
+    <Button
+      variant="secondary"
+      size="lg"
+      toggled={f.driver === d}
+      className={cn("flex-1", f.driver === d && "!bg-primary/10 [color:var(--primary)]")}
       onClick={() => setDriver(d)}
-      className={
-        "press flex-1 rounded-md border px-4 h-9 text-[13px] font-medium " +
-        (f.driver === d
-          ? "border-primary/40 bg-primary/10 text-primary"
-          : "border-border text-muted-foreground hover:bg-secondary")
-      }
     >
       {label}
-    </button>
+    </Button>
   );
 
   const canSave = f.name.trim() && f.host.trim() && f.port.trim();
@@ -300,13 +298,14 @@ export default function NewConnectionPage() {
                   )
                 )}
               </select>
-              <button
+              <Button
+                variant="secondary"
+                size="lg"
                 onClick={importConn}
                 disabled={busy || !importSel}
-                className="press h-9 rounded-md border border-border bg-card px-3.5 text-[13px] font-medium text-foreground hover:bg-secondary disabled:opacity-50"
               >
                 Import
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -317,8 +316,8 @@ export default function NewConnectionPage() {
               Paste a connection URL{" "}
               <span className="font-normal text-neutral-400">(optional)</span>
             </label>
-            <input
-              className={input}
+            <Input
+              
               placeholder="postgres://user:pass@host:5432/dbname"
               onPaste={(e) => {
                 const text = e.clipboardData.getData("text");
@@ -351,8 +350,8 @@ export default function NewConnectionPage() {
 
           <div>
             <label className="mb-1 block text-sm font-medium">Name</label>
-            <input
-              className={input}
+            <Input
+              
               placeholder="e.g. Production"
               value={f.name}
               onChange={(e) => set("name", e.target.value)}
@@ -362,8 +361,8 @@ export default function NewConnectionPage() {
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="mb-1 block text-sm font-medium">Host</label>
-              <input
-                className={input}
+              <Input
+                
                 placeholder="db.example.com"
                 value={f.host}
                 onChange={(e) => set("host", e.target.value)}
@@ -371,8 +370,8 @@ export default function NewConnectionPage() {
             </div>
             <div className="w-28">
               <label className="mb-1 block text-sm font-medium">Port</label>
-              <input
-                className={input}
+              <Input
+                
                 value={f.port}
                 onChange={(e) => set("port", e.target.value)}
               />
@@ -382,16 +381,16 @@ export default function NewConnectionPage() {
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="mb-1 block text-sm font-medium">Database</label>
-              <input
-                className={input}
+              <Input
+                
                 value={f.database}
                 onChange={(e) => set("database", e.target.value)}
               />
             </div>
             <div className="flex-1">
               <label className="mb-1 block text-sm font-medium">User</label>
-              <input
-                className={input}
+              <Input
+                
                 value={f.user}
                 onChange={(e) => set("user", e.target.value)}
               />
@@ -400,9 +399,9 @@ export default function NewConnectionPage() {
 
           <div>
             <label className="mb-1 block text-sm font-medium">Password</label>
-            <input
+            <Input
               type="password"
-              className={input}
+              
               value={f.password}
               onChange={(e) => set("password", e.target.value)}
             />
@@ -412,8 +411,8 @@ export default function NewConnectionPage() {
             <label className="mb-1 block text-sm font-medium">
               Folder <span className="font-normal text-neutral-400">(optional)</span>
             </label>
-            <input
-              className={input}
+            <Input
+              
               placeholder="e.g. VMS"
               value={f.folder}
               onChange={(e) => set("folder", e.target.value)}
@@ -465,20 +464,16 @@ export default function NewConnectionPage() {
           </div>
 
           <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={f.ssl}
-              onChange={(e) => set("ssl", e.target.checked)}
-              className="h-4 w-4 accent-primary"
+              onCheckedChange={(v) => set("ssl", v === true)}
             />
             Use SSL
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={f.readOnly}
-              onChange={(e) => set("readOnly", e.target.checked)}
-              className="h-4 w-4 accent-primary"
+              onCheckedChange={(v) => set("readOnly", v === true)}
             />
             Read-only (block all writes) — recommended for production
           </label>
@@ -497,30 +492,29 @@ export default function NewConnectionPage() {
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           <div className="flex gap-2 pt-2">
-            <button
+            <Button
+              variant="secondary"
+              size="lg"
               onClick={testConnection}
               disabled={busy || !f.host.trim()}
-              className="press inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3.5 text-[13px] font-medium text-foreground hover:bg-secondary disabled:opacity-50"
+              loading={busy && !saving}
+              loadingLabel="Testing connection"
             >
-              {busy && !saving && (
-                <LoaderCircle size={14} className="animate-spin" />
-              )}
               Test connection
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
               onClick={save}
               disabled={busy || !canSave}
-              className="press inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3.5 text-[13px] font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              loading={saving}
+              loadingLabel="Saving"
             >
-              {saving && <LoaderCircle size={14} className="animate-spin" />}
-              Save & connect
-            </button>
-            <button
-              onClick={() => router.push("/local")}
-              className="press h-9 rounded-md px-3.5 text-[13px] text-muted-foreground hover:bg-secondary hover:text-foreground"
-            >
+              Save &amp; connect
+            </Button>
+            <Button variant="ghost" size="lg" onClick={() => router.push("/local")}>
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       </div>
