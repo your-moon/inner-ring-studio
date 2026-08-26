@@ -27,25 +27,7 @@ import {
   type Priority,
   type WorkflowStatus,
 } from "@/components/orbit";
-import {
-  ArrowRight,
-  Bell,
-  CaretDown,
-  CirclesFour,
-  Copy,
-  Cube,
-  DotsThree,
-  GitBranch,
-  MagnifyingGlass,
-  PencilSimple,
-  Plus,
-  Rocket,
-  SlidersHorizontal,
-  Stack,
-  Tag,
-  Tray,
-  UserCircle,
-} from "@phosphor-icons/react";
+import { ArrowRight, Bell, Box, ChevronDown, CircleUser, Copy, Ellipsis, GitBranch, Inbox, Layers, LayoutGrid, Pencil, Plus, Rocket, Search, SlidersHorizontal, Tag } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Row = {
@@ -98,7 +80,7 @@ function GroupHeader({ status, title, count }: { status: WorkflowStatus; title: 
       <span className="text-ui-small [color:var(--content-tertiary)] [font-variant-numeric:tabular-nums]">{count}</span>
       <div className="ml-auto flex items-center gap-0.5 opacity-0 group-hover/gh:opacity-100">
         <IconButton aria-label={`Add issue to ${title}`} size="sm"><Plus /></IconButton>
-        <IconButton aria-label="Group options" size="sm"><DotsThree /></IconButton>
+        <IconButton aria-label="Group options" size="sm"><Ellipsis /></IconButton>
       </div>
     </div>
   );
@@ -109,9 +91,9 @@ function NavHeader() {
     <button type="button" className="focus-ring hover:bg-surface-hover -mx-1 mb-1 flex items-center gap-2 rounded-[var(--radius-control)] px-2 py-1.5">
       <span className="bg-primary grid size-5 shrink-0 place-items-center rounded-[var(--radius-small)] text-[11px] font-semibold [color:var(--primary-foreground)]">M</span>
       <span className="text-ui-small font-[var(--weight-medium)] [color:var(--content-primary)]">Moon</span>
-      <CaretDown className="size-3 [color:var(--content-tertiary)]" />
+      <ChevronDown className="size-3 [color:var(--content-tertiary)]" />
       <span className="ml-auto flex items-center gap-0.5">
-        <IconButton aria-label="Search" size="sm"><MagnifyingGlass /></IconButton>
+        <IconButton aria-label="Search" size="sm"><Search /></IconButton>
         <IconButton aria-label="New issue" size="sm"><Plus /></IconButton>
       </span>
     </button>
@@ -188,16 +170,16 @@ export default function DashboardExample() {
         <aside className="hidden w-[244px] shrink-0 flex-col p-2 md:flex">
           <NavHeader />
           <div className="flex flex-col gap-px">
-            <SidebarNavItem icon={<Tray />} label="Inbox" count={3} active={nav === "inbox"} onClick={() => setNav("inbox")} />
-            <SidebarNavItem icon={<CirclesFour />} label="My issues" active={nav === "mine"} onClick={() => setNav("mine")} />
+            <SidebarNavItem icon={<Inbox />} label="Inbox" count={3} active={nav === "inbox"} onClick={() => setNav("inbox")} />
+            <SidebarNavItem icon={<LayoutGrid />} label="My issues" active={nav === "mine"} onClick={() => setNav("mine")} />
           </div>
           <SidebarSection title="Workspace" className="mt-4">
             <SidebarNavItem icon={<Rocket />} label="Issues" active={nav === "issues"} onClick={() => setNav("issues")} />
-            <SidebarNavItem icon={<Stack />} label="Projects" active={nav === "projects"} onClick={() => setNav("projects")} />
+            <SidebarNavItem icon={<Layers />} label="Projects" active={nav === "projects"} onClick={() => setNav("projects")} />
           </SidebarSection>
           <SidebarSection title="Favorites" className="mt-4">
-            <SidebarNavItem icon={<Cube />} label="Postgres proxy" onClick={() => {}} />
-            <SidebarNavItem icon={<Cube />} label="Encrypted vault" onClick={() => {}} />
+            <SidebarNavItem icon={<Box />} label="Postgres proxy" onClick={() => {}} />
+            <SidebarNavItem icon={<Box />} label="Encrypted vault" onClick={() => {}} />
           </SidebarSection>
         </aside>
 
@@ -207,14 +189,14 @@ export default function DashboardExample() {
             {/* View header */}
             <div className="flex h-14 shrink-0 items-center justify-between px-5">
               <div className="flex items-center gap-2">
-                <CirclesFour className="size-4 [color:var(--content-tertiary)]" />
+                <LayoutGrid className="size-4 [color:var(--content-tertiary)]" />
                 <h2 className="text-heading-small font-semibold tracking-[var(--tracking-heading)] [color:var(--content-primary)]">My Issues</h2>
                 <span className="text-ui-small [color:var(--content-tertiary)] [font-variant-numeric:tabular-nums]">{FLAT.length}</span>
               </div>
               <div className="flex items-center gap-1">
                 <IconButton aria-label="Filter"><SlidersHorizontal /></IconButton>
-                <Button variant="secondary" size="sm" title="Display" displayContent="items-last"><CaretDown className="size-3" /></Button>
-                <IconButton aria-label="View options"><DotsThree /></IconButton>
+                <Button variant="secondary" size="sm" title="Display" displayContent="items-last"><ChevronDown className="size-3" /></Button>
+                <IconButton aria-label="View options"><Ellipsis /></IconButton>
               </div>
             </div>
 
@@ -287,7 +269,7 @@ export default function DashboardExample() {
                 <PropertyRow label="Status"><span className="inline-flex items-center gap-1.5 text-ui-small"><StatusIcon status={active.status} /> {groupTitle(active.status)}</span></PropertyRow>
                 <PropertyRow label="Priority"><span className="inline-flex items-center gap-1.5 text-ui-small"><PriorityIcon priority={active.priority} /> {cap(active.priority)}</span></PropertyRow>
                 <PropertyRow label="Assignee"><span className="inline-flex items-center gap-1.5 text-ui-small"><PresenceAvatar name={active.who} size="sm" presence="online" /> {active.who}</span></PropertyRow>
-                <PropertyRow label="Project"><span className="inline-flex items-center gap-1.5 text-ui-small"><Stack className="size-3.5 [color:var(--content-tertiary)]" /> {active.project}</span></PropertyRow>
+                <PropertyRow label="Project"><span className="inline-flex items-center gap-1.5 text-ui-small"><Layers className="size-3.5 [color:var(--content-tertiary)]" /> {active.project}</span></PropertyRow>
                 <PropertyRow label="Labels">{active.label ? <Label color={active.label.color}>{active.label.text}</Label> : <span className="text-ui-small [color:var(--content-tertiary)]">—</span>}</PropertyRow>
                 <PropertyRow label="Due date"><DueDateBadge date="Sep 5" /></PropertyRow>
                 <PropertyRow label="Subscribers"><AvatarGroup size="sm" people={[{ name: active.who }, { name: "Bru" }, { name: "Cy" }]} /></PropertyRow>
@@ -300,8 +282,8 @@ export default function DashboardExample() {
                 <h1 className="text-heading-medium mt-1 font-semibold tracking-[var(--tracking-heading)] [color:var(--content-primary)]">{active.title}</h1>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Button variant="secondary" size="sm" title="Edit"><PencilSimple /></Button>
-                <Button variant="secondary" size="sm" title="Assign"><UserCircle /></Button>
+                <Button variant="secondary" size="sm" title="Edit"><Pencil /></Button>
+                <Button variant="secondary" size="sm" title="Assign"><CircleUser /></Button>
                 <Button variant="secondary" size="sm" title="Label"><Tag /></Button>
                 <Button variant="ghost" size="sm" title="Copy link"><Copy /></Button>
               </div>
@@ -327,12 +309,12 @@ export default function DashboardExample() {
             <CommandMenu footer={<CommandFooter />}>
               <CommandGroup heading="Issue">
                 <CommandRow icon={<Plus />} label="Create new issue" shortcut={<Kbd>C</Kbd>} />
-                <CommandRow icon={<PencilSimple />} label="Edit selected issue" shortcut={<Kbd>E</Kbd>} />
+                <CommandRow icon={<Pencil />} label="Edit selected issue" shortcut={<Kbd>E</Kbd>} />
                 <CommandRow icon={<GitBranch />} label="Copy branch name" />
               </CommandGroup>
               <CommandGroup heading="Navigation">
                 <CommandRow icon={<ArrowRight />} label="Go to project…" hint="Postgres proxy" />
-                <CommandRow icon={<Tray />} label="Open inbox" hint="3 unread" />
+                <CommandRow icon={<Inbox />} label="Open inbox" hint="3 unread" />
                 <CommandRow icon={<Bell />} label="Notification settings" />
               </CommandGroup>
             </CommandMenu>

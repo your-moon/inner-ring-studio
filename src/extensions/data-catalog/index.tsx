@@ -1,7 +1,7 @@
 import { StudioExtension } from "@/core/extension-base";
 import { StudioExtensionContext } from "@/core/extension-manager";
 import { createTabExtension } from "@/core/extension-tab";
-import { Book } from "@phosphor-icons/react";
+import { Book } from "lucide-react";
 import DataCatalogTab from "./data-catalog-tab";
 import DataCatalogModelTab from "./data-model-tab";
 import DataCatalogDriver from "./driver";

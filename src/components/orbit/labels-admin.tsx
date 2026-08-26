@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretRight, Check, Plus } from "@phosphor-icons/react";
+import { Check, ChevronRight, Plus } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -105,7 +105,7 @@ export function LabelGroupRow({
           aria-expanded={open}
           className="text-ui-default flex min-w-0 flex-1 items-center gap-1.5 text-left"
         >
-          <CaretRight
+          <ChevronRight
             className={cn(
               "size-3.5 shrink-0 [color:var(--content-tertiary)] transition-transform duration-[var(--motion-fast)]",
               open && "rotate-90"
@@ -182,7 +182,6 @@ export function ColorSwatchPicker({
           />
           {c === value ? (
             <Check
-              weight="bold"
               className="absolute size-3 [color:var(--primary-foreground)] mix-blend-difference"
             />
           ) : null}

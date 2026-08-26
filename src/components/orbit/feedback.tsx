@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  CheckCircle,
-  Info,
-  Warning,
-  WarningOctagon,
-  X,
-  type Icon,
-} from "@phosphor-icons/react";
+import { CircleCheck, Info, LucideIcon, OctagonAlert, TriangleAlert, X } from "lucide-react";
 import type { HTMLAttributes, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -21,12 +14,12 @@ type Intent = "info" | "success" | "warning" | "danger" | "neutral";
 
 const ALERT_INTENT: Record<
   Intent,
-  { icon: Icon; fill: string; ink: string }
+  { icon: LucideIcon; fill: string; ink: string }
 > = {
   info: { icon: Info, fill: "bg-[var(--intent-info-soft)]", ink: "[color:var(--intent-info)]" },
-  success: { icon: CheckCircle, fill: "bg-[var(--intent-success-soft)]", ink: "[color:var(--intent-success)]" },
-  warning: { icon: Warning, fill: "bg-[var(--intent-warning-soft)]", ink: "[color:var(--intent-warning)]" },
-  danger: { icon: WarningOctagon, fill: "bg-[var(--intent-danger-soft)]", ink: "[color:var(--intent-danger)]" },
+  success: { icon: CircleCheck, fill: "bg-[var(--intent-success-soft)]", ink: "[color:var(--intent-success)]" },
+  warning: { icon: TriangleAlert, fill: "bg-[var(--intent-warning-soft)]", ink: "[color:var(--intent-warning)]" },
+  danger: { icon: OctagonAlert, fill: "bg-[var(--intent-danger-soft)]", ink: "[color:var(--intent-danger)]" },
   neutral: { icon: Info, fill: "bg-surface-hover", ink: "[color:var(--content-secondary)]" },
 };
 
@@ -41,7 +34,7 @@ export type AlertProps = {
 
 /**
  * An inline banner that explains a state and, when it matters, offers the one
- * action to resolve it. Icon + intent color reinforce, but the words carry the
+ * action to resolve it. LucideIcon + intent color reinforce, but the words carry the
  * meaning. Reserve `danger` for real failures.
  */
 export function Alert({
@@ -62,7 +55,7 @@ export function Alert({
         className
       )}
     >
-      <Glyph weight="fill" className={cn("mt-px size-[var(--icon-md)] shrink-0", ink)} />
+      <Glyph fill="currentColor" className={cn("mt-px size-[var(--icon-md)] shrink-0", ink)} />
       <div className="min-w-0 flex-1">
         {title ? (
           <div className="text-ui-default [color:var(--content-primary)] font-[var(--weight-medium)]">

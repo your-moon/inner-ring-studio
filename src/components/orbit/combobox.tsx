@@ -1,7 +1,7 @@
 "use client";
 
 import { Command } from "cmdk";
-import { Check, CaretUpDown, MagnifyingGlass, X } from "@phosphor-icons/react";
+import { Check, ChevronsUpDown, Search, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import {
@@ -43,7 +43,7 @@ function CommandShell({
       }}
     >
       <div className="border-border-subtle flex items-center gap-2 border-b px-2.5">
-        <MagnifyingGlass className="size-[var(--icon-sm)] shrink-0 [color:var(--content-tertiary)]" />
+        <Search className="size-[var(--icon-sm)] shrink-0 [color:var(--content-tertiary)]" />
         <Command.Input
           placeholder={searchPlaceholder}
           className="text-ui-default h-8 w-full bg-transparent [color:var(--content-primary)] placeholder:[color:var(--content-tertiary)] focus:outline-none"
@@ -119,7 +119,7 @@ export function Combobox({
         >
           {selected ? selected.label : placeholder}
         </span>
-        <CaretUpDown className="size-[var(--icon-sm)] shrink-0 [color:var(--content-tertiary)]" />
+        <ChevronsUpDown className="size-[var(--icon-sm)] shrink-0 [color:var(--content-tertiary)]" />
       </PopoverTrigger>
       <PopoverContent
         align="start"
@@ -141,7 +141,6 @@ export function Combobox({
               className={optionRowClass()}
             >
               <Check
-                weight="bold"
                 className={cn(
                   "size-3.5 shrink-0",
                   option.value === value ? "opacity-100" : "opacity-0"
@@ -227,13 +226,13 @@ export function MultiSelect({
                   }}
                   className="[color:var(--content-tertiary)] hover:[color:var(--content-primary)]"
                 >
-                  <X weight="bold" className="size-3" />
+                  <X className="size-3" />
                 </span>
               </span>
             ))
           )}
         </span>
-        <CaretUpDown className="size-[var(--icon-sm)] shrink-0 self-center [color:var(--content-tertiary)]" />
+        <ChevronsUpDown className="size-[var(--icon-sm)] shrink-0 self-center [color:var(--content-tertiary)]" />
       </PopoverTrigger>
       <PopoverContent
         align="start"
@@ -261,7 +260,7 @@ export function MultiSelect({
                       : "border-border-strong"
                   )}
                 >
-                  {checked ? <Check weight="bold" className="size-3" /> : null}
+                  {checked ? <Check className="size-3" /> : null}
                 </span>
                 <span className="min-w-0 flex-1 truncate">{option.label}</span>
               </Command.Item>

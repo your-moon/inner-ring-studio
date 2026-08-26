@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretDown, CaretUp, CaretUpDown } from "@phosphor-icons/react";
+import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 import type {
   HTMLAttributes,
   TdHTMLAttributes,
@@ -95,11 +95,11 @@ export function TableHead({
         >
           {children}
           {sort === "asc" ? (
-            <CaretUp weight="bold" className="size-3" />
+            <ChevronUp className="size-3" />
           ) : sort === "desc" ? (
-            <CaretDown weight="bold" className="size-3" />
+            <ChevronDown className="size-3" />
           ) : (
-            <CaretUpDown className="size-3 opacity-50" />
+            <ChevronsUpDown className="size-3 opacity-50" />
           )}
         </button>
       ) : (

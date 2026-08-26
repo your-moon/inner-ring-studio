@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "@phosphor-icons/react";
+import { Plus } from "lucide-react";
 import type { HTMLAttributes, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";

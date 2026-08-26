@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/context-menu";
 import EnvBadge from "@/components/orbit/env-badge";
 import { cn } from "@/lib/utils";
-import { CircleNotch, Database } from "@phosphor-icons/react";
+import { Database, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 
 export interface NavConnection {
@@ -41,9 +41,8 @@ export default function NavConnectionItem({
   const connected = !!conn.status?.connected;
   const status = busy ? (
     <span title="Connecting…" className="inline-flex">
-      <CircleNotch
+      <LoaderCircle
         size={12}
-        weight="bold"
         className="animate-spin [color:var(--content-tertiary)]"
       />
     </span>

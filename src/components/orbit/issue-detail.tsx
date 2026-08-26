@@ -1,7 +1,7 @@
 "use client";
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { ArrowsOutSimple, X } from "@phosphor-icons/react";
+import { Maximize2, X } from "lucide-react";
 import { forwardRef, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -45,7 +45,7 @@ export const PeekModalContent = forwardRef<
           </DialogPrimitive.Title>
           {onExpand ? (
             <IconButton aria-label="Open full page" size="sm" onClick={onExpand}>
-              <ArrowsOutSimple />
+              <Maximize2 />
             </IconButton>
           ) : null}
           <DialogPrimitive.Close asChild>

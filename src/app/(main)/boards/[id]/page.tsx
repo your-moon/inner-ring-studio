@@ -7,7 +7,7 @@ import Board, { DashboardProps } from "@/components/board";
 import type { SavedConnectionRawLocalStorage } from "@/app/(theme)/connect/saved-connection-storage";
 import LocalBoardSource from "@/drivers/board-source/local";
 import CloudBoardStorage from "@/drivers/board-storage/cloud";
-import { CaretLeft, CodeSimple } from "@phosphor-icons/react";
+import { ChevronLeft, Code } from "lucide-react";
 import Link from "next/link";
 import NavigationLayout from "../../nav-layout";
 import BoardJsonDialog from "./board-json-dialog";
@@ -92,14 +92,14 @@ export default function BoardEditorPage() {
           href="/boards"
           className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
         >
-          <CaretLeft size={14} /> Boards
+          <ChevronLeft size={14} /> Boards
         </Link>
         <button
           onClick={() => setJsonOpen(true)}
           title="View / edit the dashboard JSON model"
           className="flex items-center gap-1.5 rounded-md border border-neutral-300 px-2.5 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
         >
-          <CodeSimple size={14} /> JSON
+          <Code size={14} /> JSON
         </button>
       </div>
 

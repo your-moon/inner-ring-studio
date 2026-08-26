@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, SlidersHorizontal, X } from "@phosphor-icons/react";
+import { Plus, SlidersHorizontal, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -54,7 +54,7 @@ export function FilterChip({
           onClick={onRemove}
           className="focus-ring border-border-subtle flex h-full items-center border-l px-1.5 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
         >
-          <X weight="bold" className="size-3" />
+          <X className="size-3" />
         </button>
       ) : null}
     </span>
@@ -81,7 +81,7 @@ export function FilterBuilder({
         aria-label="Add filter"
         className="focus-ring press border-border-default [color:var(--content-secondary)] inline-flex h-7 items-center gap-1 rounded-[var(--radius-full)] border border-dashed px-2.5 text-ui-small hover:bg-surface-hover hover:[color:var(--content-primary)] data-[state=open]:bg-surface-hover"
       >
-        <Plus weight="bold" className="size-3" />
+        <Plus className="size-3" />
         {label}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-48">

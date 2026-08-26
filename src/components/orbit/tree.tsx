@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretRight } from "@phosphor-icons/react";
+import { ChevronRight } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -65,8 +65,7 @@ export function TreeItem({
           className="focus-ring -ml-0.5 flex size-4 shrink-0 items-center justify-center rounded-[var(--radius-small)]"
         >
           {hasChildren ? (
-            <CaretRight
-              weight="bold"
+            <ChevronRight
               className={cn(
                 "size-3 [color:var(--content-tertiary)] transition-transform",
                 expanded && "rotate-90"

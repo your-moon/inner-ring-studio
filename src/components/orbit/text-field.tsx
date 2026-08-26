@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeSlash, MagnifyingGlass, Minus, Plus } from "@phosphor-icons/react";
+import { Eye, EyeOff, Minus, Plus, Search } from "lucide-react";
 import {
   forwardRef,
   useState,
@@ -99,7 +99,7 @@ export const SearchField = forwardRef<HTMLInputElement, TextFieldProps>(
         ref={ref}
         type={type}
         placeholder={placeholder}
-        leading={leading ?? <MagnifyingGlass />}
+        leading={leading ?? <Search />}
         {...props}
       />
     );
@@ -124,7 +124,7 @@ export const PasswordField = forwardRef<HTMLInputElement, TextFieldProps>(
             onClick={() => setVisible((v) => !v)}
             className="-mr-1"
           >
-            {visible ? <EyeSlash /> : <Eye />}
+            {visible ? <EyeOff /> : <Eye />}
           </IconButton>
         }
         {...props}

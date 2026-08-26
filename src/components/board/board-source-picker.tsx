@@ -1,4 +1,4 @@
-import { Database } from "@phosphor-icons/react";
+import { Database } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { DatabaseSchemas } from "@/drivers/base-driver";
 import { useBoardContext } from "./board-provider";

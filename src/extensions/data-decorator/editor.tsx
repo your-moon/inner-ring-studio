@@ -7,7 +7,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Check } from "@phosphor-icons/react";
+import { Check } from "lucide-react";
 import { useState } from "react";
 import z from "zod";
 

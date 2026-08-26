@@ -6,8 +6,7 @@ import {
 } from "@/components/ui/context-menu";
 import { OpenContextMenuList } from "@/core/channel-builtin";
 import { cn } from "@/lib/utils";
-import { Icon } from "@phosphor-icons/react";
-import { LucideChevronDown, LucideChevronRight } from "lucide-react";
+import { LucideChevronDown, LucideChevronRight, LucideIcon } from "lucide-react";
 import React, {
   Dispatch,
   Fragment,
@@ -21,7 +20,7 @@ import HighlightText from "../ui/highlight-text";
 export interface ListViewItem<T = unknown> {
   key: string;
   name: string;
-  icon: Icon;
+  icon: LucideIcon;
   iconColor?: string;
   iconBadgeColor?: string;
   data: T;

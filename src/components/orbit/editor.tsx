@@ -1,6 +1,6 @@
 "use client";
 
-import { DotsSixVertical, Plus } from "@phosphor-icons/react";
+import { GripVertical, Plus } from "lucide-react";
 import {
   useState,
   type ButtonHTMLAttributes,
@@ -193,7 +193,7 @@ export function BlockHandle({
         onMouseUp={() => setDragging(false)}
         className="focus-ring grid size-5 cursor-grab place-items-center rounded-[var(--radius-small)] [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)] [&_svg]:size-4"
       >
-        <DotsSixVertical />
+        <GripVertical />
       </button>
     </div>
   );

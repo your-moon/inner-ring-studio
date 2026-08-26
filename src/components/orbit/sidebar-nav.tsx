@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretRight, Plus, SidebarSimple, Star } from "@phosphor-icons/react";
+import { ChevronRight, PanelLeft, Plus, Star } from "lucide-react";
 import {
   useState,
   type ButtonHTMLAttributes,
@@ -112,7 +112,7 @@ export function SidebarSection({
           )}
         >
           {collapsible ? (
-            <CaretRight
+            <ChevronRight
               className={cn(
                 "size-3 shrink-0 opacity-0 transition-transform duration-[var(--motion-fast)] group-hover/sec:opacity-100",
                 open && "rotate-90"
@@ -186,7 +186,7 @@ export function SidebarFavorite({
               : "opacity-0 group-hover/fav:opacity-100"
           )}
         >
-          <Star weight={favorited ? "fill" : "regular"} />
+          <Star />
         </IconButton>
       ) : null}
     </div>
@@ -239,7 +239,7 @@ export function SidebarToggle({ onClick, className }: SidebarToggleProps) {
       onClick={onClick}
       className={className}
     >
-      <SidebarSimple />
+      <PanelLeft />
     </IconButton>
   );
 }

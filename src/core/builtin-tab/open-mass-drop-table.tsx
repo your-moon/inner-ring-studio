@@ -1,5 +1,5 @@
 import MassDropTableTab from "@/components/gui/tabs/mass-drop-table";
-import { StackMinus } from "@phosphor-icons/react";
+import { Layers2 } from "lucide-react";
 import { createTabExtension } from "../extension-tab";
 
 export const builtinMassDropTableTab = createTabExtension({
@@ -8,6 +8,6 @@ export const builtinMassDropTableTab = createTabExtension({
   generate: () => ({
     title: "Mass Drop Tables",
     component: <MassDropTableTab />,
-    icon: StackMinus,
+    icon: Layers2,
   }),
 });

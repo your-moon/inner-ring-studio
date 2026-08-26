@@ -1,6 +1,6 @@
 "use client";
 
-import { Warning } from "@phosphor-icons/react";
+import { TriangleAlert } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -73,7 +73,7 @@ export function ProductionEnvironmentBanner({
         className
       )}
     >
-      <Warning weight="fill" className="size-[var(--icon-sm)] shrink-0" />
+      <TriangleAlert fill="currentColor" className="size-[var(--icon-sm)] shrink-0" />
       <span className="[color:var(--content-secondary)]">{children}</span>
     </div>
   );

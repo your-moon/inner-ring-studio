@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy } from "@phosphor-icons/react";
+import { Check, Copy } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, type ButtonProps } from "./button";
@@ -65,7 +65,7 @@ export function CopyButton({
       title={iconOnly ? undefined : copied ? copiedLabel : label}
       variant={variant}
     >
-      {copied ? <Check weight="bold" /> : <Copy />}
+      {copied ? <Check /> : <Copy />}
       <span aria-live="polite" className="sr-only">
         {copied ? copiedLabel : ""}
       </span>

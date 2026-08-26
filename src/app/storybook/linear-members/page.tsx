@@ -15,7 +15,7 @@ import {
   SidebarNavItem,
   type MemberRole,
 } from "@/components/orbit";
-import { DotsThree } from "@phosphor-icons/react";
+import { Ellipsis } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -116,7 +116,7 @@ export default function LinearMembersStorybook() {
               role={<RoleBadge role="owner" />}
               actions={
                 <IconButton aria-label="Member options" size="sm">
-                  <DotsThree />
+                  <Ellipsis />
                 </IconButton>
               }
             />
@@ -128,7 +128,7 @@ export default function LinearMembersStorybook() {
               role={<RoleSelect role={bruRole} onChange={setBruRole} />}
               actions={
                 <IconButton aria-label="Member options" size="sm">
-                  <DotsThree />
+                  <Ellipsis />
                 </IconButton>
               }
             />
@@ -136,7 +136,7 @@ export default function LinearMembersStorybook() {
               email="cy@moon.dev"
               actions={
                 <IconButton aria-label="Invite options" size="sm">
-                  <DotsThree />
+                  <Ellipsis />
                 </IconButton>
               }
             />

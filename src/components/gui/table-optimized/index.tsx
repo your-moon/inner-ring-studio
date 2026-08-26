@@ -1,5 +1,5 @@
 "use client";
-import { Icon } from "@phosphor-icons/react";
+import { LucideIcon } from "lucide-react";
 import React, {
   ReactElement,
   useCallback,
@@ -22,7 +22,7 @@ export interface OptimizeTableHeaderProps<MetadataType = unknown> {
   display: {
     text: string;
     initialSize: number;
-    icon?: Icon;
+    icon?: LucideIcon;
     iconClassName?: string;
     tooltip?: string;
   };

@@ -14,7 +14,7 @@ import {
   TrendBadge,
   CHART_COLORS,
 } from "@/components/orbit";
-import { DotsThree } from "@phosphor-icons/react";
+import { Ellipsis } from "lucide-react";
 import type { ReactNode } from "react";
 
 function CatalogSection({
@@ -86,7 +86,7 @@ export default function LinearInsightsStorybook() {
         description="A categorical bar chart and a multi-segment donut with a legend."
       >
         <div className="grid gap-6 lg:grid-cols-2">
-          <ChartCard title="Issues by status" action={<IconButton aria-label="Chart options" size="sm"><DotsThree /></IconButton>}>
+          <ChartCard title="Issues by status" action={<IconButton aria-label="Chart options" size="sm"><Ellipsis /></IconButton>}>
             <BarChart data={statusData} />
           </ChartCard>
           <ChartCard title="Distribution">

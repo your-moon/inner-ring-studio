@@ -31,7 +31,7 @@ const config: Config = {
 const overrideJestConfig = async (): Promise<Config> => {
   const c: Config = await createJestConfig(config)();
   c.transformIgnorePatterns = [
-    "/node_modules/(?!(lucia)|(oslo)|(arctic)|(@lucia-auth)|(@t3-oss))",
+    "/node_modules/(?!(lucia)|(oslo)|(arctic)|(@lucia-auth)|(@t3-oss)|(lucide-react))",
   ];
   return c;
 };

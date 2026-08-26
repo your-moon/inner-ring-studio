@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useStudioContext } from "@/context/driver-provider";
 import { useSchema } from "@/context/schema-provider";
 import { DatabaseSchemaItem } from "@/drivers/base-driver";
-import { Check, Spinner, Table, Trash, XCircle } from "@phosphor-icons/react";
+import { Check, CircleX, LoaderCircle, Table, Trash2 } from "lucide-react";
 import { ReactElement, useCallback, useEffect, useState } from "react";
 import { Toolbar, ToolbarButton } from "../toolbar";
 
@@ -168,11 +168,11 @@ export default function MassDropTableTab() {
 
       if (status === "Failed")
         statusIcon = (
-          <XCircle size={16} className="mr-2 inline-block text-red-500" />
+          <CircleX size={16} className="mr-2 inline-block text-red-500" />
         );
       else if (status.includes("..."))
         statusIcon = (
-          <Spinner size={16} className="mr-2 inline-block animate-spin" />
+          <LoaderCircle size={16} className="mr-2 inline-block animate-spin" />
         );
       else if (status === "Dropped" || status === "Emptied")
         statusIcon = (
@@ -225,7 +225,7 @@ export default function MassDropTableTab() {
           <Toolbar>
             <ToolbarButton
               disabled={selectedItems.length === 0 || completed}
-              icon={<Trash size={16} className="text-red-500" />}
+              icon={<Trash2 size={16} className="text-red-500" />}
               text="Drop Selected Table"
               onClick={dropSelectedTableClicked}
               destructive

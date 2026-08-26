@@ -16,7 +16,7 @@ import {
   VaultSyncStatus,
   WriteConfirmationDialog,
 } from "@/components/orbit";
-import { DotsThree } from "@phosphor-icons/react";
+import { Ellipsis } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -83,7 +83,7 @@ export default function ProductStorybook() {
             host="db.internal:5432"
             environment="production"
             state="connected"
-            actions={<IconButton aria-label="Connection options"><DotsThree weight="bold" /></IconButton>}
+            actions={<IconButton aria-label="Connection options"><Ellipsis /></IconButton>}
           />
           <ConnectionCard
             name="Staging"

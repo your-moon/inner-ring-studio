@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretUpDown, Check, Plus } from "@phosphor-icons/react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -44,7 +44,7 @@ export function WorkspaceSwitcher({
         <span className="text-ui-default [color:var(--content-primary)] min-w-0 flex-1 truncate text-left font-[var(--weight-medium)]">
           {active?.name}
         </span>
-        <CaretUpDown className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
+        <ChevronsUpDown className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-56">
         {workspaces.map((w) => (
@@ -57,7 +57,7 @@ export function WorkspaceSwitcher({
               {w.name.charAt(0).toUpperCase()}
             </span>
             <span className="flex-1 truncate">{w.name}</span>
-            {w.id === activeId ? <Check weight="bold" className="size-3.5" /> : null}
+            {w.id === activeId ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
         {onCreate ? (

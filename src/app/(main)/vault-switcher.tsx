@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretUpDown, Check, Gear, Plus, Vault } from "@phosphor-icons/react";
+import { Check, ChevronsUpDown, Plus, Settings, Vault } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
@@ -78,7 +78,7 @@ export default function VaultSwitcher() {
         <span className="min-w-0 flex-1 truncate font-medium">
           {active?.name ?? "Default"}
         </span>
-        <CaretUpDown size={12} className="text-muted-foreground shrink-0" />
+        <ChevronsUpDown size={12} className="text-muted-foreground shrink-0" />
       </button>
 
       {open && (
@@ -121,7 +121,7 @@ export default function VaultSwitcher() {
                 onClick={() => setOpen(false)}
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800"
               >
-                <Gear size={14} /> Manage vaults
+                <Settings size={14} /> Manage vaults
               </Link>
             </div>
           </div>

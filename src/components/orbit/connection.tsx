@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowsClockwise, CloudCheck, WarningCircle } from "@phosphor-icons/react";
+import { CircleAlert, Cloud, RefreshCw } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -61,9 +61,9 @@ export function VaultSyncStatus({
   className?: string;
 }) {
   const map = {
-    synced: { icon: <CloudCheck />, label: "Vault synced", ink: "[color:var(--content-tertiary)]" },
-    syncing: { icon: <ArrowsClockwise className="animate-spin" />, label: "Syncing…", ink: "[color:var(--content-tertiary)]" },
-    error: { icon: <WarningCircle weight="fill" />, label: "Sync failed", ink: "[color:var(--intent-danger)]" },
+    synced: { icon: <Cloud />, label: "Vault synced", ink: "[color:var(--content-tertiary)]" },
+    syncing: { icon: <RefreshCw className="animate-spin" />, label: "Syncing…", ink: "[color:var(--content-tertiary)]" },
+    error: { icon: <CircleAlert fill="currentColor" />, label: "Sync failed", ink: "[color:var(--intent-danger)]" },
   }[state];
   return (
     <span className={cn("text-ui-small inline-flex items-center gap-1.5", map.ink, className)}>

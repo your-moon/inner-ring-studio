@@ -1,4 +1,4 @@
-import { ChartBar, Database } from "@phosphor-icons/react";
+import { ChartColumn, Database } from "lucide-react";
 import {
   MySQLIcon,
   PostgreIcon,
@@ -51,7 +51,7 @@ export function getDatabaseIcon(type: string) {
   if (type === "libsql" || type === "turso") return TursoIcon;
   if (type === "rqlite") return RqliteIcon;
   if (type === "sqlite") return SQLiteIcon;
-  if (type === "board") return ChartBar;
+  if (type === "board") return ChartColumn;
 
   return Database;
 }

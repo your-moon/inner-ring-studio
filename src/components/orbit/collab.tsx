@@ -1,6 +1,6 @@
 "use client";
 
-import { DownloadSimple, FileText, Plus, X } from "@phosphor-icons/react";
+import { Download, FileText, Plus, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -147,7 +147,7 @@ export function AttachmentRow({
       <span className="flex shrink-0 items-center gap-0.5 opacity-0 group-hover:opacity-100">
         {onDownload ? (
           <IconButton aria-label="Download" size="sm" onClick={onDownload}>
-            <DownloadSimple />
+            <Download />
           </IconButton>
         ) : null}
         {onRemove ? (
@@ -228,7 +228,7 @@ export function SubscriberList({
           onClick={onAdd}
           className="focus-ring border-border-strong [color:var(--content-tertiary)] grid size-5 place-items-center rounded-full border border-dashed hover:[color:var(--content-primary)] [&_svg]:size-3"
         >
-          <Plus weight="bold" />
+          <Plus />
         </button>
       ) : null}
     </div>

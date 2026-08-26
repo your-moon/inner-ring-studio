@@ -17,8 +17,7 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { Icon } from "@phosphor-icons/react";
-import { Loader } from "lucide-react";
+import { Loader, LucideIcon } from "lucide-react";
 import CodePreview from "../gui/code-preview";
 
 interface ShowDialogProps {
@@ -28,7 +27,7 @@ interface ShowDialogProps {
   previewCode?: string;
   actions?: {
     text: string;
-    icon?: Icon;
+    icon?: LucideIcon;
     onClick: () => Promise<void>;
     onComplete?: () => void;
   }[];

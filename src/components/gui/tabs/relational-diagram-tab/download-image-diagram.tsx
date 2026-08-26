@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { FileImage } from "@phosphor-icons/react";
+import { FileImage } from "lucide-react";
 import { getNodesBounds, getViewportForBounds, useReactFlow } from "@xyflow/react";
 import { toPng } from 'html-to-image';
 

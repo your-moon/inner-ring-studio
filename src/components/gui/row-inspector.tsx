@@ -9,7 +9,7 @@ import {
 import { convertDatabaseValueToString } from "@/drivers/sqlite/sql-helper";
 import { cn } from "@/lib/utils";
 import { ColumnType } from "@outerbase/sdk-transform";
-import { X } from "@phosphor-icons/react";
+import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type OptimizeTableState from "./table-optimized/optimize-table-state";
 import type { TableHeaderMetadata } from "./table-result/type";

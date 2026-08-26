@@ -14,19 +14,7 @@ import {
   SidebarToggle,
   SubscribeToggle,
 } from "@/components/orbit";
-import {
-  ArrowRight,
-  Bell,
-  CirclesFour,
-  DownloadSimple,
-  GithubLogo,
-  Layout,
-  MagnifyingGlass,
-  Plus,
-  Stack,
-  Tray,
-  UserPlus,
-} from "@phosphor-icons/react";
+import { ArrowRight, Bell, Download, Github, Inbox, Layers, LayoutGrid, PanelsTopLeft, Plus, Search, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -85,14 +73,14 @@ export default function LinearShellStorybook() {
           </div>
           <div className="flex flex-col gap-px">
             <SidebarNavItem
-              icon={<Tray />}
+              icon={<Inbox />}
               label="Inbox"
               count={3}
               active={nav === "inbox"}
               onClick={() => setNav("inbox")}
             />
             <SidebarNavItem
-              icon={<CirclesFour />}
+              icon={<LayoutGrid />}
               label="My issues"
               active={nav === "mine"}
               onClick={() => setNav("mine")}
@@ -101,13 +89,13 @@ export default function LinearShellStorybook() {
 
           <SidebarSection title="Favorites" onAdd={() => {}} className="mt-3">
             <SidebarFavorite
-              icon={<Stack />}
+              icon={<Layers />}
               label="Postgres proxy"
               favorited
               onToggleFavorite={() => {}}
             />
             <SidebarFavorite
-              icon={<Layout />}
+              icon={<PanelsTopLeft />}
               label="Active cycle"
               favorited
               onToggleFavorite={() => {}}
@@ -116,13 +104,13 @@ export default function LinearShellStorybook() {
 
           <SidebarSection title="Your teams" className="mt-3">
             <SidebarNavItem
-              icon={<CirclesFour />}
+              icon={<LayoutGrid />}
               label="Issues"
               active={nav === "issues"}
               onClick={() => setNav("issues")}
             />
             <SidebarNavItem
-              icon={<Layout />}
+              icon={<PanelsTopLeft />}
               label="Projects"
               active={nav === "projects"}
               onClick={() => setNav("projects")}
@@ -130,9 +118,9 @@ export default function LinearShellStorybook() {
           </SidebarSection>
 
           <SidebarSection title="Try" defaultOpen className="mt-3">
-            <SidebarButton icon={<DownloadSimple />} label="Import issues" />
+            <SidebarButton icon={<Download />} label="Import issues" />
             <SidebarButton icon={<UserPlus />} label="Invite people" />
-            <SidebarButton icon={<GithubLogo />} label="Connect GitHub" />
+            <SidebarButton icon={<Github />} label="Connect GitHub" />
           </SidebarSection>
         </div>
       </CatalogSection>
@@ -156,8 +144,8 @@ export default function LinearShellStorybook() {
               />
             </CommandGroup>
             <CommandGroup heading="Navigation">
-              <CommandRow icon={<Tray />} label="Open inbox" hint="3 unread" />
-              <CommandRow icon={<MagnifyingGlass />} label="Search…" />
+              <CommandRow icon={<Inbox />} label="Open inbox" hint="3 unread" />
+              <CommandRow icon={<Search />} label="Search…" />
               <CommandRow icon={<Bell />} label="Notification settings" />
             </CommandGroup>
           </CommandMenu>

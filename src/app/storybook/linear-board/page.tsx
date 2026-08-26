@@ -24,12 +24,7 @@ import {
   type Priority,
   type WorkflowStatus,
 } from "@/components/orbit";
-import {
-  Code as CodeIcon,
-  ListChecks,
-  TextH,
-  TextT,
-} from "@phosphor-icons/react";
+import { Code as CodeIcon, Heading, ListChecks, Type } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -185,8 +180,8 @@ export default function LinearBoardStorybook() {
           activeValue={slash}
           onSelect={setSlash}
           commands={[
-            { value: "text", label: "Text", hint: "Plain paragraph", icon: <TextT /> },
-            { value: "h1", label: "Heading 1", hint: "Big section heading", icon: <TextH /> },
+            { value: "text", label: "Text", hint: "Plain paragraph", icon: <Type /> },
+            { value: "h1", label: "Heading 1", hint: "Big section heading", icon: <Heading /> },
             { value: "todo", label: "To-do list", hint: "Track tasks", icon: <ListChecks /> },
             { value: "code", label: "Code block", hint: "Monospaced", icon: <CodeIcon /> },
           ]}

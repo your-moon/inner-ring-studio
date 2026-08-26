@@ -1,14 +1,5 @@
-import {
-  ChartBarHorizontal,
-  ChartPieSlice,
-  NumberCircleOne,
-  TextT,
-} from "@phosphor-icons/react";
-import { ChartBar } from "@phosphor-icons/react/dist/icons/ChartBar";
-import { ChartPolar } from "@phosphor-icons/react/dist/icons/ChartPolar";
-import { Funnel } from "@phosphor-icons/react/dist/icons/Funnel";
 import { produce } from "immer";
-import { ChartLine, ChartScatter, Table } from "lucide-react";
+import { ChartBar, ChartColumn, ChartLine, ChartPie, ChartScatter, CircleDot, Filter, Table, Type } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { ChartValue } from "./chart-type";
 import { ChartTypeButton } from "./chart-type-button";
@@ -40,7 +31,7 @@ export default function ChartTypeSelection({
           suggested={value.suggestedChartType?.includes("line") || false}
         />
         <ChartTypeButton
-          icon={<ChartBar />}
+          icon={<ChartColumn />}
           isActive={value.type === "column"}
           onClick={() => {
             onChange((prev) => {
@@ -53,7 +44,7 @@ export default function ChartTypeSelection({
           suggested={value.suggestedChartType?.includes("column") || false}
         />
         <ChartTypeButton
-          icon={<ChartBarHorizontal />}
+          icon={<ChartColumn />}
           isActive={value.type === "bar"}
           onClick={() => {
             onChange((prev) => {
@@ -79,7 +70,7 @@ export default function ChartTypeSelection({
           suggested={value.suggestedChartType?.includes("scatter") || false}
         />
         <ChartTypeButton
-          icon={<TextT />}
+          icon={<Type />}
           isActive={value.type === "text"}
           onClick={() => {
             onChange((prev) => {
@@ -92,7 +83,7 @@ export default function ChartTypeSelection({
           suggested={value.suggestedChartType?.includes("text") || false}
         />
         <ChartTypeButton
-          icon={<NumberCircleOne weight="bold" />}
+          icon={<CircleDot />}
           isActive={value.type === "single_value"}
           onClick={() => {
             onChange((prev) => {
@@ -120,7 +111,7 @@ export default function ChartTypeSelection({
           suggested={value.suggestedChartType?.includes("table") || false}
         />
         <ChartTypeButton
-          icon={<ChartPieSlice weight="bold" />}
+          icon={<ChartPie />}
           isActive={value.type === "pie"}
           onClick={() => {
             onChange((prev) => {
@@ -133,7 +124,7 @@ export default function ChartTypeSelection({
           suggested={value.suggestedChartType?.includes("pie") || false}
         />
         <ChartTypeButton
-          icon={<ChartPolar />}
+          icon={<ChartPie />}
           isActive={value.type === "radar"}
           onClick={() => {
             onChange((prev) => {
@@ -146,7 +137,7 @@ export default function ChartTypeSelection({
           suggested={value.suggestedChartType?.includes("radar") || false}
         />
         <ChartTypeButton
-          icon={<Funnel />}
+          icon={<Filter />}
           isActive={value.type === "funnel"}
           onClick={() => {
             onChange((prev) => {
@@ -155,7 +146,7 @@ export default function ChartTypeSelection({
               });
             });
           }}
-          tooltipText="Funnel"
+          tooltipText="Filter"
           suggested={value.suggestedChartType?.includes("funnel") || false}
         />
       </div>

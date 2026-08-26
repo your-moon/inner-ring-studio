@@ -1,5 +1,5 @@
 import TableDataWindow from "@/components/gui/tabs/table-data-tab";
-import { Table } from "@phosphor-icons/react";
+import { Table } from "lucide-react";
 import { createTabExtension } from "../extension-tab";
 
 export const builtinOpenTableTab = createTabExtension<{

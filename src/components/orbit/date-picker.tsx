@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretLeft, CaretRight } from "@phosphor-icons/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -88,7 +88,7 @@ export function DatePicker({
             onClick={() => setView(new Date(year, month - 1, 1))}
             className="focus-ring grid size-6 place-items-center rounded-[6px] hover:bg-surface-hover [color:var(--content-tertiary)]"
           >
-            <CaretLeft weight="bold" className="size-3.5" />
+            <ChevronLeft className="size-3.5" />
           </button>
           <span className="text-ui-small font-[var(--weight-medium)]">
             {MONTHS[month]} {year}
@@ -99,7 +99,7 @@ export function DatePicker({
             onClick={() => setView(new Date(year, month + 1, 1))}
             className="focus-ring grid size-6 place-items-center rounded-[6px] hover:bg-surface-hover [color:var(--content-tertiary)]"
           >
-            <CaretRight weight="bold" className="size-3.5" />
+            <ChevronRight className="size-3.5" />
           </button>
         </div>
         <div className="grid grid-cols-7 gap-0.5">

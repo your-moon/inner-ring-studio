@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, FileDashed } from "@phosphor-icons/react";
+import { Check, File } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -148,7 +148,7 @@ export function TemplatePicker({
         aria-label="Templates"
         className="focus-ring press border-border-default [color:var(--content-secondary)] inline-flex h-7 items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-ui-small hover:bg-surface-hover data-[state=open]:bg-surface-hover"
       >
-        <FileDashed className="size-3.5" />
+        <File className="size-3.5" />
         {label}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-52">
@@ -199,7 +199,7 @@ export function IntegrationRow({
           {name}
           {connected ? (
             <span className="inline-flex items-center gap-1 text-ui-caption [color:var(--intent-success)]">
-              <Check weight="bold" className="size-3" /> Connected
+              <Check className="size-3" /> Connected
             </span>
           ) : null}
         </div>

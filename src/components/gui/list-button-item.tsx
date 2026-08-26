@@ -1,16 +1,16 @@
 import { buttonVariants } from "../ui/button";
-import { Icon } from "@phosphor-icons/react";
+import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function ListButtonItem({
   selected,
   text,
-  icon: Icon,
+  icon: LucideIcon,
   onClick,
 }: Readonly<{
   selected?: boolean;
   text: string;
-  icon?: Icon;
+  icon?: LucideIcon;
   onClick: () => void;
 }>) {
   return (
@@ -25,8 +25,8 @@ export default function ListButtonItem({
         "cursor-pointer"
       )}
     >
-      {Icon ? (
-        <Icon className="w-4 h-4 mr-2" />
+      {LucideIcon ? (
+        <LucideIcon className="w-4 h-4 mr-2" />
       ) : (
         <div className="w-4 h-4 mr-2"></div>
       )}

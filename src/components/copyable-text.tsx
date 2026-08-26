@@ -1,4 +1,4 @@
-import { Copy } from "@phosphor-icons/react";
+import { Copy } from "lucide-react";
 
 interface CopyableTextProps {
   text: string;

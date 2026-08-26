@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretDown, Lightning, Plus, TextAa, X } from "@phosphor-icons/react";
+import { CaseSensitive, ChevronDown, Plus, X, Zap } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -73,7 +73,7 @@ export function QueryTabBar({
                 onClick={() => onClose(t.id)}
                 className="focus-ring grid size-4 place-items-center rounded-[var(--radius-small)] opacity-0 hover:bg-surface-hover group-hover:opacity-100 [color:var(--content-tertiary)]"
               >
-                <X weight="bold" className="size-2.5" />
+                <X className="size-2.5" />
               </button>
             ) : null}
           </div>
@@ -115,7 +115,7 @@ export function RunQueryButton({
         className={menu ? "rounded-r-none" : undefined}
         displayContent="items-first"
       >
-        {!running ? <Lightning weight="fill" /> : null}
+        {!running ? <Zap fill="currentColor" /> : null}
       </Button>
       {menu ? (
         <DropdownMenu>
@@ -128,7 +128,7 @@ export function RunQueryButton({
               disabled={disabled || running}
               className="-ml-px rounded-l-none px-0"
             >
-              <CaretDown weight="bold" />
+              <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-44">
@@ -166,7 +166,7 @@ export function QueryToolbar({
       {children}
       {onFormat ? (
         <IconButton aria-label="Format query" size="base" onClick={onFormat}>
-          <TextAa />
+          <CaseSensitive />
         </IconButton>
       ) : null}
       <div className="flex-1" />
@@ -177,7 +177,7 @@ export function QueryToolbar({
             className="focus-ring press border-border-default [color:var(--content-secondary)] inline-flex h-7 items-center gap-1 rounded-[var(--radius-control)] border px-2 text-ui-small hover:bg-surface-hover"
           >
             Limit {limit}
-            <CaretDown weight="bold" className="size-2.5" />
+            <ChevronDown className="size-2.5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {[100, 500, 1000, 5000].map((n) => (

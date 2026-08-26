@@ -3,12 +3,7 @@ import { useSchema } from "@/context/schema-provider";
 import { scc } from "@/core/command";
 import { StudioExtensionMenuItem } from "@/core/extension-manager";
 import { cn } from "@/lib/utils";
-import { Plus } from "@phosphor-icons/react";
-import {
-  LucideLoader2,
-  LucideRefreshCw,
-  LucideSearch,
-} from "lucide-react";
+import { LucideLoader2, LucideRefreshCw, LucideSearch, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { buttonVariants } from "../ui/button";
 import {
@@ -95,7 +90,7 @@ export default function SchemaView() {
           )}
           onClick={contentMenu[0].onClick}
         >
-          <Plus size={16} weight="bold" />
+          <Plus size={16} />
         </button>
       );
     }
@@ -111,7 +106,7 @@ export default function SchemaView() {
               "h-6 w-6 rounded-md bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
             )}
           >
-            <Plus size={16} weight="bold" />
+            <Plus size={16} />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="bottom" align="start">

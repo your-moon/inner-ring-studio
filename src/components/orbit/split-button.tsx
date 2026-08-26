@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretDown } from "@phosphor-icons/react";
+import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -53,7 +53,7 @@ export function SplitButton({
             size={size}
             variant={variant}
           >
-            <CaretDown weight="bold" />
+            <ChevronDown />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent

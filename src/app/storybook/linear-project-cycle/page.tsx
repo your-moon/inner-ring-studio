@@ -20,14 +20,7 @@ import {
   StatusIcon,
   TriageRow,
 } from "@/components/orbit";
-import {
-  Cube,
-  FigmaLogo,
-  GithubLogo,
-  Layout,
-  Rocket,
-  Stack,
-} from "@phosphor-icons/react";
+import { Box, Figma, Github, Layers, PanelsTopLeft, Rocket } from "lucide-react";
 import type { ReactNode } from "react";
 
 function CatalogSection({
@@ -77,14 +70,14 @@ export default function LinearProjectCycleStorybook() {
       >
         <div className="flex flex-col gap-6">
           <div className="border-border-default bg-surface-panel divide-border-subtle divide-y rounded-[var(--radius-panel)] border px-4">
-            <ProjectRow name="Postgres proxy" icon={<Stack />} health="on-track" done={8} total={20} update="Updated 2d ago" lead={{ name: "Alex" }} onClick={() => {}} />
-            <ProjectRow name="Encrypted vault" icon={<Cube />} health="at-risk" done={3} total={12} update="No updates" lead={{ name: "Bru" }} onClick={() => {}} />
+            <ProjectRow name="Postgres proxy" icon={<Layers />} health="on-track" done={8} total={20} update="Updated 2d ago" lead={{ name: "Alex" }} onClick={() => {}} />
+            <ProjectRow name="Encrypted vault" icon={<Box />} health="at-risk" done={3} total={12} update="No updates" lead={{ name: "Bru" }} onClick={() => {}} />
           </div>
 
           <div className="border-border-default bg-surface-panel grid gap-6 rounded-[var(--radius-panel)] border p-5 lg:grid-cols-2">
             <ProjectOverviewHeader
               name="Postgres proxy"
-              icon={<Stack />}
+              icon={<Layers />}
               summary="A pooled, prod-safe proxy in front of customer Postgres."
               actions={<Button variant="secondary" size="sm" title="Share" />}
               properties={
@@ -136,8 +129,8 @@ export default function LinearProjectCycleStorybook() {
             <DueDateBadge date="2d overdue" tone="overdue" />
           </div>
           <div className="flex max-w-lg flex-col gap-2">
-            <LinkedResourceRow icon={<GithubLogo />} title="feat/connection-pooling #482" context="GitHub · Open" onOpen={() => {}} onRemove={() => {}} />
-            <LinkedResourceRow icon={<FigmaLogo />} title="Proxy dashboard — v3" context="Figma" onOpen={() => {}} onRemove={() => {}} />
+            <LinkedResourceRow icon={<Github />} title="feat/connection-pooling #482" context="GitHub · Open" onOpen={() => {}} onRemove={() => {}} />
+            <LinkedResourceRow icon={<Figma />} title="Proxy dashboard — v3" context="Figma" onOpen={() => {}} onRemove={() => {}} />
           </div>
         </div>
       </CatalogSection>
@@ -166,10 +159,10 @@ export default function LinearProjectCycleStorybook() {
             <SearchResultRow icon={<Rocket />} title="Add connection-pool metrics" context="MOO · Todo" />
           </SearchResultGroup>
           <SearchResultGroup heading="Projects">
-            <SearchResultRow icon={<Stack />} title="Postgres proxy" context="Pooling" />
+            <SearchResultRow icon={<Layers />} title="Postgres proxy" context="Pooling" />
           </SearchResultGroup>
           <SearchResultGroup heading="Views">
-            <SearchResultRow icon={<Layout />} title="Active issues" context="MOO" />
+            <SearchResultRow icon={<PanelsTopLeft />} title="Active issues" context="MOO" />
           </SearchResultGroup>
         </CommandMenu>
       </CatalogSection>

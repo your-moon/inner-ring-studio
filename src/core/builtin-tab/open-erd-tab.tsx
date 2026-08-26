@@ -1,5 +1,5 @@
 import RelationalDiagramTab from "@/components/gui/tabs/relational-diagram-tab";
-import { TreeStructure } from "@phosphor-icons/react";
+import { Network } from "lucide-react";
 import { createTabExtension } from "../extension-tab";
 
 export const builtinOpenERDTab = createTabExtension({
@@ -8,6 +8,6 @@ export const builtinOpenERDTab = createTabExtension({
   generate: () => ({
     title: "Relational Diagram",
     component: <RelationalDiagramTab />,
-    icon: TreeStructure,
+    icon: Network,
   }),
 });

@@ -1,10 +1,5 @@
 import { cn } from "@/lib/utils";
-import {
-  Circle,
-  Database,
-  DotsThreeVertical,
-  Triangle,
-} from "@phosphor-icons/react";
+import { Circle, Database, EllipsisVertical, Triangle } from "lucide-react";
 import Link from "next/link";
 import { PropsWithChildren, useState } from "react";
 import {
@@ -96,9 +91,9 @@ export default function ResourceCard({
         )}
       >
         {status === "success" ? (
-          <Circle weight="fill" />
+          <Circle fill="currentColor" />
         ) : status === "error" ? (
-          <Triangle weight="fill" />
+          <Triangle fill="currentColor" />
         ) : null}
 
         <p>{status}</p>
@@ -133,7 +128,7 @@ export default function ResourceCard({
                 { "opacity-100": open }
               )}
             >
-              <DotsThreeVertical size={18} weight="bold" />
+              <EllipsisVertical size={18} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent

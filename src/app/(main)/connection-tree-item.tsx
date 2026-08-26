@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  CaretDown,
-  CaretRight,
-  CircleNotch,
-  Database,
-  Table,
-  Eye,
-} from "@phosphor-icons/react";
+import { ChevronDown, ChevronRight, Database, Eye, LoaderCircle, Table } from "lucide-react";
 import EnvBadge from "@/components/orbit/env-badge";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -151,7 +144,7 @@ export default function ConnectionTreeItem({
 
   const connected = !!conn.status?.connected;
   const statusDot = busy || loading ? (
-    <CircleNotch size={11} className="shrink-0 animate-spin text-neutral-400" />
+    <LoaderCircle size={11} className="shrink-0 animate-spin text-neutral-400" />
   ) : error ? (
     <span
       title={error}
@@ -174,9 +167,9 @@ export default function ConnectionTreeItem({
               title={open ? "Collapse" : "Expand"}
             >
               {open ? (
-                <CaretDown size={11} weight="bold" />
+                <ChevronDown size={11} />
               ) : (
-                <CaretRight size={11} weight="bold" />
+                <ChevronRight size={11} />
               )}
             </button>
             <Database size={15} className="shrink-0 text-neutral-500" />
@@ -238,7 +231,7 @@ export default function ConnectionTreeItem({
         <div>
           {loading && schemas === null && (
             <div className="flex h-7 items-center gap-2 pr-2 pl-8 text-xs text-neutral-400">
-              <CircleNotch size={12} className="animate-spin" /> Loading…
+              <LoaderCircle size={12} className="animate-spin" /> Loading…
             </div>
           )}
           {error && (
@@ -256,9 +249,9 @@ export default function ConnectionTreeItem({
                 className="flex h-7 w-full items-center gap-1 pr-2 pl-6 text-xs text-neutral-600 hover:bg-secondary dark:text-neutral-300"
               >
                 {openSchemas.has(s.name) ? (
-                  <CaretDown size={10} weight="bold" className="shrink-0 text-neutral-400" />
+                  <ChevronDown size={10} className="shrink-0 text-neutral-400" />
                 ) : (
-                  <CaretRight size={10} weight="bold" className="shrink-0 text-neutral-400" />
+                  <ChevronRight size={10} className="shrink-0 text-neutral-400" />
                 )}
                 <span className="truncate font-medium">{s.name}</span>
                 <span className="ml-1 font-normal text-neutral-400">

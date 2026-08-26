@@ -8,9 +8,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useStudioContext } from "@/context/driver-provider";
-import { MagicWand } from "@phosphor-icons/react";
 import { produce } from "immer";
-import { LucideLoader } from "lucide-react";
+import { LucideLoader, Wand2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useDataCatalogContext } from "./data-model-tab";
@@ -109,7 +108,7 @@ export default function DataCatalogTableColumnModal({
                 {sampleLoading ? (
                   <LucideLoader className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <MagicWand className="mr-2 h-4 w-4" />
+                  <Wand2 className="mr-2 h-4 w-4" />
                 )}
                 Automatically Generate Sample Data
               </Button>

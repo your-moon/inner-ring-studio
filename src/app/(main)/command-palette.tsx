@@ -1,15 +1,7 @@
 "use client";
 
 import { QuickOpen } from "@/components/ui/quick-open";
-import {
-  ChartBar,
-  Clock,
-  Database,
-  Gear,
-  type Icon,
-  Plus,
-  UsersThree,
-} from "@phosphor-icons/react";
+import { ChartColumn, Clock, Database, LucideIcon, Plus, Settings, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -17,7 +9,7 @@ type Cmd = {
   id: string;
   label: string;
   hint: string;
-  icon: Icon;
+  icon: LucideIcon;
   run: () => void;
 };
 
@@ -52,10 +44,10 @@ export default function CommandPalette() {
       { id: "nav-new", label: "New connection", hint: "Go to", icon: Plus, run: () => go("/connections/new") },
       ...(isCloud
         ? [
-            { id: "nav-boards", label: "Boards", hint: "Go to", icon: ChartBar, run: () => go("/boards") },
+            { id: "nav-boards", label: "Boards", hint: "Go to", icon: ChartColumn, run: () => go("/boards") },
             { id: "nav-sched", label: "Scheduled queries", hint: "Go to", icon: Clock, run: () => go("/schedules") },
-            { id: "nav-ws", label: "Members & workspace settings", hint: "Go to", icon: UsersThree, run: () => go("/workspace") },
-            { id: "nav-account", label: "Account", hint: "Settings", icon: Gear, run: () => go("/account") },
+            { id: "nav-ws", label: "Members & workspace settings", hint: "Go to", icon: Users, run: () => go("/workspace") },
+            { id: "nav-account", label: "Account", hint: "Settings", icon: Settings, run: () => go("/account") },
           ]
         : []),
     ],
@@ -91,14 +83,14 @@ export default function CommandPalette() {
     const extras: Cmd[] = [];
     const boards = await fetchJson("/api/boards");
     for (const b of boards.boards ?? [])
-      extras.push({ id: `board-${b.id}`, label: b.name, hint: "Board", icon: ChartBar, run: () => go(`/boards/${b.id}`) });
+      extras.push({ id: `board-${b.id}`, label: b.name, hint: "Board", icon: ChartColumn, run: () => go(`/boards/${b.id}`) });
     const ws = await fetchJson("/api/workspaces");
     for (const w of ws.workspaces ?? [])
       extras.push({
         id: `ws-${w.id}`,
         label: w.name,
         hint: "Switch workspace",
-        icon: UsersThree,
+        icon: Users,
         run: async () => {
           setOpen(false);
           await fetch("/api/workspaces/switch", {

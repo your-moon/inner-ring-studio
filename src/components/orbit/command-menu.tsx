@@ -1,6 +1,6 @@
 "use client";
 
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { Search } from "lucide-react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 import Kbd from "@/components/ui/kbd";
@@ -42,7 +42,7 @@ export function CommandMenu({
       )}
     >
       <div className="border-border-subtle flex h-12 shrink-0 items-center gap-2.5 border-b px-3.5">
-        <MagnifyingGlass className="size-[var(--icon-md)] shrink-0 [color:var(--content-tertiary)]" />
+        <Search className="size-[var(--icon-md)] shrink-0 [color:var(--content-tertiary)]" />
         {input ?? <CommandInput />}
       </div>
       <div className="max-h-[min(420px,60vh)] overflow-y-auto overscroll-contain p-1.5">

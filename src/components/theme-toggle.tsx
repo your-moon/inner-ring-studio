@@ -1,5 +1,5 @@
 "use client";
-import { Gear, Moon, Sun } from "@phosphor-icons/react";
+import { Moon, Settings, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { ButtonGroup, ButtonGroupItem } from "./button-group";
@@ -19,15 +19,15 @@ export default function ThemeToggle() {
     return (
       <ButtonGroup>
         <ButtonGroupItem>
-          <Gear weight="fill" className="mr-1 h-4 w-4" />
+          <Settings fill="currentColor" className="mr-1 h-4 w-4" />
           System
         </ButtonGroupItem>
         <ButtonGroupItem>
-          <Moon weight="fill" className="mr-1 h-4 w-4" />
+          <Moon fill="currentColor" className="mr-1 h-4 w-4" />
           Dark
         </ButtonGroupItem>
         <ButtonGroupItem>
-          <Sun weight="fill" className="mr-1 h-4 w-4" />
+          <Sun fill="currentColor" className="mr-1 h-4 w-4" />
           Light
         </ButtonGroupItem>
       </ButtonGroup>
@@ -39,21 +39,21 @@ export default function ThemeToggle() {
         onClick={() => setTheme("system")}
         selected={theme === "system"}
       >
-        <Gear weight="fill" className="mr-1 h-4 w-4" />
+        <Settings fill="currentColor" className="mr-1 h-4 w-4" />
         System
       </ButtonGroupItem>
       <ButtonGroupItem
         onClick={() => setTheme("dark")}
         selected={theme === "dark"}
       >
-        <Moon weight="fill" className="mr-1 h-4 w-4" />
+        <Moon fill="currentColor" className="mr-1 h-4 w-4" />
         Dark
       </ButtonGroupItem>
       <ButtonGroupItem
         onClick={() => setTheme("light")}
         selected={theme === "light"}
       >
-        <Sun weight="fill" className="mr-1 h-4 w-4" />
+        <Sun fill="currentColor" className="mr-1 h-4 w-4" />
         Light
       </ButtonGroupItem>
     </ButtonGroup>

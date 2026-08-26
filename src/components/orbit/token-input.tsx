@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "@phosphor-icons/react";
+import { X } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 
 import { cn } from "@/lib/utils";
@@ -65,7 +65,7 @@ export function TokenInput({
             onClick={() => onChange(value.filter((t) => t !== token))}
             className="[color:var(--content-tertiary)] hover:[color:var(--content-primary)]"
           >
-            <X weight="bold" className="size-3" />
+            <X className="size-3" />
           </span>
         </span>
       ))}

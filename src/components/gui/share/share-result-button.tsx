@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, LinkSimple, ShareNetwork } from "@phosphor-icons/react";
+import { Check, Link, Share2 } from "lucide-react";
 import { useState } from "react";
 import useSWR from "swr";
 import OptimizeTableState from "@/components/gui/table-optimized/optimize-table-state";
@@ -52,7 +52,7 @@ export default function ShareResultButton({ data }: { data: OptimizeTableState }
         title="Share this result as a public link"
         className="flex items-center gap-1 rounded px-2 py-1 text-xs text-secondary-foreground hover:bg-neutral-100 disabled:opacity-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
       >
-        <ShareNetwork size={13} /> {busy ? "Sharing…" : "Share"}
+        <Share2 size={13} /> {busy ? "Sharing…" : "Share"}
       </button>
 
       {url && (
@@ -60,7 +60,7 @@ export default function ShareResultButton({ data }: { data: OptimizeTableState }
           <div className="fixed inset-0 z-40" onClick={() => setUrl(null)} />
           <div className="absolute bottom-full left-0 z-50 mb-1 w-80 rounded-lg border border-border bg-white p-3 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
             <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <LinkSimple size={13} /> Public link {copied && <span className="text-green-600">· copied</span>}
+              <Link size={13} /> Public link {copied && <span className="text-green-600">· copied</span>}
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -78,7 +78,7 @@ export default function ShareResultButton({ data }: { data: OptimizeTableState }
                 className="rounded bg-[#FFEB02] p-1.5 text-black hover:bg-[#f2df00]"
                 title="Copy"
               >
-                {copied ? <Check size={13} /> : <LinkSimple size={13} />}
+                {copied ? <Check size={13} /> : <Link size={13} />}
               </button>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">

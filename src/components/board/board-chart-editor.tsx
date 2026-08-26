@@ -2,7 +2,7 @@ import { generateAutoComplete } from "@/context/schema-provider";
 import { DatabaseResultSet, DatabaseSchemas } from "@/drivers/base-driver";
 
 import { fillVariables, SupportedDialect } from "@outerbase/sdk-transform";
-import { ChartBar, Play, Table } from "@phosphor-icons/react";
+import { ChartColumn, Play, Table } from "lucide-react";
 import { produce } from "immer";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -233,7 +233,7 @@ export default function BoardChartEditor({
                     value: "chart",
                     content: (
                       <span>
-                        <ChartBar className="inline" /> Chart
+                        <ChartColumn className="inline" /> Chart
                       </span>
                     ),
                   },

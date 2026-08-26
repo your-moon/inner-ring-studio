@@ -8,8 +8,7 @@ import { scc } from "@/core/command";
 import { KEY_BINDING } from "@/lib/key-matcher";
 import { bumpTable, frecencyScores } from "@/lib/table-frecency";
 import { cn } from "@/lib/utils";
-import { Plus, Table, TerminalWindow } from "@phosphor-icons/react";
-import { LucideView } from "lucide-react";
+import { LucideView, Plus, SquareTerminal, Table } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
@@ -106,7 +105,7 @@ export default function StudioPalette({
         >
           {i.kind === "action" ? (
             i.key === "action:new-query" ? (
-              <TerminalWindow size={15} className="shrink-0 text-muted-foreground" />
+              <SquareTerminal size={15} className="shrink-0 text-muted-foreground" />
             ) : (
               <Plus size={15} className="shrink-0 text-muted-foreground" />
             )

@@ -1,24 +1,6 @@
 "use client";
 
-import {
-  ArrowRight,
-  CheckCircle,
-  ClockCounterClockwise,
-  Cloud,
-  Database,
-  DotsThree,
-  Folder,
-  GitBranch,
-  MagnifyingGlass,
-  PencilSimple,
-  Plus,
-  ReadCvLogo,
-  Table as TableIcon,
-  TerminalWindow,
-  Trash,
-  WifiHigh,
-  WifiSlash,
-} from "@phosphor-icons/react";
+import { ArrowRight, CircleCheck, Cloud, Database, Ellipsis, Folder, GitBranch, History, Pencil, Plus, ScrollText, Search, SquareTerminal, Table as TableIcon, Trash2, Wifi, WifiOff } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -353,7 +335,7 @@ export default function HomePage() {
             ) : null}
           </div>
           <Button as="link" href="/connections/new" size="sm" variant="primary">
-            <Plus size={15} weight="bold" />
+            <Plus size={15} />
             New connection
           </Button>
         </header>
@@ -385,7 +367,7 @@ export default function HomePage() {
               variant="primary"
               className="mx-auto mt-6"
             >
-              <Plus size={15} weight="bold" /> Connect a database
+              <Plus size={15} /> Connect a database
             </Button>
           </div>
         ) : (
@@ -409,7 +391,7 @@ export default function HomePage() {
                       >
                         <span className="bg-surface-hover grid size-6 shrink-0 place-items-center rounded-[var(--radius-small)] [color:var(--content-tertiary)]">
                           {work.kind === "query" ? (
-                            <TerminalWindow size={14} />
+                            <SquareTerminal size={14} />
                           ) : (
                             <TableIcon size={14} />
                           )}
@@ -510,7 +492,7 @@ export default function HomePage() {
                                       aria-label={`Actions for ${connection.name}`}
                                       className="mr-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
                                     >
-                                      <DotsThree size={16} weight="bold" />
+                                      <Ellipsis size={16} />
                                     </IconButton>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end" className="w-44">
@@ -518,14 +500,14 @@ export default function HomePage() {
                                       disabled={busy}
                                       onClick={() => connectionAction(connection, "test")}
                                     >
-                                      <WifiHigh size={14} className="mr-2" />
+                                      <Wifi size={14} className="mr-2" />
                                       {connected ? "Retry connection" : "Connect"}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       disabled={!connected || busy}
                                       onClick={() => connectionAction(connection, "disconnect")}
                                     >
-                                      <WifiSlash size={14} className="mr-2" />
+                                      <WifiOff size={14} className="mr-2" />
                                       Disconnect
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
@@ -538,13 +520,13 @@ export default function HomePage() {
                                         )
                                       }
                                     >
-                                      <ReadCvLogo size={14} className="mr-2" />
+                                      <ScrollText size={14} className="mr-2" />
                                       {connection.readOnly ? "Allow writes" : "Make read-only"}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem asChild>
                                       <Link href={`/connections/${connection.id}/edit`}>
-                                        <PencilSimple size={14} className="mr-2" />
+                                        <Pencil size={14} className="mr-2" />
                                         Edit connection
                                       </Link>
                                     </DropdownMenuItem>
@@ -552,7 +534,7 @@ export default function HomePage() {
                                       className="[color:var(--intent-danger)] focus:[color:var(--intent-danger)]"
                                       onClick={() => deleteConnection(connection)}
                                     >
-                                      <Trash size={14} className="mr-2" />
+                                      <Trash2 size={14} className="mr-2" />
                                       Delete connection
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
@@ -591,7 +573,7 @@ export default function HomePage() {
                 <StatusRow
                   icon={
                     connectedCount === connections.length ? (
-                      <CheckCircle size={15} weight="fill" />
+                      <CircleCheck size={15} fill="currentColor" />
                     ) : (
                       <Database size={15} />
                     )
@@ -632,7 +614,7 @@ export default function HomePage() {
                 />
                 {cloudActive && scheduleData && (
                   <StatusRow
-                    icon={<ClockCounterClockwise size={15} />}
+                    icon={<History size={15} />}
                     label="Scheduled queries"
                     value={
                       activeSchedules.length === 0
@@ -650,7 +632,7 @@ export default function HomePage() {
                 onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
                 className="border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover mt-3 flex w-full items-center gap-2 rounded-[var(--radius-control)] border px-3 py-2.5 text-left [color:var(--content-tertiary)] hover:[color:var(--content-primary)]"
               >
-                <MagnifyingGlass size={14} />
+                <Search size={14} />
                 <span className="flex-1">Jump anywhere</span>
                 <Kbd>⌘K</Kbd>
               </button>

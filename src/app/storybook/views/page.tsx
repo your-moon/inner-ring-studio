@@ -19,13 +19,7 @@ import {
   type Priority,
   type WorkflowStatus,
 } from "@/components/orbit";
-import {
-  CalendarBlank,
-  CircleDashed,
-  Tag,
-  User,
-  WarningOctagon,
-} from "@phosphor-icons/react";
+import { Calendar, CircleDashed, OctagonAlert, Tag, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -166,10 +160,10 @@ export default function ViewsStorybook() {
           <FilterBuilder
             fields={[
               { value: "status", label: "Status", icon: <CircleDashed /> },
-              { value: "priority", label: "Priority", icon: <WarningOctagon /> },
+              { value: "priority", label: "Priority", icon: <OctagonAlert /> },
               { value: "labels", label: "Labels", icon: <Tag /> },
               { value: "assignee", label: "Assignee", icon: <User /> },
-              { value: "date", label: "Created", icon: <CalendarBlank /> },
+              { value: "date", label: "Created", icon: <Calendar /> },
             ]}
             onAddField={(f) =>
               setFilters((prev) => (prev.includes(f) ? prev : [...prev, f]))

@@ -34,11 +34,7 @@ import {
   TruncatedText,
   type SortDirection,
 } from "@/components/orbit";
-import {
-  Database,
-  FolderSimple,
-  Table as TableIcon,
-} from "@phosphor-icons/react";
+import { Database, Folder, Table as TableIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -328,12 +324,12 @@ export default function DataDisplayStorybook() {
                   icon={<Database />}
                   defaultExpanded
                 >
-                  <TreeItem label="tables" icon={<FolderSimple />} defaultExpanded>
+                  <TreeItem label="tables" icon={<Folder />} defaultExpanded>
                     <TreeItem label="orders" icon={<TableIcon />} trailing="48k" />
                     <TreeItem label="users" icon={<TableIcon />} trailing="1.2k" />
                     <TreeItem label="events" icon={<TableIcon />} trailing="9.8M" />
                   </TreeItem>
-                  <TreeItem label="views" icon={<FolderSimple />} />
+                  <TreeItem label="views" icon={<Folder />} />
                 </TreeItem>
               </Tree>
             </CardContent>

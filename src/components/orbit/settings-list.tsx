@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText } from "@phosphor-icons/react";
+import { FileText } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";

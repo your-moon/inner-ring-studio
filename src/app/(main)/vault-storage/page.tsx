@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Check, Vault } from "@phosphor-icons/react";
+import { Check, Vault } from "lucide-react";
 import NavigationLayout from "../nav-layout";
 
 interface ConfigStatus {
@@ -170,7 +170,7 @@ export default function VaultStoragePage() {
                   <span className="truncate font-medium">{v.name}</span>
                   {v.active && (
                     <span className="flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      <Check size={10} weight="bold" /> active
+                      <Check size={10} /> active
                     </span>
                   )}
                   {v.repoUrl && (

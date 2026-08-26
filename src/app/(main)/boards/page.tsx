@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartBar, Trash, UploadSimple, X } from "@phosphor-icons/react";
+import { ChartColumn, Trash2, Upload, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -53,7 +53,7 @@ export default function BoardsPage() {
               onClick={() => setImporting(true)}
               className="flex items-center gap-1.5 rounded-lg border border-input px-3 py-2 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
             >
-              <UploadSimple size={15} /> Import JSON
+              <Upload size={15} /> Import JSON
             </button>
             <button className={yellowBtn} disabled={creating} onClick={createBoard}>
               {creating ? "Creating…" : "New board"}
@@ -73,7 +73,7 @@ export default function BoardsPage() {
 
         {boards.length === 0 ? (
           <div className="rounded-xl border border-dashed border-neutral-300 p-12 text-center dark:border-neutral-700">
-            <ChartBar size={28} className="mx-auto text-neutral-400" />
+            <ChartColumn size={28} className="mx-auto text-neutral-400" />
             <p className="mt-3 text-sm text-neutral-500">
               No boards yet. Create one and add a chart from any query.
             </p>
@@ -90,7 +90,7 @@ export default function BoardsPage() {
               >
                 <Link href={`/boards/${b.id}`} className="block p-5">
                   <div className="flex h-24 items-center justify-center rounded-lg border border-border bg-secondary/50">
-                    <ChartBar size={30} className="text-[#c9b400]" weight="duotone" />
+                    <ChartColumn size={30} className="text-[#c9b400]" />
                   </div>
                   <div className="mt-3 truncate font-medium">{b.name}</div>
                   <div className="mt-0.5 text-xs text-neutral-400">
@@ -102,7 +102,7 @@ export default function BoardsPage() {
                   title="Delete board"
                   className="absolute top-3 right-3 rounded-md p-1.5 text-neutral-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
                 >
-                  <Trash size={15} />
+                  <Trash2 size={15} />
                 </button>
               </div>
             ))}

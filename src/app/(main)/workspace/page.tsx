@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash } from "@phosphor-icons/react";
+import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
@@ -197,7 +197,7 @@ export default function WorkspacePage() {
                     title={m.userId === me?.userId ? "Leave workspace" : "Remove"}
                     className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
                   >
-                    <Trash size={15} />
+                    <Trash2 size={15} />
                   </button>
                 )}
               </div>

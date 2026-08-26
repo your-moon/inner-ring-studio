@@ -1,7 +1,7 @@
 "use client";
 
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, CaretUpDown } from "@phosphor-icons/react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -55,7 +55,7 @@ export const SelectTrigger = forwardRef<
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <CaretUpDown className="size-[var(--icon-sm)] shrink-0 [color:var(--content-tertiary)]" />
+        <ChevronsUpDown className="size-[var(--icon-sm)] shrink-0 [color:var(--content-tertiary)]" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -112,7 +112,7 @@ export const SelectItem = forwardRef<
     >
       <span className="absolute left-2 flex size-3.5 items-center justify-center">
         <SelectPrimitive.ItemIndicator>
-          <Check weight="bold" className="size-3.5" />
+          <Check className="size-3.5" />
         </SelectPrimitive.ItemIndicator>
       </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

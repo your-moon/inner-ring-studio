@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretRight, Check } from "@phosphor-icons/react";
+import { Check, ChevronRight } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -56,7 +56,7 @@ export function ToggleBlock({
         aria-expanded={open}
         className="text-body group/tg flex items-start gap-1.5 text-left [color:var(--content-primary)]"
       >
-        <CaretRight
+        <ChevronRight
           className={cn(
             "mt-1 size-3.5 shrink-0 [color:var(--content-tertiary)] transition-transform duration-[var(--motion-fast)]",
             open && "rotate-90"
@@ -106,7 +106,7 @@ export function TodoItem({
             : "border-border-strong hover:border-[var(--content-tertiary)]"
         )}
       >
-        {checked ? <Check weight="bold" /> : null}
+        {checked ? <Check /> : null}
       </button>
       <span
         className={cn(

@@ -15,7 +15,7 @@ import {
   WorkflowStatusRow,
   type LabelColor,
 } from "@/components/orbit";
-import { DotsThree, PencilSimple, Plus, Trash } from "@phosphor-icons/react";
+import { Ellipsis, Pencil, Plus, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -46,10 +46,10 @@ function CatalogSection({
 const rowActions = (
   <>
     <IconButton aria-label="Edit" size="sm">
-      <PencilSimple />
+      <Pencil />
     </IconButton>
     <IconButton aria-label="Delete" size="sm" variant="destructive">
-      <Trash />
+      <Trash2 />
     </IconButton>
   </>
 );
@@ -148,8 +148,8 @@ export default function LinearSettingsStorybook() {
       >
         <div className="border-border-default bg-surface-panel rounded-[var(--radius-panel)] border px-4">
           <SettingsList>
-            <TemplateRow name="Bug report" description="Repro · expected · actual" meta="Updated by Alex · 3d" actions={<IconButton aria-label="Template options" size="sm"><DotsThree /></IconButton>} onClick={() => {}} />
-            <TemplateRow name="Spike" description="Timeboxed investigation" meta="Aug 9" actions={<IconButton aria-label="Template options" size="sm"><DotsThree /></IconButton>} onClick={() => {}} />
+            <TemplateRow name="Bug report" description="Repro · expected · actual" meta="Updated by Alex · 3d" actions={<IconButton aria-label="Template options" size="sm"><Ellipsis /></IconButton>} onClick={() => {}} />
+            <TemplateRow name="Spike" description="Timeboxed investigation" meta="Aug 9" actions={<IconButton aria-label="Template options" size="sm"><Ellipsis /></IconButton>} onClick={() => {}} />
           </SettingsList>
         </div>
       </CatalogSection>

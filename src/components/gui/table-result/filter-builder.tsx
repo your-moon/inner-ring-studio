@@ -10,7 +10,7 @@ import {
   FILTER_OPS,
   FilterOp,
 } from "@/lib/sql/filter-where";
-import { Plus } from "@phosphor-icons/react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 
 const NO_VALUE_OPS: FilterOp[] = ["is null", "is not null"];
@@ -55,7 +55,7 @@ export default function FilterBuilder({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button className="u-smooth inline-flex h-7 items-center gap-1 rounded-md border border-dashed border-border px-2.5 text-[12.5px] text-muted-foreground hover:border-muted-foreground hover:text-foreground">
-          <Plus size={12} weight="bold" />
+          <Plus size={12} />
           Filter
         </button>
       </PopoverTrigger>

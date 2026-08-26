@@ -1,6 +1,6 @@
 "use client";
 
-import { Check } from "@phosphor-icons/react";
+import { Check } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import {
@@ -59,7 +59,7 @@ export function StatusPicker({
           >
             <StatusIcon status={s.value} />
             <span className="flex-1">{s.label}</span>
-            {s.value === value ? <Check weight="bold" className="size-3.5" /> : null}
+            {s.value === value ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -100,7 +100,7 @@ export function PriorityPicker({
           >
             <PriorityIcon priority={p.value} />
             <span className="flex-1">{p.label}</span>
-            {p.value === value ? <Check weight="bold" className="size-3.5" /> : null}
+            {p.value === value ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -146,7 +146,7 @@ export function LabelPicker({
                 style={{ backgroundColor: LABEL_COLORS[o.color] }}
               />
               <span className="min-w-0 flex-1 truncate text-left">{o.label}</span>
-              {checked ? <Check weight="bold" className="size-3.5" /> : null}
+              {checked ? <Check className="size-3.5" /> : null}
             </button>
           );
         })}

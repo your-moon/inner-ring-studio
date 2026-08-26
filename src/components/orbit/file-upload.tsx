@@ -1,6 +1,6 @@
 "use client";
 
-import { UploadSimple, X } from "@phosphor-icons/react";
+import { Upload, X } from "lucide-react";
 import { useId, useRef, useState, type DragEvent } from "react";
 
 import { cn } from "@/lib/utils";
@@ -71,7 +71,7 @@ export function FileUpload({
             : "border-border-default bg-surface-canvas hover:bg-surface-hover"
         )}
       >
-        <UploadSimple className="size-5 [color:var(--content-tertiary)]" />
+        <Upload className="size-5 [color:var(--content-tertiary)]" />
         <span className="text-ui-small [color:var(--content-secondary)]">
           {label}
         </span>

@@ -1,10 +1,10 @@
 import { Button, ButtonProps } from "@/components/orbit/button";
 import { cn } from "@/lib/utils";
-import { ArrowsClockwise } from "@phosphor-icons/react";
+import { RefreshCw } from "lucide-react";
 
 export const RefreshButton = ({ ...props }: ButtonProps) => (
   <Button shape="square" toggled={props.toggled} {...props}>
-    <ArrowsClockwise
+    <RefreshCw
       className={cn({
         "animate-refresh": props.toggled,
         "size-4.5": props.size === "base",

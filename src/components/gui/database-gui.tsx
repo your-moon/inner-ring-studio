@@ -33,7 +33,7 @@ import {
 import { normalizedPathname, sendAnalyticEvents } from "@/lib/tracking";
 import { bumpTable } from "@/lib/table-frecency";
 import { cn } from "@/lib/utils";
-import { Binoculars, GearSix, StackSimple } from "@phosphor-icons/react";
+import { Binoculars, Layers, Settings } from "lucide-react";
 import EnvBadge from "../orbit/env-badge";
 import useSWR from "swr";
 import ConnectionsSidebar from "./sidebar/connections-sidebar";
@@ -341,21 +341,21 @@ export default function DatabaseGui() {
         key: "connections",
         name: "Databases",
         content: <ConnectionsSidebar />,
-        icon: <StackSimple weight="light" size={24} />,
+        icon: <Layers size={24} />,
       },
       docDriver
         ? {
             key: "saved",
             name: "Queries",
             content: <SavedDocTab />,
-            icon: <Binoculars weight="light" size={24} />,
+            icon: <Binoculars size={24} />,
           }
         : undefined,
       {
         key: "tools",
         name: "Tools",
         content: <ToolSidebar />,
-        icon: <GearSix weight="light" size={24} />,
+        icon: <Settings size={24} />,
       },
       ...extensions.getSidebars(),
     ].filter(Boolean) as SidebarPanel[];

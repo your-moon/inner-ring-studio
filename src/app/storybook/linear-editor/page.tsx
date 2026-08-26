@@ -14,17 +14,7 @@ import {
   ToggleBlock,
   ToolbarDivider,
 } from "@/components/orbit";
-import {
-  CaretDown,
-  Code,
-  LinkSimple,
-  ListBullets,
-  Quotes,
-  TextB,
-  TextItalic,
-  TextStrikethrough,
-  TextUnderline,
-} from "@phosphor-icons/react";
+import { Bold, ChevronDown, Code, Italic, Link, List, Quote, Strikethrough, Underline } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -87,34 +77,34 @@ export default function LinearEditorStorybook() {
               className="focus-ring text-ui-small flex h-6 items-center gap-1 rounded-[6px] px-1.5 [color:var(--content-secondary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
             >
               Regular text
-              <CaretDown className="size-3" />
+              <ChevronDown className="size-3" />
             </button>
             <ToolbarDivider />
             <EditorToolbarButton aria-label="Bold" active>
-              <TextB />
+              <Bold />
             </EditorToolbarButton>
             <EditorToolbarButton aria-label="Italic">
-              <TextItalic />
+              <Italic />
             </EditorToolbarButton>
             <EditorToolbarButton aria-label="Strikethrough">
-              <TextStrikethrough />
+              <Strikethrough />
             </EditorToolbarButton>
             <EditorToolbarButton aria-label="Underline">
-              <TextUnderline />
+              <Underline />
             </EditorToolbarButton>
             <EditorToolbarButton aria-label="Inline code">
               <Code />
             </EditorToolbarButton>
             <ToolbarDivider />
             <EditorToolbarButton aria-label="Quote">
-              <Quotes />
+              <Quote />
             </EditorToolbarButton>
             <EditorToolbarButton aria-label="List">
-              <ListBullets />
+              <List />
             </EditorToolbarButton>
             <ToolbarDivider />
             <EditorToolbarButton aria-label="Link">
-              <LinkSimple />
+              <Link />
             </EditorToolbarButton>
           </FloatingFormatToolbar>
           <LinkPopover

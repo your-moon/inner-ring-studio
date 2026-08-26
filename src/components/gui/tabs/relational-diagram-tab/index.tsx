@@ -6,10 +6,6 @@ import { useSchema } from "@/context/schema-provider";
 import { DatabaseSchemas } from "@/drivers/base-driver";
 import Dagre from "@dagrejs/dagre";
 import {
-  AlignCenterHorizontalSimple,
-  AlignCenterVerticalSimple,
-} from "@phosphor-icons/react";
-import {
   Background,
   Controls,
   Edge,
@@ -22,7 +18,7 @@ import {
   useNodesState,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { LucideRefreshCcw } from "lucide-react";
+import { AlignHorizontalJustifyCenter, AlignVerticalJustifyCenter, LucideRefreshCcw } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import SchemaNameSelect from "../../schema-editor/schema-name-select";
@@ -332,7 +328,7 @@ function LayoutFlow() {
               }
             }}
           >
-            <AlignCenterVerticalSimple size={15} />
+            <AlignVerticalJustifyCenter size={15} />
           </Button>
           <Button
             variant={"ghost"}
@@ -349,7 +345,7 @@ function LayoutFlow() {
               }
             }}
           >
-            <AlignCenterHorizontalSimple size={15} />
+            <AlignHorizontalJustifyCenter size={15} />
           </Button>
           <div className="mx-1">
             <Separator orientation="vertical" />

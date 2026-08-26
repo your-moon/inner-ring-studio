@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, BellSlash } from "@phosphor-icons/react";
+import { Bell, BellOff } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -35,7 +35,7 @@ export function SubscribeToggle({
         className
       )}
     >
-      {subscribed ? <Bell weight="fill" /> : <BellSlash />}
+      {subscribed ? <Bell fill="currentColor" /> : <BellOff />}
       {subscribed ? "Subscribed" : "Subscribe"}
     </button>
   );

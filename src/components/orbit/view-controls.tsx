@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowsDownUp, Check, Rows, SortAscending, SortDescending } from "@phosphor-icons/react";
+import { ArrowDownWideNarrow, ArrowUpDown, ArrowUpNarrowWide, Check, Rows3 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -39,26 +39,26 @@ export function SortBuilder({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={TRIGGER} aria-label="Sort">
-        <ArrowsDownUp className="size-3.5" />
+        <ArrowUpDown className="size-3.5" />
         {current?.label ?? "Sort"}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-44">
         {fields.map((f) => (
           <DropdownMenuItem key={f.value} onSelect={() => onFieldChange(f.value)} className={ROW}>
             <span className="flex-1">{f.label}</span>
-            {f.value === field ? <Check weight="bold" className="size-3.5" /> : null}
+            {f.value === field ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => onDirectionChange("asc")} className={ROW}>
-          <SortAscending className="size-4" />
+          <ArrowUpNarrowWide className="size-4" />
           <span className="flex-1">Ascending</span>
-          {direction === "asc" ? <Check weight="bold" className="size-3.5" /> : null}
+          {direction === "asc" ? <Check className="size-3.5" /> : null}
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => onDirectionChange("desc")} className={ROW}>
-          <SortDescending className="size-4" />
+          <ArrowDownWideNarrow className="size-4" />
           <span className="flex-1">Descending</span>
-          {direction === "desc" ? <Check weight="bold" className="size-3.5" /> : null}
+          {direction === "desc" ? <Check className="size-3.5" /> : null}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -80,14 +80,14 @@ export function GroupByPicker({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={TRIGGER} aria-label="Group by">
-        <Rows className="size-3.5" />
+        <Rows3 className="size-3.5" />
         Group: {current?.label ?? "None"}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-44">
         {options.map((o) => (
           <DropdownMenuItem key={o.value} onSelect={() => onChange(o.value)} className={ROW}>
             <span className="flex-1">{o.label}</span>
-            {o.value === value ? <Check weight="bold" className="size-3.5" /> : null}
+            {o.value === value ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -123,7 +123,7 @@ export function SavedViewPicker({
         {views.map((v) => (
           <DropdownMenuItem key={v.value} onSelect={() => onChange(v.value)} className={ROW}>
             <span className="flex-1">{v.label}</span>
-            {v.value === value ? <Check weight="bold" className="size-3.5" /> : null}
+            {v.value === value ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
         {onSaveNew ? (

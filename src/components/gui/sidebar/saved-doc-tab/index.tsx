@@ -16,8 +16,7 @@ import {
   SavedDocNamespace,
 } from "@/drivers/saved-doc/saved-doc-driver";
 import { cn } from "@/lib/utils";
-import { Binoculars, Folder, Plus } from "@phosphor-icons/react";
-import { LucideTrash } from "lucide-react";
+import { Binoculars, Folder, LucideTrash, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import CreateNamespaceDialog from "./create-namespace-button";
 import RemoveDocDialog from "./remove-doc-dialog";
@@ -169,7 +168,7 @@ export default function SavedDocTab() {
                   "h-8 w-8 rounded-full bg-neutral-800 dark:bg-neutral-200"
                 )}
               >
-                <Plus size={16} weight="bold" />
+                <Plus size={16} />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>

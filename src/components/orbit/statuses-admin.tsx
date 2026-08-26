@@ -1,6 +1,6 @@
 "use client";
 
-import { DotsSixVertical, DotsThree, Plus } from "@phosphor-icons/react";
+import { Ellipsis, GripVertical, Plus } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -93,7 +93,7 @@ export function WorkflowStatusRow({
       {...(onClick ? { role: "button", tabIndex: 0, onClick } : {})}
     >
       {draggable ? (
-        <DotsSixVertical className="-ml-1 size-4 shrink-0 cursor-grab [color:var(--content-tertiary)] opacity-0 group-hover/status:opacity-100" />
+        <GripVertical className="-ml-1 size-4 shrink-0 cursor-grab [color:var(--content-tertiary)] opacity-0 group-hover/status:opacity-100" />
       ) : null}
       <StatusIcon status={status} />
       <div className="flex min-w-0 flex-1 items-baseline gap-2">
@@ -114,7 +114,7 @@ export function WorkflowStatusRow({
       <div className="flex shrink-0 items-center gap-0.5 opacity-0 group-hover/status:opacity-100">
         {actions ?? (
           <IconButton aria-label="Status options" size="sm">
-            <DotsThree />
+            <Ellipsis />
           </IconButton>
         )}
       </div>

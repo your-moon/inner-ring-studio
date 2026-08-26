@@ -22,13 +22,7 @@ import {
   type Priority,
   type WorkflowStatus,
 } from "@/components/orbit";
-import {
-  ArrowRight,
-  ChatCircle,
-  GitBranch,
-  MagnifyingGlass,
-  Trash,
-} from "@phosphor-icons/react";
+import { ArrowRight, GitBranch, MessageCircle, Search, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -135,7 +129,7 @@ export default function CrudStorybook() {
             <Button variant="ghost" size="sm" title="Move" />
             <Button variant="ghost" size="sm" title="Duplicate" />
             <Button variant="destructive" size="sm" title="Delete">
-              <Trash weight="bold" />
+              <Trash2 />
             </Button>
           </BulkActionBar>
         </div>
@@ -222,7 +216,7 @@ export default function CrudStorybook() {
           <div className="border-border-default bg-surface-panel rounded-[var(--radius-panel)] border p-2">
             <NotificationItem
               unread
-              icon={<ChatCircle />}
+              icon={<MessageCircle />}
               title="New comment on PM-142"
               detail="Bru: can we cap the pool at 20?"
               time="2h"
@@ -236,7 +230,7 @@ export default function CrudStorybook() {
           </div>
           <div className="border-border-default bg-surface-panel rounded-[var(--radius-panel)] border p-2">
             <CommandRow
-              icon={<MagnifyingGlass />}
+              icon={<Search />}
               label="Search tables…"
               shortcut={<Kbd>⌘K</Kbd>}
             />

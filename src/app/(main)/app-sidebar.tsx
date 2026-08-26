@@ -1,19 +1,6 @@
 "use client";
 
-import {
-  CaretDown,
-  CaretRight,
-  ChartBar,
-  Clock,
-  CloudArrowUp,
-  House,
-  List,
-  MagnifyingGlass,
-  Plus,
-  SignOut,
-  User,
-  X,
-} from "@phosphor-icons/react";
+import { ChartColumn, ChevronDown, ChevronRight, Clock, CloudUpload, House, List, LogOut, Plus, Search, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -295,7 +282,7 @@ export default function AppSidebar() {
           size="sm"
           onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
         >
-          <MagnifyingGlass />
+          <Search />
         </IconButton>
         <IconButton aria-label="New connection" size="sm" asChild>
           <Link href="/connections/new">
@@ -341,7 +328,7 @@ export default function AppSidebar() {
           <NavRow
             href={cloudFeatures ? "/boards" : "https://cloud.carrot-soft.tech/signup"}
             label="Boards"
-            icon={ChartBar}
+            icon={ChartColumn}
             selected={pathname.startsWith("/boards")}
             external={!cloudFeatures}
             suffix={!cloudFeatures ? <Chip>Cloud</Chip> : undefined}
@@ -373,9 +360,9 @@ export default function AppSidebar() {
                     className="text-ui-small flex h-7 w-full items-center gap-1.5 px-3 text-left font-[var(--weight-medium)] [color:var(--content-tertiary)] hover:[color:var(--content-secondary)]"
                   >
                     {collapsed ? (
-                      <CaretRight size={11} weight="bold" />
+                      <ChevronRight size={11} />
                     ) : (
-                      <CaretDown size={11} weight="bold" />
+                      <ChevronDown size={11} />
                     )}
                     <span className="min-w-0 flex-1 truncate">{folder}</span>
                     <span className="tabular-nums opacity-60">{items.length}</span>
@@ -413,7 +400,7 @@ export default function AppSidebar() {
           <NavRow
             href="/vault-storage"
             label="Vault storage"
-            icon={CloudArrowUp}
+            icon={CloudUpload}
             selected={pathname === "/vault-storage"}
             suffix={<StatusDot status={connectionData?.syncedAt ? "live" : "idle"} />}
           />
@@ -424,7 +411,7 @@ export default function AppSidebar() {
             onClick={connectCloud}
             className="text-ui-caption mx-2 flex h-8 w-[calc(100%-1rem)] items-center gap-2 rounded-[var(--radius-control)] px-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
           >
-            <CloudArrowUp size={15} />
+            <CloudUpload size={15} />
             <span className="flex-1 text-left">Connect to Cloud</span>
           </button>
         )}
@@ -458,7 +445,7 @@ export default function AppSidebar() {
               </span>
             </Link>
             <IconButton aria-label="Sign out" size="sm" onClick={signOut}>
-              <SignOut />
+              <LogOut />
             </IconButton>
           </div>
         )}

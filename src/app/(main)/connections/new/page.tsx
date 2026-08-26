@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleNotch } from "@phosphor-icons/react";
+import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import NavigationLayout from "../../nav-layout";
@@ -503,7 +503,7 @@ export default function NewConnectionPage() {
               className="press inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3.5 text-[13px] font-medium text-foreground hover:bg-secondary disabled:opacity-50"
             >
               {busy && !saving && (
-                <CircleNotch size={14} className="animate-spin" />
+                <LoaderCircle size={14} className="animate-spin" />
               )}
               Test connection
             </button>
@@ -512,7 +512,7 @@ export default function NewConnectionPage() {
               disabled={busy || !canSave}
               className="press inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3.5 text-[13px] font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {saving && <CircleNotch size={14} className="animate-spin" />}
+              {saving && <LoaderCircle size={14} className="animate-spin" />}
               Save & connect
             </button>
             <button

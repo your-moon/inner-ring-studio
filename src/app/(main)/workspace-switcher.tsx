@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretUpDown, Check, CircleNotch, Plus, UsersThree } from "@phosphor-icons/react";
+import { Check, ChevronsUpDown, LoaderCircle, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
@@ -63,7 +63,7 @@ export default function WorkspaceSwitcher({
           {(activeName ?? "P").slice(0, 1).toUpperCase()}
         </span>
         <span className="min-w-0 flex-1 truncate font-medium">{activeName ?? "Personal"}</span>
-        <CaretUpDown size={12} className="text-muted-foreground shrink-0" />
+        <ChevronsUpDown size={12} className="text-muted-foreground shrink-0" />
       </button>
 
       {open && (
@@ -102,7 +102,7 @@ export default function WorkspaceSwitcher({
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-neutral-100 disabled:opacity-60 dark:hover:bg-neutral-800"
               >
                 {busy ? (
-                  <CircleNotch size={14} className="animate-spin" />
+                  <LoaderCircle size={14} className="animate-spin" />
                 ) : (
                   <Plus size={14} />
                 )}{" "}
@@ -113,7 +113,7 @@ export default function WorkspaceSwitcher({
                 onClick={() => setOpen(false)}
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800"
               >
-                <UsersThree size={14} /> Members &amp; settings
+                <Users size={14} /> Members &amp; settings
               </Link>
             </div>
           </div>

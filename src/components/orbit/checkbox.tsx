@@ -1,7 +1,7 @@
 "use client";
 
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { Check, Minus } from "@phosphor-icons/react";
+import { Check, Minus } from "lucide-react";
 import { forwardRef, type ComponentPropsWithoutRef } from "react";
 
 import { cn } from "@/lib/utils";
@@ -35,9 +35,9 @@ export const Checkbox = forwardRef<
     >
       <CheckboxPrimitive.Indicator className="flex items-center justify-center [&_svg]:size-3">
         {checked === "indeterminate" ? (
-          <Minus weight="bold" />
+          <Minus />
         ) : (
-          <Check weight="bold" />
+          <Check />
         )}
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>

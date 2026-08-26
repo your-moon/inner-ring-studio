@@ -13,12 +13,7 @@ import {
   SubscriberList,
   TemplatePicker,
 } from "@/components/orbit";
-import {
-  FileCsv,
-  GitBranch,
-  GithubLogo,
-  SlackLogo,
-} from "@phosphor-icons/react";
+import { FileSpreadsheet, GitBranch, Github, Slack } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -94,7 +89,7 @@ export default function LinearCollabStorybook() {
       >
         <div className="grid gap-3 md:grid-cols-2">
           <div className="flex flex-col gap-2">
-            <AttachmentRow name="export.csv" size="2.4 MB" icon={<FileCsv />} onDownload={() => {}} onRemove={() => {}} />
+            <AttachmentRow name="export.csv" size="2.4 MB" icon={<FileSpreadsheet />} onDownload={() => {}} onRemove={() => {}} />
             <AttachmentRow name="schema.sql" size="18 KB" onDownload={() => {}} />
           </div>
           <div className="border-border-default bg-surface-panel rounded-[var(--radius-panel)] border p-4">
@@ -158,14 +153,14 @@ export default function LinearCollabStorybook() {
             />
             <div className="divide-border-subtle divide-y">
               <IntegrationRow
-                icon={<GithubLogo />}
+                icon={<Github />}
                 name="GitHub"
                 description="Link branches and PRs to issues"
                 connected
                 action={<Button variant="secondary" size="sm" title="Configure" />}
               />
               <IntegrationRow
-                icon={<SlackLogo />}
+                icon={<Slack />}
                 name="Slack"
                 description="Post updates to a channel"
                 action={<Button variant="primary" size="sm" title="Connect" />}

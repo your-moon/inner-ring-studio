@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell } from "@phosphor-icons/react";
+import { Bell } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";

@@ -22,8 +22,7 @@ import {
 import { useStudioContext } from "@/context/driver-provider";
 import { useSchema } from "@/context/schema-provider";
 import { cn } from "@/lib/utils";
-import { GitBranch, Minus, Plus, Table } from "@phosphor-icons/react";
-import { ChevronDown, Loader, MoreHorizontal, RefreshCcw } from "lucide-react";
+import { ChevronDown, GitBranch, Loader, Minus, MoreHorizontal, Plus, RefreshCcw, Table } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useDoltCreateBranchModal from "./dolt-create-branch";

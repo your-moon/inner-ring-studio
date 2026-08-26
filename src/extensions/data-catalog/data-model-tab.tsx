@@ -5,7 +5,7 @@ import { Toggle } from "@/components/orbit/toggle";
 import { useStudioContext } from "@/context/driver-provider";
 import { useSchema } from "@/context/schema-provider";
 import { DatabaseTableSchema } from "@/drivers/base-driver";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { Search } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import DataCatalogExtension from ".";
 import DataCatalogTableAccordion from "./data-catalog-table-accordion";
@@ -78,7 +78,7 @@ export default function DataCatalogModelTab() {
               <Input
                 value={search}
                 onValueChange={setSearch}
-                preText={<MagnifyingGlass className="mr-2" />}
+                preText={<Search className="mr-2" />}
                 placeholder="Search tables, columns"
               />
             </div>

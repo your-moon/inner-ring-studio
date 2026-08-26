@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowsClockwise, Check, Flag, Stack as StackIcon, UsersThree } from "@phosphor-icons/react";
+import { Check, Flag, Layers as StackIcon, RefreshCw, Users } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -37,19 +37,19 @@ export function CyclePicker({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={TRIGGER} aria-label="Cycle">
-        <ArrowsClockwise className="size-3.5" />
+        <RefreshCw className="size-3.5" />
         {current?.label ?? "No cycle"}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-52">
         <DropdownMenuItem onSelect={() => onChange(null)} className={ROW}>
           <span className="flex-1">No cycle</span>
-          {value === null ? <Check weight="bold" className="size-3.5" /> : null}
+          {value === null ? <Check className="size-3.5" /> : null}
         </DropdownMenuItem>
         {cycles.map((c) => (
           <DropdownMenuItem key={c.value} onSelect={() => onChange(c.value)} className={ROW}>
             {c.total ? <ProgressDonut value={c.done ?? 0} total={c.total} /> : null}
             <span className="flex-1">{c.label}</span>
-            {c.value === value ? <Check weight="bold" className="size-3.5" /> : null}
+            {c.value === value ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -81,13 +81,13 @@ export function ProjectPicker({
       <DropdownMenuContent align="start" className="min-w-52">
         <DropdownMenuItem onSelect={() => onChange(null)} className={ROW}>
           <span className="flex-1">No project</span>
-          {value === null ? <Check weight="bold" className="size-3.5" /> : null}
+          {value === null ? <Check className="size-3.5" /> : null}
         </DropdownMenuItem>
         {projects.map((p) => (
           <DropdownMenuItem key={p.value} onSelect={() => onChange(p.value)} className={ROW}>
             {p.total ? <ProgressDonut value={p.done ?? 0} total={p.total} /> : null}
             <span className="flex-1">{p.label}</span>
-            {p.value === value ? <Check weight="bold" className="size-3.5" /> : null}
+            {p.value === value ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -113,7 +113,7 @@ export function TeamSwitcher({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={TRIGGER} aria-label="Switch team">
-        <UsersThree className="size-3.5" />
+        <Users className="size-3.5" />
         {active?.name}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-52">
@@ -123,7 +123,7 @@ export function TeamSwitcher({
               {t.key ?? t.name.slice(0, 2)}
             </span>
             <span className="flex-1">{t.name}</span>
-            {t.id === activeId ? <Check weight="bold" className="size-3.5" /> : null}
+            {t.id === activeId ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -153,7 +153,7 @@ export function MilestoneMarker({
         className
       )}
     >
-      <Flag weight={reached ? "fill" : "regular"} className="size-3" />
+      <Flag className="size-3" />
       {label}
     </span>
   );

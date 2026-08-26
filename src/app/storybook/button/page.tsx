@@ -14,26 +14,15 @@ import {
   type ButtonVariant,
   type IconButtonVariant,
 } from "@/components/orbit";
-import {
-  ArrowRight,
-  ChartBar,
-  DotsThree,
-  FloppyDisk,
-  Funnel,
-  ListBullets,
-  Plus,
-  Rows,
-  SlidersHorizontal,
-  Trash,
-} from "@phosphor-icons/react";
+import { ArrowRight, ChartColumn, Ellipsis, Filter, List, Plus, Rows3, Save, SlidersHorizontal, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
 const TEXT_VARIANTS = [
   { variant: "primary", label: "Create", icon: Plus },
-  { variant: "secondary", label: "Save", icon: FloppyDisk },
-  { variant: "ghost", label: "Filter", icon: Funnel },
-  { variant: "destructive", label: "Delete", icon: Trash },
+  { variant: "secondary", label: "Save", icon: Save },
+  { variant: "ghost", label: "Filter", icon: Filter },
+  { variant: "destructive", label: "Delete", icon: Trash2 },
 ] as const satisfies readonly {
   variant: ButtonVariant;
   label: string;
@@ -209,12 +198,12 @@ export default function ButtonStorybook() {
                       title={label}
                       displayContent="items-first"
                     >
-                      <Icon weight="bold" />
+                      <Icon />
                     </Button>
                   </TableCell>
                   <TableCell>
                     <Button variant={variant} title={label}>
-                      <ArrowRight weight="bold" />
+                      <ArrowRight />
                     </Button>
                   </TableCell>
                   <TableCell>
@@ -277,7 +266,7 @@ export default function ButtonStorybook() {
                       size={size as "sm" | "base" | "lg"}
                       title="Run query"
                     >
-                      <ArrowRight weight="bold" />
+                      <ArrowRight />
                     </Button>
                   </TableCell>
                   <TableCell>
@@ -348,7 +337,7 @@ export default function ButtonStorybook() {
               {(["sm", "base", "lg"] as const).map((size) => (
                 <div key={size} className="text-center">
                   <IconButton aria-label={`${size} more actions`} size={size}>
-                    <DotsThree weight="bold" />
+                    <Ellipsis />
                   </IconButton>
                   <code className="text-ui-caption text-content-tertiary mt-2 block font-mono">
                     {size}
@@ -387,19 +376,19 @@ export default function ButtonStorybook() {
                 selected={view === "list"}
                 onClick={() => setView("list")}
               >
-                <ListBullets /> List
+                <List /> List
               </ButtonGroupItem>
               <ButtonGroupItem
                 selected={view === "rows"}
                 onClick={() => setView("rows")}
               >
-                <Rows /> Rows
+                <Rows3 /> Rows3
               </ButtonGroupItem>
               <ButtonGroupItem
                 selected={view === "chart"}
                 onClick={() => setView("chart")}
               >
-                <ChartBar /> Chart
+                <ChartColumn /> Chart
               </ButtonGroupItem>
             </ButtonGroup>
           </div>
@@ -420,7 +409,7 @@ export default function ButtonStorybook() {
                 </>
               }
             >
-              <FloppyDisk weight="bold" />
+              <Save />
             </SplitButton>
           </div>
 
@@ -496,7 +485,7 @@ export default function ButtonStorybook() {
             note="Text action; secondary is the default"
           >
             <Button variant="primary" title="Create">
-              <Plus weight="bold" />
+              <Plus />
             </Button>
           </ShowcaseCard>
 
@@ -506,7 +495,7 @@ export default function ButtonStorybook() {
             note="Icon-only; aria-label required"
           >
             <IconButton aria-label="More actions">
-              <DotsThree weight="bold" />
+              <Ellipsis />
             </IconButton>
           </ShowcaseCard>
 
@@ -517,10 +506,10 @@ export default function ButtonStorybook() {
           >
             <ButtonGroup aria-label="Layout">
               <ButtonGroupItem selected>
-                <ListBullets /> List
+                <List /> List
               </ButtonGroupItem>
               <ButtonGroupItem>
-                <Rows /> Rows
+                <Rows3 /> Rows3
               </ButtonGroupItem>
             </ButtonGroup>
           </ShowcaseCard>
@@ -555,7 +544,7 @@ export default function ButtonStorybook() {
                 </>
               }
             >
-              <FloppyDisk weight="bold" />
+              <Save />
             </SplitButton>
           </ShowcaseCard>
 
@@ -606,7 +595,7 @@ export default function ButtonStorybook() {
             note="Red is reserved for data loss"
           >
             <Button variant="destructive" title="Delete">
-              <Trash weight="bold" />
+              <Trash2 />
             </Button>
           </ShowcaseCard>
 

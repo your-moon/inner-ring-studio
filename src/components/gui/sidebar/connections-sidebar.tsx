@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretDown, CaretRight } from "@phosphor-icons/react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import useSWR from "swr";
 import ConnectionTreeItem from "@/app/(main)/connection-tree-item";
@@ -122,9 +122,9 @@ export default function ConnectionsSidebar() {
                 title={isCollapsed ? "Expand" : "Collapse"}
               >
                 {isCollapsed ? (
-                  <CaretRight size={10} weight="bold" className="shrink-0" />
+                  <ChevronRight size={10} className="shrink-0" />
                 ) : (
-                  <CaretDown size={10} weight="bold" className="shrink-0" />
+                  <ChevronDown size={10} className="shrink-0" />
                 )}
                 <span className="flex-1 truncate">{folder}</span>
                 <span className="font-normal text-muted-foreground/60 tabular-nums">

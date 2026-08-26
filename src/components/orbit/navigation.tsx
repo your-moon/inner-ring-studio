@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretRight, DotsThree } from "@phosphor-icons/react";
+import { ChevronRight, Ellipsis } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -233,8 +233,7 @@ export function BreadcrumbItem({ href, current, children }: BreadcrumbItemProps)
         </span>
       )}
       {!current ? (
-        <CaretRight
-          weight="bold"
+        <ChevronRight
           aria-hidden
           className="size-3 [color:var(--content-disabled)]"
         />
@@ -283,7 +282,7 @@ export function Pagination({
         disabled={page <= 1}
         onClick={() => go(page - 1)}
       >
-        <CaretRight weight="bold" className="rotate-180" />
+        <ChevronRight className="rotate-180" />
       </IconButton>
       {pageRange(page, pageCount).map((p, i) =>
         p === "…" ? (
@@ -291,7 +290,7 @@ export function Pagination({
             key={`gap-${i}`}
             className="[color:var(--content-disabled)] grid size-7 place-items-center"
           >
-            <DotsThree weight="bold" />
+            <Ellipsis />
           </span>
         ) : (
           <button
@@ -316,7 +315,7 @@ export function Pagination({
         disabled={page >= pageCount}
         onClick={() => go(page + 1)}
       >
-        <CaretRight weight="bold" />
+        <ChevronRight />
       </IconButton>
     </nav>
   );

@@ -20,7 +20,7 @@ import {
   type FoundationToken,
 } from "@/components/orbit";
 import { cn } from "@/lib/utils";
-import { Check, Circle, CursorClick, Square } from "@phosphor-icons/react";
+import { Check, Circle, MousePointerClick, Square } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -165,7 +165,7 @@ export function FoundationsPreview() {
                   key={name}
                   className="row-height border-border-subtle flex items-center gap-[var(--density-gap)] border-b px-[var(--density-padding-x)] last:border-b-0"
                 >
-                  <Circle className="size-[var(--icon-sm)] text-content-tertiary" weight="fill" />
+                  <Circle className="size-[var(--icon-sm)] text-content-tertiary" fill="currentColor" />
                   <span className="text-ui-small flex-1 font-medium">{name}</span>
                   <span className="text-ui-caption text-content-tertiary font-mono">
                     {12 + index * 17} columns
@@ -359,7 +359,7 @@ export function FoundationsPreview() {
                 type="button"
                 className="focus-ring press control-height border-border-default bg-surface-raised text-ui-small inline-flex items-center gap-2 rounded-[var(--radius-control)] border px-[var(--density-padding-x)] font-medium hover:bg-surface-hover"
               >
-                <CursorClick className="size-[var(--icon-md)]" />
+                <MousePointerClick className="size-[var(--icon-md)]" />
                 Tab to focus
               </button>
               <span className="text-ui-caption text-content-tertiary">
@@ -421,7 +421,7 @@ export function FoundationsPreview() {
 
         <footer className="border-border-default bg-surface-selected flex items-start gap-3 rounded-[var(--radius-panel)] border p-4">
           <span className="bg-intent-success text-content-inverse mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full">
-            <Check size={12} weight="bold" />
+            <Check size={12} />
           </span>
           <div>
             <div className="text-ui-default font-medium">Foundation contract</div>

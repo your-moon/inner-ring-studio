@@ -1,6 +1,6 @@
 "use client";
 
-import { ChatCircle, PaperPlaneRight, Trash } from "@phosphor-icons/react";
+import { MessageCircle, Send, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 interface RowComment {
@@ -71,7 +71,7 @@ export default function RowComments({
   return (
     <div className="border-t border-neutral-100 p-4 dark:border-neutral-800">
       <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-        <ChatCircle size={14} />
+        <MessageCircle size={14} />
         Comments{comments.length ? ` (${comments.length})` : ""}
       </div>
 
@@ -88,7 +88,7 @@ export default function RowComments({
                   className="rounded p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
                   title="Delete"
                 >
-                  <Trash size={13} />
+                  <Trash2 size={13} />
                 </button>
               )}
             </div>
@@ -117,7 +117,7 @@ export default function RowComments({
           className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FFEB02] text-black hover:bg-[#f2df00] disabled:opacity-50"
           title="Send"
         >
-          <PaperPlaneRight size={16} />
+          <Send size={16} />
         </button>
       </div>
     </div>

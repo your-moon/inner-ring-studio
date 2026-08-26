@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, User } from "@phosphor-icons/react";
+import { Check, User } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import {
@@ -65,13 +65,13 @@ export function AssigneePicker({
             <User className="size-3" />
           </span>
           <span className="flex-1">Unassigned</span>
-          {value === null ? <Check weight="bold" className="size-3.5" /> : null}
+          {value === null ? <Check className="size-3.5" /> : null}
         </DropdownMenuItem>
         {people.map((p) => (
           <DropdownMenuItem key={p.id} onSelect={() => onChange(p.id)} className="text-ui-default flex items-center gap-2">
             <Initial name={p.name} />
             <span className="flex-1">{p.name}</span>
-            {p.id === value ? <Check weight="bold" className="size-3.5" /> : null}
+            {p.id === value ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -99,12 +99,12 @@ export function EstimatePicker({
       <DropdownMenuContent align="start" className="min-w-36">
         <DropdownMenuItem onSelect={() => onChange(null)} className="text-ui-default flex items-center">
           <span className="flex-1">No estimate</span>
-          {value === null ? <Check weight="bold" className="size-3.5" /> : null}
+          {value === null ? <Check className="size-3.5" /> : null}
         </DropdownMenuItem>
         {scale.map((n) => (
           <DropdownMenuItem key={n} onSelect={() => onChange(n)} className="text-ui-default flex items-center">
             <span className="flex-1 [font-variant-numeric:tabular-nums]">{n} points</span>
-            {n === value ? <Check weight="bold" className="size-3.5" /> : null}
+            {n === value ? <Check className="size-3.5" /> : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -1,6 +1,6 @@
 import QueryWindow from "@/components/gui/tabs/query-tab";
 import { generateId } from "@/lib/generate-id";
-import { Binoculars } from "@phosphor-icons/react";
+import { Binoculars } from "lucide-react";
 import { createTabExtension } from "../extension-tab";
 
 let QUERY_COUNTER = 2;

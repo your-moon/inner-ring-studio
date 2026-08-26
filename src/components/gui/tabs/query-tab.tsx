@@ -44,15 +44,8 @@ import {
 } from "@/lib/sql/multiple-query";
 import { sendAnalyticEvents } from "@/lib/tracking";
 import { cn } from "@/lib/utils";
-import { CaretDown } from "@phosphor-icons/react";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import {
-  LucideGrid,
-  LucideMessageSquareWarning,
-  LucideHistory,
-  LucidePlay,
-  LucideWrapText,
-} from "lucide-react";
+import { ChevronDown, LucideGrid, LucideHistory, LucideMessageSquareWarning, LucidePlay, LucideWrapText } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { format } from "sql-formatter";
@@ -478,7 +471,7 @@ export default function QueryWindow({
                         "rounded-l-none border-l"
                       )}
                     >
-                      <CaretDown size={12} />
+                      <ChevronDown size={12} />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>

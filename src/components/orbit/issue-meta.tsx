@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowSquareOut, CalendarBlank, X } from "@phosphor-icons/react";
+import { Calendar, ExternalLink, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -41,7 +41,7 @@ export function DueDateBadge({
         className
       )}
     >
-      {icon ? <CalendarBlank /> : null}
+      {icon ? <Calendar /> : null}
       {date}
     </span>
   );
@@ -74,7 +74,7 @@ export function LinkedResourceRow({
       )}
     >
       <span className="shrink-0 [color:var(--content-tertiary)] [&_svg]:size-[var(--icon-md)]">
-        {icon ?? <ArrowSquareOut />}
+        {icon ?? <ExternalLink />}
       </span>
       <button
         type="button"
@@ -93,7 +93,7 @@ export function LinkedResourceRow({
       <span className="flex shrink-0 items-center gap-0.5 opacity-0 group-hover/link:opacity-100">
         {onOpen ? (
           <IconButton aria-label="Open link" size="sm" onClick={onOpen}>
-            <ArrowSquareOut />
+            <ExternalLink />
           </IconButton>
         ) : null}
         {onRemove ? (

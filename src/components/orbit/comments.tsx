@@ -1,6 +1,6 @@
 "use client";
 
-import { Smiley } from "@phosphor-icons/react";
+import { Smile } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -49,7 +49,7 @@ export function Reactions({
           onClick={onAdd}
           className="focus-ring press border-border-default [color:var(--content-tertiary)] grid size-6 place-items-center rounded-[var(--radius-full)] border hover:bg-surface-hover hover:[color:var(--content-primary)]"
         >
-          <Smiley className="size-3.5" />
+          <Smile className="size-3.5" />
         </button>
       ) : null}
     </div>

@@ -9,14 +9,7 @@ import { scc } from "@/core/command";
 import { SavedDocData } from "@/drivers/saved-doc/saved-doc-driver";
 import { bumpTable, frecencyScores } from "@/lib/table-frecency";
 import { cn } from "@/lib/utils";
-import {
-  ArrowLeft,
-  CaretLeft,
-  DotsThree,
-  MagnifyingGlass,
-  Table,
-  TerminalWindow,
-} from "@phosphor-icons/react";
+import { ArrowLeft, ChevronLeft, Ellipsis, Search, SquareTerminal, Table } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -143,7 +136,7 @@ export default function StudioSidebar({
           <Tooltip>
             <TooltipTrigger asChild>
               <IconButton size="sm" onClick={onBack} aria-label="Back to home">
-                <CaretLeft weight="bold" />
+                <ChevronLeft />
               </IconButton>
             </TooltipTrigger>
             <TooltipContent side="bottom">Back to home</TooltipContent>
@@ -172,7 +165,7 @@ export default function StudioSidebar({
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <IconButton size="sm" aria-label="More">
-              <DotsThree weight="bold" />
+              <Ellipsis />
             </IconButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="bottom" align="end">
@@ -209,7 +202,7 @@ export default function StudioSidebar({
         onClick={() => window.dispatchEvent(new Event("irs:studio-cmdk"))}
         className="u-smooth mx-2 mt-1 mb-1 flex h-[30px] shrink-0 items-center gap-2 rounded-[7px] border border-border bg-background px-2.5 text-left text-[13px] text-muted-foreground hover:border-ring/40"
       >
-        <MagnifyingGlass size={13} className="shrink-0" />
+        <Search size={13} className="shrink-0" />
         <span className="flex-1">Jump to…</span>
         <Kbd>
           {typeof navigator !== "undefined" &&
@@ -272,7 +265,7 @@ export default function StudioSidebar({
                   }
                   className="u-smooth flex h-[26px] w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-secondary-foreground hover:bg-secondary hover:text-foreground"
                 >
-                  <TerminalWindow
+                  <SquareTerminal
                     size={12}
                     className="shrink-0 text-muted-foreground"
                   />

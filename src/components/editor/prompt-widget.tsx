@@ -2,7 +2,7 @@
 
 import AgentDriverList from "@/drivers/agent/list";
 import { cn } from "@/lib/utils";
-import { Check, X } from "@phosphor-icons/react";
+import { Check, X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { CloudflareIcon } from "../icons/driver-icon";
 import { Button } from "../orbit/button";
@@ -177,7 +177,7 @@ export function CodeMirrorPromptWidget({
         </div>
         <div>
           <button className="cursor-pointer p-2" onClick={onClose}>
-            <X weight="bold" />
+            <X />
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretUpDown, Check } from "@phosphor-icons/react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -81,7 +81,7 @@ export function RoleSelect({
         )}
       >
         {ROLE_LABEL[role]}
-        <CaretUpDown className="size-3.5 [color:var(--content-tertiary)]" />
+        <ChevronsUpDown className="size-3.5 [color:var(--content-tertiary)]" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-40">
         {roles.map((r) => (
