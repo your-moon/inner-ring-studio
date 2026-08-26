@@ -17,7 +17,6 @@ import {
   AlertDialogContent,
   Chip,
   IconButton,
-  Kbd,
   SidebarNavItem,
   StatusDot,
 } from "@/components/orbit";
@@ -310,11 +309,11 @@ export default function AppSidebar() {
         <button
           type="button"
           onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
-          className="focus-ring border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover flex h-7 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] border px-2.5 [color:var(--content-secondary)]"
+          className="focus-ring border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover flex h-7 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] border py-0 pr-2 pl-2.5 [color:var(--content-secondary)]"
         >
           <Command className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
           <span className="min-w-0 flex-1 truncate text-left">Quick actions</span>
-          <Kbd>⌘K</Kbd>
+          <span className="shrink-0 text-[11px] [color:var(--content-tertiary)]">⌘K</span>
         </button>
         <button
           type="button"
