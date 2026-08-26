@@ -381,6 +381,20 @@ export {
   ListBlock,
   CodeBlockHeader,
 } from "./editor-blocks";
+export {
+  CHART_COLORS,
+  BarChart,
+  DonutChart,
+  Sparkline,
+  AreaSparkline,
+  ChartLegend,
+  TrendBadge,
+  StatDelta,
+  ChartCard,
+  BreakdownBar,
+  ChartEmpty,
+} from "./charts";
+export type { ChartDatum, TrendDirection } from "./charts";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
