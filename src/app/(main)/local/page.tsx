@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CircleCheck, Cloud, Database, Ellipsis, Folder, GitBranch, History, Pencil, Plus, ScrollText, Search, SquareTerminal, Table as TableIcon, Trash2, Wifi, WifiOff } from "lucide-react";
+import { ArrowRight, CircleCheck, Cloud, Database, Ellipsis, Folder, GitBranch, History, House, Pencil, Plus, ScrollText, Search, SquareTerminal, Table as TableIcon, Trash2, Wifi, WifiOff } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -15,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  EmptyIllustration,
   EnvBadge,
   IconButton,
   Kbd,
@@ -320,24 +321,43 @@ export default function HomePage() {
 
   return (
     <NavigationLayout>
-      <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
-        <header className="mb-8 flex items-end justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-heading-medium font-semibold tracking-[var(--tracking-heading)] [color:var(--content-primary)]">
-              {greeting}
-            </h1>
-            {connections.length > 0 ? (
-              <p className="text-ui-small mt-1 [color:var(--content-tertiary)]">
-                {connections.length}{" "}
-                {connections.length === 1 ? "database" : "databases"} · pick up
-                where you left off
-              </p>
-            ) : null}
-          </div>
+      {/* Top bar — sticky, aligns with the sidebar header (h-12) */}
+      <div className="bg-surface-panel border-border-subtle sticky top-0 z-10 flex h-12 shrink-0 items-center justify-between gap-3 border-b px-5">
+        <div className="flex items-center gap-2">
+          <House size={16} className="[color:var(--content-tertiary)]" />
+          <span className="text-ui-default font-[var(--weight-medium)] [color:var(--content-primary)]">
+            Home
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
+            className="border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover flex h-7 items-center gap-2 rounded-[var(--radius-control)] border px-2.5 [color:var(--content-tertiary)] hover:[color:var(--content-primary)]"
+          >
+            <Search size={14} />
+            <span className="hidden sm:inline">Search</span>
+            <Kbd>⌘K</Kbd>
+          </button>
           <Button as="link" href="/connections/new" size="sm" variant="primary">
             <Plus size={15} />
             New connection
           </Button>
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8">
+        <header className="mb-8">
+          <h1 className="text-heading-medium font-semibold tracking-[var(--tracking-heading)] [color:var(--content-primary)]">
+            {greeting}
+          </h1>
+          {connections.length > 0 ? (
+            <p className="text-ui-small mt-1 [color:var(--content-tertiary)]">
+              {connections.length}{" "}
+              {connections.length === 1 ? "database" : "databases"} · pick up
+              where you left off
+            </p>
+          ) : null}
         </header>
 
         {isLoading ? (
@@ -351,9 +371,7 @@ export default function HomePage() {
           </div>
         ) : connections.length === 0 ? (
           <div className="border-border-default bg-surface-panel rounded-[var(--radius-panel)] border px-8 py-16 text-center">
-            <div className="border-border-default mx-auto mb-4 grid h-11 w-11 place-items-center rounded-[var(--radius-control)] border [color:var(--content-tertiary)]">
-              <Database size={22} />
-            </div>
+            <EmptyIllustration size={104} className="mx-auto mb-5 [color:var(--content-tertiary)]" />
             <p className="text-body font-[var(--weight-medium)] [color:var(--content-primary)]">
               No databases connected
             </p>

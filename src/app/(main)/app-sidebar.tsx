@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartColumn, ChevronDown, ChevronRight, Clock, CloudUpload, House, List, LogOut, Plus, Search, User, X } from "lucide-react";
+import { ChartColumn, ChevronDown, ChevronRight, Clock, CloudUpload, Command, House, List, LogOut, Plus, Search, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -17,6 +17,7 @@ import {
   AlertDialogContent,
   Chip,
   IconButton,
+  Kbd,
   SidebarNavItem,
   StatusDot,
 } from "@/components/orbit";
@@ -60,7 +61,7 @@ function SectionLabel({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mt-5 mb-1 flex h-7 items-center justify-between px-3">
+    <div className="mt-5 mb-1 flex h-7 items-center justify-between px-2">
       <span className="text-ui-small font-[var(--weight-medium)] [color:var(--content-tertiary)]">
         {children}
       </span>
@@ -96,7 +97,6 @@ function NavRow({
           ? () => window.open(href, "_blank", "noopener")
           : undefined
       }
-      className="mx-1"
     />
   );
 }
@@ -268,27 +268,20 @@ export default function AppSidebar() {
   const sidebar = (
     <aside
       aria-label="Application navigation"
-      className="bg-sidebar flex h-full min-h-0 w-[244px] flex-col"
+      className="bg-sidebar flex h-full min-h-0 w-[260px] flex-col"
     >
-      <div className="flex h-12 shrink-0 items-center gap-2 px-3 lg:mt-2">
-        <Link href="/local" className="flex min-w-0 flex-1 items-center gap-2.5">
+      {/* Workspace switcher */}
+      <div className="flex h-12 shrink-0 items-center gap-1 px-2 lg:mt-2">
+        <Link
+          href="/local"
+          className="focus-ring hover:bg-surface-hover flex min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1"
+        >
           <BrandMark />
-          <span className="text-ui-small truncate font-semibold tracking-tight">
+          <span className="text-ui-small truncate font-semibold tracking-tight [color:var(--content-primary)]">
             {WEBSITE_NAME}
           </span>
+          <ChevronDown className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
         </Link>
-        <IconButton
-          aria-label="Search or jump"
-          size="sm"
-          onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
-        >
-          <Search />
-        </IconButton>
-        <IconButton aria-label="New connection" size="sm" asChild>
-          <Link href="/connections/new">
-            <Plus />
-          </Link>
-        </IconButton>
         {isCloud && <NotificationsBell />}
         <IconButton
           aria-label="Close navigation"
@@ -300,6 +293,27 @@ export default function AppSidebar() {
         </IconButton>
       </div>
 
+      {/* Quick actions + search (Attio-style) */}
+      <div className="flex items-center gap-1.5 px-2 pb-1">
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
+          className="focus-ring border-border-default bg-surface-panel text-ui-small hover:bg-surface-hover flex h-8 min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] border px-2.5 [color:var(--content-secondary)]"
+        >
+          <Command className="size-3.5 shrink-0 [color:var(--content-tertiary)]" />
+          <span className="min-w-0 flex-1 truncate text-left">Quick actions</span>
+          <Kbd>⌘K</Kbd>
+        </button>
+        <button
+          type="button"
+          aria-label="Search"
+          onClick={() => window.dispatchEvent(new Event("irs:cmdk"))}
+          className="focus-ring border-border-default bg-surface-panel hover:bg-surface-hover grid size-8 shrink-0 place-items-center rounded-[var(--radius-control)] border [color:var(--content-tertiary)] hover:[color:var(--content-primary)] [&_svg]:size-3.5"
+        >
+          <Search />
+        </button>
+      </div>
+
       {isCloud ? (
         <WorkspaceSwitcher
           activeId={auth?.workspaceId ?? null}
@@ -309,7 +323,7 @@ export default function AppSidebar() {
         auth && <VaultSwitcher />
       )}
 
-      <div className="min-h-0 flex-1 overflow-y-auto pb-3">
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         <nav aria-label="Workspace">
           <NavRow
             href="/local"
@@ -357,7 +371,7 @@ export default function AppSidebar() {
                   <button
                     onClick={() => toggleFolder(folder)}
                     aria-expanded={!collapsed}
-                    className="text-ui-small flex h-7 w-full items-center gap-1.5 px-3 text-left font-[var(--weight-medium)] [color:var(--content-tertiary)] hover:[color:var(--content-secondary)]"
+                    className="text-ui-small flex h-7 w-full items-center gap-1.5 px-2 text-left font-[var(--weight-medium)] [color:var(--content-tertiary)] hover:[color:var(--content-secondary)]"
                   >
                     {collapsed ? (
                       <ChevronRight size={11} />
@@ -387,7 +401,7 @@ export default function AppSidebar() {
           {(connectionData?.connections.length ?? 0) === 0 && (
             <Link
               href="/connections/new"
-              className="text-ui-caption mx-3 flex items-center gap-2 rounded-[var(--radius-control)] border border-dashed border-border-default px-2.5 py-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
+              className="text-ui-caption flex w-full items-center gap-2 rounded-[var(--radius-control)] border border-dashed border-border-default px-2.5 py-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
             >
               <Plus size={14} /> Add your first connection
             </Link>
@@ -409,7 +423,7 @@ export default function AppSidebar() {
         {linked && !cloudSignedIn && (
           <button
             onClick={connectCloud}
-            className="text-ui-caption mx-2 flex h-8 w-[calc(100%-1rem)] items-center gap-2 rounded-[var(--radius-control)] px-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
+            className="text-ui-caption flex h-8 w-full items-center gap-2 rounded-[var(--radius-control)] px-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
           >
             <CloudUpload size={15} />
             <span className="flex-1 text-left">Connect to Cloud</span>
@@ -419,7 +433,7 @@ export default function AppSidebar() {
         {cloudSignedIn && !isCloud && (
           <button
             onClick={disconnectCloud}
-            className="text-ui-caption group mx-2 flex h-8 w-[calc(100%-1rem)] items-center gap-2 rounded-[var(--radius-control)] px-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
+            className="text-ui-caption group flex h-8 w-full items-center gap-2 rounded-[var(--radius-control)] px-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
             title="Disconnect from Cloud"
           >
             <StatusDot status="live" />
@@ -451,7 +465,7 @@ export default function AppSidebar() {
         )}
 
         {!isCloud && !cloudSignedIn && (
-          <div className="text-ui-caption flex h-8 items-center gap-2 px-3 [color:var(--content-tertiary)]">
+          <div className="text-ui-caption flex h-8 items-center gap-2 px-2 [color:var(--content-tertiary)]">
             <User size={14} />
             <span>Local workspace</span>
           </div>

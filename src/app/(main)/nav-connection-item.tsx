@@ -65,7 +65,7 @@ export default function NavConnectionItem({
           onClick={() => onOpen?.(conn.id)}
           aria-current={selected ? "page" : undefined}
           className={cn(
-            "focus-ring text-ui-small group mx-1 flex h-7 items-center gap-2 rounded-[var(--radius-control)] px-2",
+            "focus-ring text-ui-small group flex h-7 items-center gap-2 rounded-[var(--radius-control)] px-2",
             selected
               ? "bg-surface-hover font-[var(--weight-medium)] [color:var(--content-primary)]"
               : "[color:var(--content-secondary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
