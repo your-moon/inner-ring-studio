@@ -395,6 +395,22 @@ export {
   ChartEmpty,
 } from "./charts";
 export type { ChartDatum, TrendDirection } from "./charts";
+export {
+  ProjectRow,
+  ProjectOverviewHeader,
+  ProjectUpdateItem,
+  MilestoneRow,
+} from "./project-admin";
+export type { ProjectRowProps } from "./project-admin";
+export { CycleProgress, CycleRow, ActiveCycleHeader } from "./cycle";
+export type { CycleRowProps } from "./cycle";
+export { DueDateBadge, LinkedResourceRow } from "./issue-meta";
+export type { DueTone } from "./issue-meta";
+export {
+  TriageRow,
+  SearchResultRow,
+  SearchResultGroup,
+} from "./triage-search";
 export { default as Block } from "./block";
 export { default as Inset } from "./inset";
 export { default as Section } from "./section";
