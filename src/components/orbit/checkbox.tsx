@@ -23,10 +23,13 @@ export const Checkbox = forwardRef<
       ref={ref}
       checked={checked}
       className={cn(
-        "focus-ring press grid size-4 shrink-0 place-items-center rounded-[var(--radius-small)] border",
-        "border-border-strong bg-surface-canvas [color:var(--content-primary)]",
-        "data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:[color:var(--primary-foreground)]",
-        "data-[state=indeterminate]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:[color:var(--primary-foreground)]",
+        // Attio-measured (crisp tokens): 16px box, 6px radius, hairline border,
+        // brand fill when set. No press/scale motion.
+        "focus-ring grid size-4 shrink-0 place-items-center rounded-[6px] border",
+        "border-[var(--seed-color-stroke-neutral-muted)] bg-[var(--seed-color-bg-layer-default)] [color:var(--content-primary)]",
+        "hover:border-[var(--seed-color-stroke-neutral)]",
+        "data-[state=checked]:border-transparent data-[state=checked]:bg-[var(--seed-color-bg-brand-solid)] data-[state=checked]:[color:var(--seed-color-palette-static-white,#fff)]",
+        "data-[state=indeterminate]:border-transparent data-[state=indeterminate]:bg-[var(--seed-color-bg-brand-solid)] data-[state=indeterminate]:[color:var(--seed-color-palette-static-white,#fff)]",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}

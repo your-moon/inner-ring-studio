@@ -5,21 +5,25 @@ import { forwardRef, type ButtonHTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 
+/*
+ * Visuals come from the crisp action-button recipe (iconOnly layout); this maps
+ * the Orbit IconButton API onto the generated classes. `destructive` stays a
+ * local ghost-red (crisp has no ghost-critical variant yet).
+ */
 const ICON_BUTTON_VARIANTS = {
   ghost:
-    "border-transparent bg-transparent [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]",
-  secondary:
-    "border-border-default bg-surface-raised [color:var(--content-secondary)] shadow-[var(--shadow-raised)] hover:border-border-strong hover:bg-surface-hover hover:[color:var(--content-primary)]",
-  primary:
-    "border-primary bg-primary [color:var(--primary-foreground)] shadow-[var(--shadow-raised)] hover:border-[var(--primary-hover)] hover:bg-[var(--primary-hover)]",
+    "seed-action-button--variant_ghost [color:var(--content-tertiary)] hover:[color:var(--content-primary)]",
+  secondary: "seed-action-button--variant_neutralOutline",
+  primary: "seed-action-button--variant_brandSolid",
   destructive:
-    "border-transparent bg-transparent [color:var(--intent-danger)] hover:bg-[var(--intent-danger-soft)]",
+    "bg-transparent [color:var(--intent-danger)] hover:bg-[var(--intent-danger-soft)]",
 } as const;
 
+// Orbit sm/base/lg → crisp xsmall(24)/small(28)/medium(32), iconOnly squares.
 const ICON_BUTTON_SIZES = {
-  sm: "size-6 [&_svg]:size-[var(--icon-xs)]",
-  base: "size-7 [&_svg]:size-[var(--icon-sm)]",
-  lg: "size-8 [&_svg]:size-[var(--icon-md)]",
+  sm: "seed-action-button--size_xsmall seed-action-button--layout_iconOnly seed-action-button--size_xsmall-layout_iconOnly [&_svg]:size-[var(--icon-xs)]",
+  base: "seed-action-button--size_small seed-action-button--layout_iconOnly seed-action-button--size_small-layout_iconOnly [&_svg]:size-[var(--icon-sm)]",
+  lg: "seed-action-button--size_medium seed-action-button--layout_iconOnly seed-action-button--size_medium-layout_iconOnly [&_svg]:size-[var(--icon-md)]",
 } as const;
 
 const ICON_BUTTON_TOGGLED_VARIANTS = {
@@ -69,7 +73,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         aria-pressed={toggled}
         data-state={toggled ? "on" : "off"}
         className={cn(
-          "focus-ring press inline-grid shrink-0 place-items-center rounded-[var(--radius-control)] border disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:shrink-0",
+          "seed-action-button inline-grid shrink-0 place-items-center disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:shrink-0",
           ICON_BUTTON_VARIANTS[variant],
           ICON_BUTTON_SIZES[size],
           toggled && ICON_BUTTON_TOGGLED_VARIANTS[variant],
