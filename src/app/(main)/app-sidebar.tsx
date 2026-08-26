@@ -326,9 +326,6 @@ export default function AppSidebar() {
         </button>
       </div>
 
-      {/* Divider */}
-      <div className="border-border-subtle mx-2 mb-1 border-b" />
-
       {isCloud ? (
         <WorkspaceSwitcher
           activeId={auth?.workspaceId ?? null}
@@ -337,6 +334,9 @@ export default function AppSidebar() {
       ) : (
         auth && <VaultSwitcher />
       )}
+
+      {/* Divider between the top controls and the nav menu (Attio-style) */}
+      <div className="border-border-subtle mx-2 my-1 border-b" />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         <nav aria-label="Workspace">
