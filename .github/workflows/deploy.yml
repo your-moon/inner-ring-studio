@@ -1,0 +1,69 @@
+name: Deploy cloud (grape-2)
+
+# CI/CD for the multi-tenant cloud app (https://cloud.carrot-soft.tech).
+# Replaces the hand-run rsync + `docker compose up --build` from a laptop
+# (deploy/CLOUD.md): tests run on a GitHub-hosted runner, and on green the
+# self-hosted runner ON grape-2 rebuilds the image and swaps the container
+# locally — no registry, no inbound SSH.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time; queue a second push rather than cancelling a build
+# that is mid-flight on the box.
+concurrency:
+  group: deploy-cloud
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1"
+      # Frozen install matches the Docker build (bun.lock); jest runs on Node,
+      # the same way it is verified locally.
+      - run: bun install --frozen-lockfile
+      - run: npx jest --ci
+
+  deploy:
+    needs: test
+    runs-on: [self-hosted, grape-2]
+    steps:
+      - uses: actions/checkout@v4
+
+      # Mirror the checkout into the build context the compose stack expects
+      # (/opt/inner-ring-cloud/app). cloud.env lives one level up and is never
+      # touched. Heavy reference trees are not part of the image, so skip them.
+      - name: Sync source into the deploy dir
+        run: |
+          rsync -a --delete \
+            --exclude '.git' --exclude 'node_modules' --exclude '.next' \
+            --exclude '.swc' --exclude '.scratch' --exclude '.open-next' \
+            --exclude 'cloud.env' --exclude 'docs' --exclude 'trials' \
+            "$GITHUB_WORKSPACE"/ /opt/inner-ring-cloud/app/
+
+      - name: Build image and restart the stack
+        working-directory: /opt/inner-ring-cloud
+        run: |
+          docker compose -f docker-compose.cloud.yml --env-file cloud.env up -d --build
+          docker compose -f docker-compose.cloud.yml ps
+
+      # Confirm Traefik is serving the freshly-started container before the run
+      # is called green.
+      - name: Health check
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://cloud.carrot-soft.tech || true)
+            echo "attempt $i -> HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 3
+          done
+          echo "cloud.carrot-soft.tech did not return 200 within ~90s"
+          exit 1
