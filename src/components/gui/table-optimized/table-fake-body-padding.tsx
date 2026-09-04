@@ -17,6 +17,13 @@ export default function TableFakeBodyPadding({
   const paddingTop = rowStart * rowHeight;
   const paddingBottom = (rowCount - rowEnd) * rowHeight;
 
+  // A full data row occupies gutter (1) + colCount data tracks + the trailing
+  // 1fr filler (1) = colCount + 2 grid tracks. The padding rows must span the
+  // same width, or CSS grid auto-placement shifts every row below the padding
+  // one track to the left (visible only once scrolled down, when padding-top
+  // renders).
+  const fullRowSpan = colCount + 2;
+
   return (
     <tbody className="contents">
       {!!paddingTop && (
@@ -24,7 +31,7 @@ export default function TableFakeBodyPadding({
           <td
             style={{
               height: paddingTop,
-              gridColumn: `span ${colCount + 1}`,
+              gridColumn: `span ${fullRowSpan}`,
             }}
           />
         </tr>
@@ -37,7 +44,7 @@ export default function TableFakeBodyPadding({
           <td
             style={{
               height: paddingBottom,
-              gridColumn: `span ${colCount + 1}`,
+              gridColumn: `span ${fullRowSpan}`,
             }}
           ></td>
         </tr>
