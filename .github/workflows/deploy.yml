@@ -8,6 +8,11 @@ name: Deploy cloud (grape-2)
 on:
   push:
     branches: [main]
+    # Docs / scratch never affect the built image — don't rebuild prod for them.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.scratch/**'
   workflow_dispatch:
 
 # One deploy at a time; queue a second push rather than cancelling a build

@@ -25,15 +25,25 @@ The same build serves all modes; the mode is chosen by `DEPLOY_MODE` at runtime.
 ## How it's deployed
 
 Prod is **grape-2** (`root@187.52.116.86`), served by Traefik at
-`https://cloud.carrot-soft.tech`. There is **no CI/registry** — the image is
-built *on the box* from a plain source copy at `/opt/inner-ring-cloud/app`
-(not a git checkout). Deploying = rsync the repo up, then
-`docker compose … up -d --build`. The Dockerfile builds a Next **standalone**
-bundle with bun and runs it on Node (`node server.js`).
+`https://cloud.carrot-soft.tech`. The image is built *on the box* (no registry)
+and runs a Next **standalone** bundle (bun build, `node server.js`).
+
+**Primary path — CI/CD (push to `main`).** `.github/workflows/deploy.yml` runs
+the jest suite on a GitHub-hosted runner, then, on green, a **self-hosted
+GitHub Actions runner installed on grape-2** (systemd service
+`actions.runner.your-moon-inner-ring-studio.grape-2`, label `grape-2`) syncs the
+checkout into `/opt/inner-ring-cloud/app` and runs the same
+`docker compose … up -d --build` locally, then health-checks the site. No
+rsync-from-laptop, no registry, no inbound SSH. Docs-only pushes are skipped.
+Watch a run: `gh run watch -R your-moon/inner-ring-studio`.
+
+The **manual rsync + compose flow below** still works — it is the fallback (the
+runner is down, or you're deploying an un-pushed local tree) and the basis for
+rollback.
 
 > The `npm run deploy` script (OpenNext → Cloudflare) is **not** the prod path
 > and does not work here — it fails to bundle the inherited `runtime = "edge"`
-> routes. Ignore it; use the rsync + compose flow below.
+> routes. Ignore it.
 
 Layout on grape-2:
 
@@ -65,9 +75,10 @@ Then sync the source and build (same commands as an update — see below).
 The schema (`users`, `connections`) is created automatically on first request
 (`CREATE TABLE IF NOT EXISTS`). No migration step.
 
-## Updating / redeploying
+## Manual deploy (fallback)
 
-Run from a clean checkout of the branch you want live (`main`). Two steps:
+Only when the CI/CD path is unavailable. Run from a clean checkout of `main`.
+Two steps:
 
 ```bash
 # 1. Push source up (from the repo root on your machine). The excludes keep
