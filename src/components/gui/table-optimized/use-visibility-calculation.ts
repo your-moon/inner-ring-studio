@@ -3,6 +3,12 @@ import { useCallback, useEffect, useState } from "react";
 import { OptimizeTableHeaderWithIndexProps } from ".";
 import OptimizeTableState from "./optimize-table-state";
 
+// How many columns to render beyond each horizontal edge of the viewport.
+// Rows overscan by `renderAhead` (~20); columns are far wider, so a small
+// fixed pad is enough to keep the newly-exposed edge columns painted during a
+// fast horizontal scroll instead of flashing blank until React re-renders.
+const COLUMN_RENDER_AHEAD = 3;
+
 /**
  * Giving the container, we calculate visible rows and column
  *
@@ -60,6 +66,14 @@ export function getVisibleCellRange(
   if (currentColStart < 0) currentColStart = 0;
   if (currentColEnd >= headerSizes.length)
     currentColEnd = headerSizes.length - 1;
+
+  // Overscan the column window on both sides so horizontal scrolling doesn't
+  // expose blank edge cells before the next render commits.
+  currentColStart = Math.max(0, currentColStart - COLUMN_RENDER_AHEAD);
+  currentColEnd = Math.min(
+    headerSizes.length - 1,
+    currentColEnd + COLUMN_RENDER_AHEAD
+  );
 
   return {
     colStart: currentColStart,
