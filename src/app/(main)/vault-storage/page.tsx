@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Check, Vault } from "lucide-react";
+import { Check, LoaderCircle, Vault } from "lucide-react";
 import NavigationLayout from "../nav-layout";
 
 interface ConfigStatus {
@@ -26,6 +26,18 @@ export default function VaultStoragePage() {
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  // `busy` alone can't tell one button apart from another (every Switch,
+  // Forget, Connect, etc. shares it) -- track which specific action is in
+  // flight so the right button, not just "some button", shows feedback.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const withPending = useCallback(async (key: string, fn: () => Promise<void>) => {
+    setPendingAction(key);
+    try {
+      await fn();
+    } finally {
+      setPendingAction(null);
+    }
+  }, []);
 
   // Vaults on this machine (the registry) + the "add vault" form. Multi-vault is
   // disabled when the vault is pinned via PMSQL_VAULT (e.g. the self-hosted
@@ -130,7 +142,7 @@ export default function VaultStoragePage() {
   }, [newName, newMode, newUrl, vaultPost]);
 
   const forget = useCallback(
-    (v: VaultRow) => {
+    async (v: VaultRow) => {
       if (
         !window.confirm(
           `Remove "${v.name}" from this machine's vault list?\n\n` +
@@ -138,7 +150,7 @@ export default function VaultStoragePage() {
         )
       )
         return;
-      vaultPost({ action: "remove", id: v.id });
+      await vaultPost({ action: "remove", id: v.id });
     },
     [vaultPost]
   );
@@ -184,19 +196,31 @@ export default function VaultStoragePage() {
               {!v.active && (
                 <button
                   disabled={busy}
-                  onClick={() => vaultPost({ action: "switch", id: v.id }, true)}
-                  className="shrink-0 seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_small seed-action-button--layout_withText seed-action-button--size_small-layout_withText disabled:opacity-50"
+                  aria-busy={pendingAction === `switch:${v.id}`}
+                  onClick={() =>
+                    withPending(`switch:${v.id}`, () =>
+                      vaultPost({ action: "switch", id: v.id }, true)
+                    )
+                  }
+                  className="flex shrink-0 items-center gap-1.5 seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_small seed-action-button--layout_withText seed-action-button--size_small-layout_withText disabled:opacity-50"
                 >
+                  {pendingAction === `switch:${v.id}` && (
+                    <LoaderCircle size={12} className="animate-spin" />
+                  )}
                   Switch
                 </button>
               )}
               {!v.active && vaults.length > 1 && (
                 <button
                   disabled={busy}
-                  onClick={() => forget(v)}
-                  className="shrink-0 rounded-md px-2 py-1 text-xs text-neutral-400 hover:text-red-600 disabled:opacity-50"
+                  aria-busy={pendingAction === `forget:${v.id}`}
+                  onClick={() => withPending(`forget:${v.id}`, () => forget(v))}
+                  className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs text-neutral-400 hover:text-red-600 disabled:opacity-50"
                   title="Remove from the list (keeps files on disk)"
                 >
+                  {pendingAction === `forget:${v.id}` && (
+                    <LoaderCircle size={11} className="animate-spin" />
+                  )}
                   Forget
                 </button>
               )}
@@ -244,9 +268,11 @@ export default function VaultStoragePage() {
           )}
           <button
             disabled={busy || !newName.trim() || (newMode === "link" && !newUrl.trim())}
-            onClick={addVault}
-            className="seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
+            aria-busy={pendingAction === "add"}
+            onClick={() => withPending("add", addVault)}
+            className="flex items-center gap-1.5 seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
           >
+            {pendingAction === "add" && <LoaderCircle size={13} className="animate-spin" />}
             {newMode === "link" ? "Clone & add" : "Create vault"}
           </button>
           <p className="mt-2 text-xs text-neutral-400">
@@ -298,9 +324,11 @@ export default function VaultStoragePage() {
           />
           <button
             disabled={busy || !url}
-            onClick={() => post({ action: "link", url })}
-            className="seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
+            aria-busy={pendingAction === "connect"}
+            onClick={() => withPending("connect", () => post({ action: "link", url }))}
+            className="flex items-center gap-1.5 seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
           >
+            {pendingAction === "connect" && <LoaderCircle size={13} className="animate-spin" />}
             Connect
           </button>
         </div>

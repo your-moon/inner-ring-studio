@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { LoaderCircle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
@@ -44,6 +44,12 @@ export default function WorkspacePage() {
   const [busy, setBusy] = useState(false);
   const [invite, setInvite] = useState<{ url: string; added: boolean } | null>(null);
   const [copied, setCopied] = useState(false);
+  // Per-row/action busy tracking for the mutations below that previously gave
+  // zero feedback (changeRole, remove) or only a disabled state with no
+  // spinner (rename, deleteWs).
+  const [pendingMember, setPendingMember] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState(false);
+  const [deletingWs, setDeletingWs] = useState(false);
 
   async function createInvite() {
     setBusy(true);
@@ -70,40 +76,54 @@ export default function WorkspacePage() {
   }
 
   async function changeRole(memberId: string, newRole: string) {
+    setPendingMember(memberId);
     await fetch(`/api/workspaces/${wsId}/members`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ memberId, role: newRole }),
-    });
+    }).catch(() => {});
+    setPendingMember(null);
     mutate();
   }
 
   async function remove(memberId: string) {
-    await fetch(`/api/workspaces/${wsId}/members?memberId=${memberId}`, { method: "DELETE" });
+    setPendingMember(memberId);
+    await fetch(`/api/workspaces/${wsId}/members?memberId=${memberId}`, {
+      method: "DELETE",
+    }).catch(() => {});
     if (memberId === me?.userId) {
       // Left the workspace — switch back to personal.
       window.location.href = "/local";
       return;
     }
+    setPendingMember(null);
     mutate();
   }
 
   async function rename() {
     const name = window.prompt("Rename workspace", me?.workspaceName ?? "")?.trim();
     if (!name) return;
+    setRenaming(true);
     await fetch(`/api/workspaces/${wsId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
-    });
+    }).catch(() => {});
     window.location.reload();
   }
 
   async function deleteWs() {
     if (!window.confirm("Delete this workspace and everything in it? This cannot be undone.")) return;
-    const r = await fetch(`/api/workspaces/${wsId}`, { method: "DELETE" }).then((x) => x.json());
-    if (r.ok) window.location.href = "/local";
-    else alert(r.error || "Could not delete.");
+    setDeletingWs(true);
+    const r = await fetch(`/api/workspaces/${wsId}`, { method: "DELETE" })
+      .then((x) => x.json())
+      .catch(() => ({ ok: false }));
+    if (r.ok) {
+      window.location.href = "/local";
+      return;
+    }
+    setDeletingWs(false);
+    alert(r.error || "Could not delete.");
   }
 
   const isPersonal = me?.workspacePersonal ?? false;
@@ -121,7 +141,13 @@ export default function WorkspacePage() {
             </p>
           </div>
           {isOwner && !isPersonal && (
-            <button onClick={rename} className="seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_small seed-action-button--layout_withText seed-action-button--size_small-layout_withText disabled:opacity-50">
+            <button
+              onClick={rename}
+              disabled={renaming}
+              aria-busy={renaming}
+              className="flex items-center gap-1.5 seed-action-button seed-action-button--variant_neutralOutline seed-action-button--size_small seed-action-button--layout_withText seed-action-button--size_small-layout_withText disabled:opacity-50"
+            >
+              {renaming && <LoaderCircle size={13} className="animate-spin" />}
               Rename
             </button>
           )}
@@ -142,7 +168,13 @@ export default function WorkspacePage() {
                 <option value="editor">Editor</option>
                 <option value="viewer">Viewer</option>
               </select>
-              <button className={yellowBtn} disabled={busy || !email.trim()} onClick={createInvite}>
+              <button
+                className={yellowBtn + " flex items-center gap-1.5"}
+                disabled={busy || !email.trim()}
+                aria-busy={busy}
+                onClick={createInvite}
+              >
+                {busy && <LoaderCircle size={13} className="animate-spin" />}
                 Create invite
               </button>
             </div>
@@ -183,6 +215,7 @@ export default function WorkspacePage() {
                   <select
                     className={input + " py-1 irs-select"}
                     value={m.role}
+                    disabled={pendingMember === m.userId}
                     onChange={(e) => changeRole(m.userId, e.target.value)}
                   >
                     <option value="editor">Editor</option>
@@ -194,10 +227,15 @@ export default function WorkspacePage() {
                 {m.role !== "owner" && (isOwner || m.userId === me?.userId) && (
                   <button
                     onClick={() => remove(m.userId)}
+                    disabled={pendingMember === m.userId}
                     title={m.userId === me?.userId ? "Leave workspace" : "Remove"}
-                    className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
+                    className="rounded p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/30"
                   >
-                    <Trash2 size={15} />
+                    {pendingMember === m.userId ? (
+                      <LoaderCircle size={15} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={15} />
+                    )}
                   </button>
                 )}
               </div>
@@ -214,9 +252,12 @@ export default function WorkspacePage() {
             </p>
             <button
               onClick={deleteWs}
-              className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/30"
+              disabled={deletingWs}
+              aria-busy={deletingWs}
+              className="flex items-center gap-1.5 rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/30"
             >
-              Delete this workspace
+              {deletingWs && <LoaderCircle size={13} className="animate-spin" />}
+              {deletingWs ? "Deleting…" : "Delete this workspace"}
             </button>
           </div>
         )}
