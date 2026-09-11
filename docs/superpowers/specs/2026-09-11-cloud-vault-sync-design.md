@@ -53,7 +53,28 @@ function cloudVaultPorts(): VaultSyncPorts {
 }
 ```
 
-Zero changes to `syncVault`, `mergeVaults`, or their existing test coverage.
+**Update, post-implementation:** this section undersold the risk on both
+counts. `syncVault` needed the mechanical async change described below, and
+shipped that way. But `mergeVaults` did need a real change, found only by
+running this live against a real account: two peers can independently
+create a connection with the same name before ever syncing (different ids)
+— the id-keyed merge kept both, the cloud DB's unique-name constraint
+rejected every subsequent push with a permanent 409, and the local write
+(which runs before the doomed push) had already durably duplicated the row.
+Fixed with a second last-writer-wins pass keyed by name, tombstoning the
+dropped loser (an id merely absent from a merge's own output doesn't delete
+anything anywhere else) — see `vault-merge.ts` and its test suite for the
+final shape. `syncVault` itself needed no logic change, only the async
+conversion:
+
+Today it's fully synchronous (git's ports shell out via `execFileSync`),
+but the cloud ports need `fetch()`, which is async. `syncVault` becomes
+`async`, `VaultSyncPorts`' methods return `boolean | Promise<boolean>` /
+`MergeableVault | null | Promise<...>` etc., and every call site adds
+`await` — a plain `boolean` awaits to itself, so `defaultVaultPorts()` (git)
+needs no behavior change, just its call sites (`syncVaultNow`,
+`scheduleBackgroundSync`) and its existing tests in `vault-sync.test.ts`
+gain `await`/`async`. The retry loop itself is untouched.
 
 ## Cloud side: one raw endpoint, workspace-scoped
 
