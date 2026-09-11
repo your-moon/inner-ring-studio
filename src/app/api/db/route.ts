@@ -5,6 +5,7 @@ import {
   getLastRemoteChangeAt,
   scheduleBackgroundSync,
 } from "@/lib/vault-sync";
+import { scheduleCloudVaultSync } from "@/lib/cloud-vault-sync";
 import { closeMysqlPool, mysqlPoolStatus, testMysql } from "@/lib/mysql-pool";
 import {
   closePool,
@@ -70,9 +71,14 @@ async function closeOf(c: ConnLike) {
 
 /** Connection-manager status: which connections have a live pool. */
 export const GET = storeRoute({}, async ({ ctx }) => {
-  // The nav polls this every 5s — piggyback the throttled git-vault pull here,
-  // and report syncedAt so the client can toast when remote changes land.
-  if (!IS_CLOUD) scheduleBackgroundSync();
+  // The nav polls this every 5s — piggyback both throttled syncs here (this
+  // is the endpoint the app actually polls; /api/connections's own triggers
+  // only fire for callers of that route directly), and report syncedAt so
+  // the client can toast when remote changes land.
+  if (!IS_CLOUD) {
+    scheduleBackgroundSync();
+    scheduleCloudVaultSync();
+  }
   const connections = (await store.list(ctx)).map((c) => ({
     id: c.id,
     name: c.name,
