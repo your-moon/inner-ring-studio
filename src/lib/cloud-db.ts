@@ -637,7 +637,27 @@ export async function applyWorkspaceConnectionsMerge(
     }
     const newVersion = bump.rows[0].connections_version as number;
 
+    // Tombstoned deletes MUST run before the upserts below. Confirmed live:
+    // a name collision's loser and winner are different ids sharing one
+    // name -- with upserts first, the winner's INSERT still collided with
+    // the not-yet-deleted loser row on the unique-name constraint, 409,
+    // every single time, even though the payload correctly tombstoned the
+    // loser. Deleting first means that name slot is free by the time the
+    // winner tries to claim it.
     const tombstoneIds = new Set(payload.tombstones.map((t) => t.id));
+    for (const t of payload.tombstones) {
+      await client.query(
+        "DELETE FROM connections WHERE id = $1 AND workspace_id = $2",
+        [t.id, workspaceId]
+      );
+      await client.query(
+        `INSERT INTO connection_tombstones (workspace_id, id, deleted_at)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (workspace_id, id) DO UPDATE
+           SET deleted_at = GREATEST(connection_tombstones.deleted_at, $3)`,
+        [workspaceId, t.id, new Date(t.deletedAt)]
+      );
+    }
     for (const c of payload.connections) {
       if (tombstoneIds.has(c.id)) continue; // a tombstone for this id always wins
       await client.query(
@@ -668,19 +688,6 @@ export async function applyWorkspaceConnectionsMerge(
           c.environment ?? null,
           new Date(c.updatedAt),
         ]
-      );
-    }
-    for (const t of payload.tombstones) {
-      await client.query(
-        "DELETE FROM connections WHERE id = $1 AND workspace_id = $2",
-        [t.id, workspaceId]
-      );
-      await client.query(
-        `INSERT INTO connection_tombstones (workspace_id, id, deleted_at)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (workspace_id, id) DO UPDATE
-           SET deleted_at = GREATEST(connection_tombstones.deleted_at, $3)`,
-        [workspaceId, t.id, new Date(t.deletedAt)]
       );
     }
     await client.query("COMMIT");

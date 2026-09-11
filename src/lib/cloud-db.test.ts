@@ -253,4 +253,33 @@ describe("cloud-db raw connection sync", () => {
     expect(after.connections).toHaveLength(0);
     expect(after.version).toBe(start.version);
   });
+
+  maybe("replacing a row by name (tombstone old id + insert new id, same name, one call) succeeds", async () => {
+    // The exact real-world shape a name-collision merge produces: the old
+    // id is tombstoned and a new id claims the same name, in the same
+    // payload. Confirmed live: with deletes applied after inserts, the new
+    // id's INSERT still collided with the not-yet-deleted old row -- 409,
+    // every time, even though the payload was already correctly formed.
+    const u = await createUser(`raw_replace_${suffix}@t.co`, "password123");
+    const ws = (await personalWorkspaceId(u.id))!;
+    const seeded = await applyWorkspaceConnectionsMerge(ws, u.id, {
+      connections: [rawConn("old-id", "zahii-prod", 1000)],
+      tombstones: [],
+      expectedVersion: 0,
+    });
+    expect(seeded.ok).toBe(true);
+
+    const replaced = await applyWorkspaceConnectionsMerge(ws, u.id, {
+      connections: [rawConn("new-id", "zahii-prod", 2000)],
+      tombstones: [{ id: "old-id", deletedAt: 2000 }],
+      expectedVersion: seeded.version,
+    });
+    expect(replaced.ok).toBe(true);
+
+    const after = await getWorkspaceConnectionsRaw(ws);
+    expect(after.connections).toEqual([
+      expect.objectContaining({ id: "new-id", name: "zahii-prod" }),
+    ]);
+    expect(after.tombstones.map((t) => t.id)).toEqual(["old-id"]);
+  });
 });
