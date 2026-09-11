@@ -1,5 +1,11 @@
 import { _resetKeyCache } from "./crypto";
-import { CloudConnectionStore, _closeCloudPool, ensureSchema } from "./cloud-db";
+import {
+  CloudConnectionStore,
+  _closeCloudPool,
+  applyWorkspaceConnectionsMerge,
+  ensureSchema,
+  getWorkspaceConnectionsRaw,
+} from "./cloud-db";
 import {
   authenticateUser,
   changePassword,
@@ -137,5 +143,114 @@ describe("cloud-db accounts + isolation", () => {
     expect((await store.get(ctx, c.id))?.host).toBe("new.example.com");
     await store.update(ctx, c.id, { password: "rotated" });
     expect((await store.get(ctx, c.id))?.password).toBe("rotated");
+  });
+});
+
+describe("cloud-db raw connection sync", () => {
+  const rawConn = (id: string, name: string, updatedAt: number) => ({
+    id,
+    name,
+    driver: "postgres" as const,
+    host: "h",
+    port: 5432,
+    createdAt: updatedAt,
+    updatedAt,
+  });
+
+  maybe("getWorkspaceConnectionsRaw reflects normal CRUD, including a delete's tombstone", async () => {
+    const u = await createUser(`raw_get_${suffix}@t.co`, "password123");
+    const ctx = await ctxFor(u.id);
+    const ws = (await personalWorkspaceId(u.id))!;
+
+    const before = await getWorkspaceConnectionsRaw(ws);
+    expect(before).toMatchObject({ connections: [], tombstones: [], version: 0 });
+
+    const added = await store.add(ctx, sampleConn);
+    await store.remove(ctx, added.id);
+
+    const after = await getWorkspaceConnectionsRaw(ws);
+    expect(after.connections).toHaveLength(0);
+    expect(after.tombstones.map((t) => t.id)).toEqual([added.id]);
+  });
+
+  maybe("applyWorkspaceConnectionsMerge upserts by the given id and bumps the version", async () => {
+    const u = await createUser(`raw_apply_${suffix}@t.co`, "password123");
+    const ws = (await personalWorkspaceId(u.id))!;
+    const start = await getWorkspaceConnectionsRaw(ws);
+
+    const result = await applyWorkspaceConnectionsMerge(ws, u.id, {
+      connections: [rawConn("local-id-1", "zahii-prod", 1000)],
+      tombstones: [],
+      expectedVersion: start.version,
+    });
+    expect(result.ok).toBe(true);
+    expect(result.version).toBe(start.version + 1);
+
+    const after = await getWorkspaceConnectionsRaw(ws);
+    expect(after.connections).toMatchObject([{ id: "local-id-1", name: "zahii-prod" }]);
+    expect(after.version).toBe(start.version + 1);
+  });
+
+  maybe("a tombstone in the merge deletes the matching connection even if also listed", async () => {
+    const u = await createUser(`raw_tomb_${suffix}@t.co`, "password123");
+    const ws = (await personalWorkspaceId(u.id))!;
+    const start = await getWorkspaceConnectionsRaw(ws);
+
+    await applyWorkspaceConnectionsMerge(ws, u.id, {
+      connections: [rawConn("gone-1", "powerbank", 1000)],
+      tombstones: [{ id: "gone-1", deletedAt: 2000 }],
+      expectedVersion: start.version,
+    });
+
+    const after = await getWorkspaceConnectionsRaw(ws);
+    expect(after.connections).toHaveLength(0);
+    expect(after.tombstones).toMatchObject([{ id: "gone-1", deletedAt: 2000 }]);
+  });
+
+  maybe("rejects a stale expectedVersion instead of clobbering a concurrent write", async () => {
+    const u = await createUser(`raw_conflict_${suffix}@t.co`, "password123");
+    const ws = (await personalWorkspaceId(u.id))!;
+    const start = await getWorkspaceConnectionsRaw(ws);
+
+    const first = await applyWorkspaceConnectionsMerge(ws, u.id, {
+      connections: [rawConn("c1", "one", 1000)],
+      tombstones: [],
+      expectedVersion: start.version,
+    });
+    expect(first.ok).toBe(true);
+
+    // Same (now stale) expectedVersion again -- must be rejected, not applied.
+    const second = await applyWorkspaceConnectionsMerge(ws, u.id, {
+      connections: [rawConn("c2", "two", 1000)],
+      tombstones: [],
+      expectedVersion: start.version,
+    });
+    expect(second.ok).toBe(false);
+    expect(second.version).toBe(first.version);
+
+    const after = await getWorkspaceConnectionsRaw(ws);
+    expect(after.connections.map((c) => c.id)).toEqual(["c1"]); // c2 never applied
+  });
+
+  maybe("a name collision surfaces as an error and rolls back the whole merge", async () => {
+    const u = await createUser(`raw_collide_${suffix}@t.co`, "password123");
+    const ws = (await personalWorkspaceId(u.id))!;
+    const start = await getWorkspaceConnectionsRaw(ws);
+
+    const result = await applyWorkspaceConnectionsMerge(ws, u.id, {
+      connections: [
+        rawConn("dup-a", "same-name", 1000),
+        rawConn("dup-b", "same-name", 1000),
+      ],
+      tombstones: [],
+      expectedVersion: start.version,
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("name collision");
+
+    // Rolled back entirely -- neither row, and the version bump reverted too.
+    const after = await getWorkspaceConnectionsRaw(ws);
+    expect(after.connections).toHaveLength(0);
+    expect(after.version).toBe(start.version);
   });
 });

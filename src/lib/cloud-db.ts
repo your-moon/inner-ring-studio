@@ -7,6 +7,7 @@ import {
 } from "./connection-store";
 import { decryptSecret, encryptSecret } from "./crypto";
 import { SafeConnection, VaultConnection } from "./vault";
+import type { Tombstone } from "./vault-merge";
 
 /**
  * Cloud-mode persistence: a dedicated Postgres holding user accounts and each
@@ -244,6 +245,31 @@ export async function ensureSchema(): Promise<void> {
         END;
       END IF;
     END $$;
+
+    -- Cloud <-> local vault connection sync (linked mode, personal workspace
+    -- only -- see docs/superpowers/specs/2026-09-11-cloud-vault-sync-design.md).
+    -- updated_at backfills from created_at, NOT now(): an existing row must
+    -- not look newer than it is, or a genuinely older local tombstone would
+    -- lose to it on the very first sync.
+    ALTER TABLE connections ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;
+    UPDATE connections SET updated_at = created_at WHERE updated_at IS NULL;
+    ALTER TABLE connections ALTER COLUMN updated_at SET DEFAULT now();
+    ALTER TABLE connections ALTER COLUMN updated_at SET NOT NULL;
+    -- environment exists on VaultConnection but was never persisted in cloud
+    -- mode; add it so a sync round trip doesn't silently drop it.
+    ALTER TABLE connections ADD COLUMN IF NOT EXISTS environment TEXT;
+
+    CREATE TABLE IF NOT EXISTS connection_tombstones (
+      workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+      id           TEXT NOT NULL,
+      deleted_at   TIMESTAMPTZ NOT NULL,
+      PRIMARY KEY (workspace_id, id)
+    );
+
+    -- Optimistic concurrency for the raw sync endpoint: bumped on every
+    -- successful merge write, checked-and-incremented atomically so two
+    -- concurrent syncs can't silently clobber each other.
+    ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS connections_version INTEGER NOT NULL DEFAULT 0;
   `);
   schemaReady = true;
 }
@@ -347,9 +373,11 @@ interface ConnRow {
   read_only: boolean;
   folder: string | null;
   timezone: string | null;
+  environment: string | null;
   // pg returns a Date by default, but the query route installs global timestamp
   // parsers that return raw strings — so tolerate either here.
   created_at: Date | string;
+  updated_at: Date | string;
 }
 
 function rowToSafe(r: ConnRow): SafeConnection {
@@ -365,9 +393,9 @@ function rowToSafe(r: ConnRow): SafeConnection {
     readOnly: r.read_only,
     folder: r.folder ?? undefined,
     timezone: r.timezone ?? undefined,
+    environment: (r.environment as SafeConnection["environment"]) ?? undefined,
     createdAt: new Date(r.created_at).getTime(),
-    // Cloud connections aren't git-vault-merged; updatedAt is nominal (= created).
-    updatedAt: new Date(r.created_at).getTime(),
+    updatedAt: new Date(r.updated_at).getTime(),
   };
 }
 
@@ -420,8 +448,8 @@ export class CloudConnectionStore implements ConnectionStore {
       await pool().query(
         `INSERT INTO connections
            (id, user_id, workspace_id, name, driver, host, port, database, db_user,
-            password_enc, ssl, read_only, folder, timezone)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+            password_enc, ssl, read_only, folder, timezone, environment)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
         [
           id,
           uid,
@@ -437,6 +465,7 @@ export class CloudConnectionStore implements ConnectionStore {
           conn.readOnly ?? false,
           conn.folder ?? null,
           conn.timezone ?? null,
+          conn.environment ?? null,
         ]
       );
     } catch (e) {
@@ -470,6 +499,7 @@ export class CloudConnectionStore implements ConnectionStore {
     if (patch.readOnly !== undefined) col("read_only", patch.readOnly);
     if (patch.folder !== undefined) col("folder", patch.folder ?? null);
     if (patch.timezone !== undefined) col("timezone", patch.timezone ?? null);
+    if ("environment" in patch) col("environment", patch.environment ?? null);
     // Only overwrite the password when a non-empty one is provided.
     if (patch.password !== undefined && patch.password !== "") {
       col("password_enc", encryptSecret(patch.password));
@@ -478,6 +508,9 @@ export class CloudConnectionStore implements ConnectionStore {
       const rows = await this.list(ctx);
       return rows.find((c) => c.id === id) ?? null;
     }
+    // Bump updated_at on every real change — this is what lets last-writer-wins
+    // sync (cloud-vault-sync.ts) tell a fresh edit from a stale one.
+    sets.push("updated_at = now()");
     vals.push(id, ws);
     const res = await pool().query(
       `UPDATE connections SET ${sets.join(", ")}
@@ -496,6 +529,172 @@ export class CloudConnectionStore implements ConnectionStore {
       "DELETE FROM connections WHERE id = $1 AND workspace_id = $2",
       [id, ws]
     );
-    return (res.rowCount ?? 0) > 0;
+    const removed = (res.rowCount ?? 0) > 0;
+    if (removed) {
+      // A tombstone, not just a plain delete — without it, a linked local
+      // vault that still has this connection would see it simply absent (not
+      // marked deleted) on its next sync, and mergeVaults would resurrect it
+      // right back into the cloud workspace.
+      await pool().query(
+        `INSERT INTO connection_tombstones (workspace_id, id, deleted_at)
+         VALUES ($1, $2, now())
+         ON CONFLICT (workspace_id, id) DO UPDATE SET deleted_at = now()`,
+        [ws, id]
+      );
+    }
+    return removed;
+  }
+}
+
+// ----------------- raw connection sync (linked local vault <-> cloud) -----------------
+//
+// See docs/superpowers/specs/2026-09-11-cloud-vault-sync-design.md. Used only by
+// the raw sync route (src/app/api/workspace/connections/raw/route.ts), called
+// from a linked local server via cloud-vault-sync.ts — never by the browser
+// SPA. Unlike the ConnectionStore CRUD above, this operates on the WHOLE
+// connection set for a workspace at once, mirroring how the git-vault engine
+// writes a whole merged file rather than issuing incremental ops.
+
+export interface RawConnectionsPayload {
+  connections: VaultConnection[];
+  tombstones: Tombstone[];
+  version: number;
+}
+
+function rowToRaw(r: ConnRow): VaultConnection {
+  return {
+    ...rowToSafe(r),
+    password: r.password_enc ? decryptSecret(r.password_enc) : undefined,
+  };
+}
+
+/** The workspace's full connection set + tombstones + version, decrypted. */
+export async function getWorkspaceConnectionsRaw(
+  workspaceId: string
+): Promise<RawConnectionsPayload> {
+  await ensureSchema();
+  const connRes = await pool().query(
+    "SELECT * FROM connections WHERE workspace_id = $1",
+    [workspaceId]
+  );
+  const tombRes = await pool().query(
+    "SELECT id, deleted_at FROM connection_tombstones WHERE workspace_id = $1",
+    [workspaceId]
+  );
+  const wsRes = await pool().query(
+    "SELECT connections_version FROM workspaces WHERE id = $1",
+    [workspaceId]
+  );
+  return {
+    connections: (connRes.rows as ConnRow[]).map(rowToRaw),
+    tombstones: (tombRes.rows as { id: string; deleted_at: Date | string }[]).map(
+      (t) => ({ id: t.id, deletedAt: new Date(t.deleted_at).getTime() })
+    ),
+    version: (wsRes.rows[0]?.connections_version as number) ?? 0,
+  };
+}
+
+export interface ApplyMergeResult {
+  ok: boolean;
+  version: number;
+  error?: string;
+}
+
+/**
+ * Apply a merged connection set to the workspace, gated by an optimistic
+ * version check (`expectedVersion` must match `workspaces.connections_version`
+ * or nothing is written — the caller re-fetches and re-merges, same as a
+ * non-fast-forward git push). Upserts every connection by id (never mints a
+ * new one — ids must match across local and cloud for the merge to mean
+ * anything) and applies every tombstone as a delete.
+ */
+export async function applyWorkspaceConnectionsMerge(
+  workspaceId: string,
+  ownerUserId: string,
+  payload: { connections: VaultConnection[]; tombstones: Tombstone[]; expectedVersion: number }
+): Promise<ApplyMergeResult> {
+  await ensureSchema();
+  const client = await pool().connect();
+  try {
+    await client.query("BEGIN");
+    const bump = await client.query(
+      `UPDATE workspaces SET connections_version = connections_version + 1
+        WHERE id = $1 AND connections_version = $2
+        RETURNING connections_version`,
+      [workspaceId, payload.expectedVersion]
+    );
+    if (bump.rowCount === 0) {
+      await client.query("ROLLBACK");
+      const cur = await pool().query(
+        "SELECT connections_version FROM workspaces WHERE id = $1",
+        [workspaceId]
+      );
+      return {
+        ok: false,
+        version: (cur.rows[0]?.connections_version as number) ?? 0,
+        error: "version conflict",
+      };
+    }
+    const newVersion = bump.rows[0].connections_version as number;
+
+    const tombstoneIds = new Set(payload.tombstones.map((t) => t.id));
+    for (const c of payload.connections) {
+      if (tombstoneIds.has(c.id)) continue; // a tombstone for this id always wins
+      await client.query(
+        `INSERT INTO connections
+           (id, user_id, workspace_id, name, driver, host, port, database, db_user,
+            password_enc, ssl, read_only, folder, timezone, environment, updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+         ON CONFLICT (id) DO UPDATE SET
+           workspace_id = $3, name = $4, driver = $5, host = $6, port = $7,
+           database = $8, db_user = $9, password_enc = $10, ssl = $11,
+           read_only = $12, folder = $13, timezone = $14, environment = $15,
+           updated_at = $16`,
+        [
+          c.id,
+          ownerUserId,
+          workspaceId,
+          c.name,
+          c.driver,
+          c.host,
+          c.port,
+          c.database ?? null,
+          c.user ?? null,
+          c.password ? encryptSecret(c.password) : null,
+          c.ssl ?? false,
+          c.readOnly ?? false,
+          c.folder ?? null,
+          c.timezone ?? null,
+          c.environment ?? null,
+          new Date(c.updatedAt),
+        ]
+      );
+    }
+    for (const t of payload.tombstones) {
+      await client.query(
+        "DELETE FROM connections WHERE id = $1 AND workspace_id = $2",
+        [t.id, workspaceId]
+      );
+      await client.query(
+        `INSERT INTO connection_tombstones (workspace_id, id, deleted_at)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (workspace_id, id) DO UPDATE
+           SET deleted_at = GREATEST(connection_tombstones.deleted_at, $3)`,
+        [workspaceId, t.id, new Date(t.deletedAt)]
+      );
+    }
+    await client.query("COMMIT");
+    return { ok: true, version: newVersion };
+  } catch (e) {
+    await client.query("ROLLBACK").catch(() => {});
+    // Two names collided (same name, different ids, created independently on
+    // both sides) — a known, accepted edge case per the design doc: surface
+    // it rather than silently dropping one side's row.
+    if ((e as { code?: string }).code === "23505") {
+      return { ok: false, version: payload.expectedVersion, error: "name collision" };
+    }
+    throw e;
+  } finally {
+    client.release();
   }
 }
