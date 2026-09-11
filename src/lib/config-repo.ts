@@ -110,33 +110,6 @@ export function commitConfig(message: string): void {
   }
 }
 
-/** Pull (rebase) then push the config to the remote. */
-export function sync(): { ok: boolean; message: string } {
-  if (!isRepo()) {
-    return {
-      ok: false,
-      message: "config is not a git repo. Run: pmsql config link <repo-url>",
-    };
-  }
-  if (!remoteUrl()) {
-    return { ok: false, message: "no 'origin' remote. Run: pmsql config link <repo-url>" };
-  }
-
-  commitConfig("pmsql: update config");
-
-  const parts: string[] = [];
-  const pull = git(["pull", "--rebase", "origin", "main"]);
-  parts.push(pull.ok ? "pulled" : "pull skipped (empty/first sync)");
-
-  const push = git(["push", "-u", "origin", "main"]);
-  if (push.ok) {
-    parts.push("pushed");
-    return { ok: true, message: parts.join(", ") };
-  }
-  parts.push(`push failed: ${push.err || "check auth (gh/ssh credentials)"}`);
-  return { ok: false, message: parts.join(", ") };
-}
-
 export function status(): string {
   if (!isRepo()) return "not linked (run: pmsql config link <repo-url>)";
   const remote = remoteUrl() ?? "(no remote)";

@@ -109,6 +109,17 @@ export function defaultVaultPorts(branch = "main"): VaultSyncPorts {
       }
     },
     writeMerged: (merged) => {
+      // `fetch` above only moves the origin/<branch> *tracking* ref — it never
+      // moves local HEAD. If we committed the merge straight on top of local
+      // HEAD here, and fetch actually pulled new commits (the exact case this
+      // engine exists for: two devices each wrote since the last sync), the new
+      // commit would not be a descendant of origin/<branch> and `push` below
+      // would be rejected non-fast-forward — every retry, since nothing moves
+      // local HEAD in between. So land on the fetched tip first (no-op, and
+      // harmless, on the very first sync to an empty remote where the ref
+      // doesn't exist yet); the merged JSON already reconciles both sides, so
+      // discarding local's commit here loses no data.
+      runOk(["reset", "--hard", `origin/${branch}`]);
       writeVault(merged as unknown as Parameters<typeof writeVault>[0]);
       runOk(["add", "vault.enc"]);
       runOk(["commit", "-m", "pmsql: sync connections"]);

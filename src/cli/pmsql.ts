@@ -25,7 +25,8 @@ import {
   vaultPath,
   writeVault,
 } from "../lib/vault";
-import { commitConfig, linkRepo, status as configStatus, sync } from "../lib/config-repo";
+import { commitConfig, linkRepo, status as configStatus } from "../lib/config-repo";
+import { syncVaultNow } from "../lib/vault-sync";
 
 function die(msg: string): never {
   console.error(`error: ${msg}`);
@@ -262,7 +263,14 @@ function cmdConfig(args: string[]) {
 }
 
 function cmdSync() {
-  const r = sync();
+  // Conflict-free merge sync (fetch -> decrypt both sides -> merge -> push,
+  // retrying on a moved remote) — the same engine the app's background sync
+  // uses. NOT `git pull --rebase`: the vault re-encrypts with a fresh salt/iv
+  // on every write, so a plain rebase conflicts on the binary blob almost every
+  // time two devices have both written since the last sync, and leaves the
+  // repo permanently stuck mid-rebase (verified: every subsequent `pull
+  // --rebase` then fails immediately with "unresolved conflict").
+  const r = syncVaultNow();
   console.log(r.message);
   if (!r.ok) process.exit(1);
 }
