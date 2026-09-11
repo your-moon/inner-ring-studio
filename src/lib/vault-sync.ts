@@ -82,9 +82,17 @@ export function defaultVaultPorts(branch = "main"): VaultSyncPorts {
   const cwd = configDir();
   const runOk = (args: string[]): boolean => {
     try {
-      execFileSync("git", args, { cwd, stdio: ["ignore", "ignore", "ignore"] });
+      execFileSync("git", args, { cwd, stdio: ["ignore", "ignore", "pipe"] });
       return true;
-    } catch {
+    } catch (e) {
+      // Every failure here used to be silently swallowed, which is exactly
+      // what let two real bugs (non-fast-forward pushes, a missing commit
+      // identity) hide behind a generic "push failed, check git auth"
+      // message. Surface the real git stderr so the next one doesn't.
+      const stderr = (e as { stderr?: Buffer | string }).stderr;
+      if (stderr && String(stderr).trim()) {
+        console.error(`[vault-sync] git ${args.join(" ")} failed:\n${stderr}`);
+      }
       return false;
     }
   };
