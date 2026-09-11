@@ -82,4 +82,51 @@ describe("mergeVaults", () => {
   test("empty vaults merge to empty", () => {
     expect(mergeVaults(v([]), v([]))).toEqual({ connections: [], tombstones: [] });
   });
+
+  describe("name collisions (two peers create the same name independently)", () => {
+    test("different ids sharing a name collapse to the newer one", () => {
+      const r = mergeVaults(
+        v([conn("local-1", 1000, { name: "zahii-prod" })]),
+        v([conn("cloud-1", 500, { name: "zahii-prod" })])
+      );
+      expect(r.connections).toEqual([
+        { id: "local-1", updatedAt: 1000, name: "zahii-prod" },
+      ]);
+    });
+
+    test("is still commutative when a name collision is present", () => {
+      const a = v([conn("a1", 100, { name: "dup" })]);
+      const b = v([conn("b1", 200, { name: "dup" })]);
+      expect(mergeVaults(a, b)).toEqual(mergeVaults(b, a));
+    });
+
+    test("is still idempotent given an already-collided input", () => {
+      // Only reachable in practice via a prior bug (add-time guards normally
+      // prevent one vault from ever holding two ids with the same name) --
+      // exactly the corrupted state this fix has to repair, not just avoid.
+      const corrupted = v([
+        conn("dup-1", 100, { name: "same" }),
+        conn("dup-2", 200, { name: "same" }),
+      ]);
+      const once = mergeVaults(corrupted, corrupted);
+      expect(ids(once)).toEqual(["dup-2"]); // the newer one survives
+      expect(mergeVaults(once, once)).toEqual(once);
+    });
+
+    test("does not collide entries with no name field (fixtures without one)", () => {
+      const r = mergeVaults(v([conn("a", 1)]), v([conn("b", 1)]));
+      expect(ids(r).sort()).toEqual(["a", "b"]);
+    });
+
+    test("three-way collision keeps only the single newest survivor", () => {
+      const r = mergeVaults(
+        v([
+          conn("x1", 10, { name: "n" }),
+          conn("x2", 30, { name: "n" }),
+        ]),
+        v([conn("x3", 20, { name: "n" })])
+      );
+      expect(ids(r)).toEqual(["x2"]);
+    });
+  });
 });

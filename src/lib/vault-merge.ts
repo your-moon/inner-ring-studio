@@ -9,6 +9,11 @@
  *   - delete: carried as a tombstone `{ id, deletedAt }`; an id counts as deleted
  *     when its newest tombstone's `deletedAt >= ` the connection's `updatedAt`
  *     (so an edit made *after* a delete resurrects the connection).
+ *   - name collision: two ids created independently on different peers can
+ *     share a name before ever syncing. A second last-writer-wins pass, keyed
+ *     by name, collapses these to one survivor -- every downstream consumer
+ *     (the vault's own add-time guard, the cloud DB's unique constraint)
+ *     only ever tolerates one connection per name anyway.
  *
  * The merge is commutative and idempotent: `merge(a, b)` deep-equals
  * `merge(b, a)`, and `merge(x, x)` equals `x` (normalized) — required, since two
@@ -84,11 +89,37 @@ export function mergeVaults(
     }
   }
 
+  // Two peers can each create a connection with the SAME NAME before ever
+  // syncing (add-time guards only stop a collision within one side; they
+  // can't see the other side's unsynced state) -- different ids, so the
+  // id-keyed pass above keeps both, and every consumer downstream enforces
+  // one name per set: the local vault's own addConnection would refuse to
+  // add either as a second copy, and the cloud DB's UNIQUE(workspace_id,
+  // name) rejects the push outright -- confirmed live: this blocked every
+  // subsequent sync attempt with a 409, forever, and the local write (which
+  // happens before the doomed push) had already durably duplicated the row.
+  // Same last-writer-wins rule as everything else here, just keyed by name
+  // instead of id -- deterministic, so every peer converges on the same
+  // survivor regardless of merge order, preserving this function's
+  // commutative/idempotent contract for any input that doesn't already
+  // carry a name collision (a well-formed single vault never does, since
+  // add-time guards prevent it locally and via the DB constraint in cloud;
+  // merging a vault that's already corrupted this way is exactly how it
+  // gets repaired).
+  const byName = new Map<string, MergeableConnection>();
+  for (const c of connections) {
+    const name = (c as { name?: unknown }).name;
+    // No string name to key on (e.g. a test fixture) -- never collide.
+    const key = typeof name === "string" ? `name:${name}` : `id:${c.id}`;
+    byName.set(key, laterConnection(byName.get(key), c)!);
+  }
+  const deduped = [...byName.values()];
+
   // Stable ordering so the serialized result is identical on every peer.
   const byId = (x: { id: string }, y: { id: string }) =>
     x.id < y.id ? -1 : x.id > y.id ? 1 : 0;
-  connections.sort(byId);
+  deduped.sort(byId);
   tombstones.sort(byId);
 
-  return { connections, tombstones };
+  return { connections: deduped, tombstones };
 }
