@@ -84,7 +84,7 @@ describe("mergeVaults", () => {
   });
 
   describe("name collisions (two peers create the same name independently)", () => {
-    test("different ids sharing a name collapse to the newer one", () => {
+    test("different ids sharing a name collapse to the newer one, and the loser is tombstoned", () => {
       const r = mergeVaults(
         v([conn("local-1", 1000, { name: "zahii-prod" })]),
         v([conn("cloud-1", 500, { name: "zahii-prod" })])
@@ -92,6 +92,12 @@ describe("mergeVaults", () => {
       expect(r.connections).toEqual([
         { id: "local-1", updatedAt: 1000, name: "zahii-prod" },
       ]);
+      // Not just omitted from `connections` -- the loser's id still exists
+      // wherever it came from (a stale local vault, the cloud DB) unless
+      // something explicitly tells that side to remove it. Confirmed live:
+      // without this, re-pushing the winner still collides with the
+      // still-present loser row on the cloud's unique-name constraint.
+      expect(r.tombstones).toEqual([{ id: "cloud-1", deletedAt: 1000 }]);
     });
 
     test("is still commutative when a name collision is present", () => {
@@ -127,6 +133,24 @@ describe("mergeVaults", () => {
         v([conn("x3", 20, { name: "n" })])
       );
       expect(ids(r)).toEqual(["x2"]);
+    });
+
+    test("the loser's tombstone survives a later merge against a peer that hasn't caught up", () => {
+      // Round 1: local and remote independently created "dup" under different
+      // ids; the winner survives and the loser gets tombstoned.
+      const round1 = mergeVaults(
+        v([conn("winner", 1000, { name: "dup" })]),
+        v([conn("loser", 500, { name: "dup" })])
+      );
+      expect(ids(round1)).toEqual(["winner"]);
+
+      // Round 2: sync again against a peer that hasn't pulled the delete yet
+      // and still reports "loser" as alive -- it must not come back, and the
+      // push payload must never again contain two rows sharing that name.
+      const stillStalePeer = v([conn("loser", 500, { name: "dup" })]);
+      const round2 = mergeVaults(round1, stillStalePeer);
+      expect(ids(round2)).toEqual(["winner"]);
+      expect(round2.tombstones).toEqual([{ id: "loser", deletedAt: 1000 }]);
     });
   });
 });

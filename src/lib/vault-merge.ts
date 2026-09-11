@@ -115,6 +115,34 @@ export function mergeVaults(
   }
   const deduped = [...byName.values()];
 
+  // A dropped loser needs an actual tombstone, not just omission from this
+  // result: omitting it here only stops THIS merge from listing it -- the
+  // id still physically exists wherever it came from (a peer's local vault
+  // that hasn't re-synced yet, or the cloud DB's connections table) with
+  // nothing telling that side to remove it. Confirmed live: without this,
+  // the winner's INSERT still collides with the still-present loser row on
+  // the cloud's UNIQUE(workspace_id, name) constraint -- 409, forever, even
+  // though this function's OWN output already looked correctly deduped.
+  //
+  // The tombstone's deletedAt must come from the inputs, not wall-clock time
+  // (Date.now()) -- this function has to stay commutative/idempotent, and a
+  // wall-clock value would make two calls that only differ in *when* they
+  // ran produce different-but-otherwise-equal results. The winner's own
+  // updatedAt is always >= the loser's (that's why it won), so it already
+  // satisfies the tombstone rule (`deletedAt >= conn.updatedAt`) and is a
+  // pure function of the inputs.
+  const winnerIds = new Set(deduped.map((c) => c.id));
+  const nameKey = (c: MergeableConnection): string => {
+    const name = (c as { name?: unknown }).name;
+    return typeof name === "string" ? `name:${name}` : `id:${c.id}`;
+  };
+  const winnerUpdatedAtByKey = new Map(deduped.map((c) => [nameKey(c), c.updatedAt]));
+  for (const c of connections) {
+    if (winnerIds.has(c.id)) continue;
+    const deletedAt = winnerUpdatedAtByKey.get(nameKey(c)) ?? c.updatedAt;
+    tombstones.push(laterTombstone(tombById.get(c.id), { id: c.id, deletedAt })!);
+  }
+
   // Stable ordering so the serialized result is identical on every peer.
   const byId = (x: { id: string }, y: { id: string }) =>
     x.id < y.id ? -1 : x.id > y.id ? 1 : 0;
