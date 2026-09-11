@@ -12,12 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "../ui/context-menu";
 import IconButton from "../orbit/icon-button";
 import SchemaCreateDialog from "./schema-editor/schema-create";
 import SchemaList, { TableSortMode } from "./schema-sidebar-list";
@@ -132,29 +126,32 @@ export default function SchemaView() {
       )}
 
       <div className="flex flex-col px-2 pt-3 pb-1">
-        {/* A quiet section label, not a title — right-click still sorts. */}
+        {/* A quiet section label, not a title — click to sort. Used to be
+            right-click-only (ContextMenu, no left-click affordance at all —
+            a real reported bug); now a normal DropdownMenu, so right-click
+            just shows the browser's default menu instead of doing nothing. */}
         <div className="flex h-6 items-center gap-1 pl-2">
-          <ContextMenu>
-            <ContextMenuTrigger asChild>
-              <span className="cursor-context-menu text-[10.5px] font-semibold tracking-[0.06em] text-muted-foreground uppercase">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <span className="cursor-pointer text-[10.5px] font-semibold tracking-[0.06em] text-muted-foreground uppercase hover:text-foreground">
                 Tables
               </span>
-            </ContextMenuTrigger>
-            <ContextMenuContent>
-              <ContextMenuItem onClick={() => changeSort("name-asc")}>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => changeSort("name-asc")}>
                 Sort by name (A → Z)
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => changeSort("name-desc")}>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeSort("name-desc")}>
                 Sort by name (Z → A)
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => changeSort("size-desc")}>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeSort("size-desc")}>
                 Sort by size (largest first)
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => changeSort("size-asc")}>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeSort("size-asc")}>
                 Sort by size (smallest first)
-              </ContextMenuItem>
-            </ContextMenuContent>
-          </ContextMenu>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <span className="flex-1" />
           <IconButton
             size="sm"
