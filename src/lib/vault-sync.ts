@@ -130,7 +130,19 @@ export function defaultVaultPorts(branch = "main"): VaultSyncPorts {
       runOk(["reset", "--hard", `origin/${branch}`]);
       writeVault(merged as unknown as Parameters<typeof writeVault>[0]);
       runOk(["add", "vault.enc"]);
-      runOk(["commit", "-m", "pmsql: sync connections"]);
+      // -c user.*: this must work on a machine with no global git identity
+      // configured (a fresh box, a CI runner, a container) — commitConfig in
+      // config-repo.ts already sets this for the same reason; this call just
+      // never matched it.
+      runOk([
+        "-c",
+        "user.name=pmsql",
+        "-c",
+        "user.email=pmsql@localhost",
+        "commit",
+        "-m",
+        "pmsql: sync connections",
+      ]);
     },
     push: () => runOk(["push", "origin", `HEAD:${branch}`]),
   };
