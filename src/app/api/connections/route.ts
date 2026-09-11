@@ -4,6 +4,7 @@ import {
   getLastRemoteChangeAt,
   scheduleBackgroundSync,
 } from "@/lib/vault-sync";
+import { scheduleCloudVaultSync } from "@/lib/cloud-vault-sync";
 import { getConnectionStore, IS_CLOUD } from "@/lib/mode";
 
 // Reads the vault / cloud DB (fs + crypto / pg) — needs the Node.js runtime.
@@ -22,8 +23,10 @@ function envOf(v: unknown): "production" | "staging" | undefined {
 function commitLocal(msg: string) {
   if (!IS_CLOUD) {
     commitConfig(msg);
-    // Auto-sync the git-vault out of band (no-op unless a repo is linked).
+    // Auto-sync both legs out of band -- git-vault and (independently) the
+    // linked cloud workspace. Each no-ops on its own if not applicable.
     scheduleBackgroundSync();
+    scheduleCloudVaultSync();
   }
 }
 
@@ -33,7 +36,10 @@ function commitLocal(msg: string) {
  */
 export const GET = storeRoute({}, async ({ ctx }) => {
   // Pull remote vault changes in the background (throttled; no-op unless linked).
-  if (!IS_CLOUD) scheduleBackgroundSync();
+  if (!IS_CLOUD) {
+    scheduleBackgroundSync();
+    scheduleCloudVaultSync();
+  }
   // syncedAt bumps when a background sync pulls in remote changes — the client
   // watches it to notify the user their connection list updated.
   const syncedAt = IS_CLOUD ? 0 : getLastRemoteChangeAt();
