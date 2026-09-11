@@ -33,12 +33,38 @@ function sessionFile(): string {
   );
 }
 
+/**
+ * The session cookie is `irs_session=<payload>.<sig>`, where `<payload>` is a
+ * base64url-encoded `{ userId, exp }` JSON blob (see auth.ts). We have no way
+ * to verify the signature client-side (that needs the cloud's server-side
+ * signing key) -- but decoding `exp` locally is enough to stop treating an
+ * obviously-expired session as valid. The server still authoritatively
+ * checks signature + expiry on every real request regardless; this is only
+ * about not lying to the caller (and to `/api/cloud-link`'s "signedIn") when
+ * the session has already expired.
+ */
+function isExpired(cookie: string): boolean {
+  try {
+    const token = cookie.replace(/^irs_session=/, "");
+    const payload = token.split(".")[0];
+    const json = Buffer.from(payload, "base64url").toString("utf8");
+    const { exp } = JSON.parse(json) as { exp?: number };
+    return typeof exp === "number" && exp <= Date.now();
+  } catch {
+    // Can't parse it -- let the real request fail on its own terms rather
+    // than guess.
+    return false;
+  }
+}
+
 export function getCloudSession(): CloudSession | null {
   try {
     const f = sessionFile();
     if (!existsSync(f)) return null;
     const j = JSON.parse(readFileSync(f, "utf8"));
-    return j.cookie && j.email ? (j as CloudSession) : null;
+    if (!j.cookie || !j.email) return null;
+    if (isExpired(j.cookie)) return null;
+    return j as CloudSession;
   } catch {
     return null;
   }

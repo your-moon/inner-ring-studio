@@ -29,16 +29,32 @@ function cloudVaultPorts(): VaultSyncPorts {
   let remoteVersion = 0;
   let pending: Required<MergeableVault> | null = null;
 
+  // Every failure here used to be silently swallowed -- the exact anti-pattern
+  // already fixed for the git leg (vault-sync.ts) earlier, and reintroduced
+  // here without noticing: a real sync blocker (session expired, cloud
+  // unreachable, a rejected merge) produced no trace anywhere, so this ran
+  // silently broken against a real account for two weeks before anyone saw
+  // a symptom worth investigating.
   const authedFetch = async (init: RequestInit): Promise<Response | null> => {
     if (!base || !session) return null;
-    return fetch(base + RAW_PATH, {
+    const res = await fetch(base + RAW_PATH, {
       ...init,
       headers: {
         "Content-Type": "application/json",
         Cookie: session.cookie,
         ...(init.headers as Record<string, string> | undefined),
       },
-    }).catch(() => null);
+    }).catch((e) => {
+      console.error(`[cloud-vault-sync] ${init.method ?? "GET"} ${RAW_PATH} failed:`, e);
+      return null;
+    });
+    if (res && !res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(
+        `[cloud-vault-sync] ${init.method ?? "GET"} ${RAW_PATH} -> HTTP ${res.status}: ${body}`
+      );
+    }
+    return res;
   };
 
   return {
