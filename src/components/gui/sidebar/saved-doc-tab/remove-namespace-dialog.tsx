@@ -11,6 +11,7 @@ import {
   SavedDocData,
   SavedDocNamespace,
 } from "@/drivers/saved-doc/saved-doc-driver";
+import { LoaderCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 
 interface Props {
@@ -71,8 +72,10 @@ export default function RemoveNamespaceDialog({
           <Button
             variant="destructive"
             disabled={loading}
+            aria-busy={loading}
             onClick={onDeleteClicked}
           >
+            {loading && <LoaderCircle size={14} className="animate-spin" />}
             Delete
           </Button>
         </DialogFooter>

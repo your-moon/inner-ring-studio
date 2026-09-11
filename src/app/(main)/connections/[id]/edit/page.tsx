@@ -1,7 +1,9 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/orbit";
 import NavigationLayout from "../../../nav-layout";
 
 interface Fields {
@@ -36,6 +38,10 @@ export default function EditConnectionPage() {
   const [f, setF] = useState<Fields>(empty);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // Without this, the form renders its blank defaults (empty host, port
+  // "5432") the instant the page mounts, which looks like a fresh/untouched
+  // form rather than one still fetching the connection it's meant to edit.
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     fetch("/api/connections")
@@ -57,7 +63,8 @@ export default function EditConnectionPage() {
             timezone: c.timezone ?? "",
             readOnly: !!c.readOnly,
           });
-      });
+      })
+      .finally(() => setLoaded(true));
   }, [id]);
 
   const set = (k: keyof Fields, v: string | boolean) =>
@@ -79,6 +86,24 @@ export default function EditConnectionPage() {
 
   const input =
     "w-full rounded-lg border border-input px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-950";
+
+  if (!loaded) {
+    return (
+      <NavigationLayout>
+        <div className="mx-auto w-full max-w-lg p-8">
+          <h1 className="mb-6 text-xl font-bold">Edit connection</h1>
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i}>
+                <Skeleton className="mb-1.5 h-3.5 w-16" />
+                <Skeleton className="h-9 w-full rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </NavigationLayout>
+    );
+  }
 
   return (
     <NavigationLayout>
@@ -140,8 +165,10 @@ export default function EditConnectionPage() {
             <button
               onClick={save}
               disabled={busy}
-              className="rounded-lg bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50"
+              aria-busy={busy}
+              className="flex items-center justify-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-50"
             >
+              {busy && <LoaderCircle size={13} className="animate-spin" />}
               {busy ? "Saving…" : "Save"}
             </button>
             <button

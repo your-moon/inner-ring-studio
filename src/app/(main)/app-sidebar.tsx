@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartColumn, ChevronDown, ChevronRight, Clock, CloudUpload, Command, House, List, LogOut, PanelLeft, Plus, Search, User, X } from "lucide-react";
+import { ChartColumn, ChevronDown, ChevronRight, Clock, CloudUpload, Command, House, List, LoaderCircle, LogOut, PanelLeft, Plus, Search, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -236,11 +236,19 @@ export default function AppSidebar() {
     [collapsedStore]
   );
 
+  // Up to 5 minutes of silent polling (the browser tab, opened separately, is
+  // where the actual sign-in happens) -- without this, the sidebar button
+  // gives no sign anything is in flight for the entire wait.
+  const [connectingCloud, setConnectingCloud] = useState(false);
   const connectCloud = useCallback(async () => {
+    setConnectingCloud(true);
     const result = await fetch("/api/cloud-link/start")
       .then((response) => response.json())
       .catch(() => null);
-    if (!result?.url) return;
+    if (!result?.url) {
+      setConnectingCloud(false);
+      return;
+    }
     window.open(result.url, "_blank");
     let attempts = 0;
     const poll = window.setInterval(async () => {
@@ -250,6 +258,7 @@ export default function AppSidebar() {
         .catch(() => null);
       if (state?.signedIn || attempts > 150) {
         window.clearInterval(poll);
+        setConnectingCloud(false);
         mutateCloudLink();
       }
     }, 2000);
@@ -437,10 +446,18 @@ export default function AppSidebar() {
         {linked && !cloudSignedIn && (
           <button
             onClick={connectCloud}
-            className="text-ui-caption flex h-8 w-full items-center gap-2 rounded-[var(--radius-control)] px-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)]"
+            disabled={connectingCloud}
+            aria-busy={connectingCloud}
+            className="text-ui-caption flex h-8 w-full items-center gap-2 rounded-[var(--radius-control)] px-2 [color:var(--content-tertiary)] hover:bg-surface-hover hover:[color:var(--content-primary)] disabled:opacity-70"
           >
-            <CloudUpload size={15} />
-            <span className="flex-1 text-left">Connect to Cloud</span>
+            {connectingCloud ? (
+              <LoaderCircle size={15} className="animate-spin" />
+            ) : (
+              <CloudUpload size={15} />
+            )}
+            <span className="flex-1 text-left">
+              {connectingCloud ? "Waiting for sign-in…" : "Connect to Cloud"}
+            </span>
           </button>
         )}
 

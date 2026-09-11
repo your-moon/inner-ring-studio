@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Link, Share2 } from "lucide-react";
+import { Check, Link, LoaderCircle, Share2 } from "lucide-react";
 import { useState } from "react";
 import useSWR from "swr";
 import OptimizeTableState from "@/components/gui/table-optimized/optimize-table-state";
@@ -49,10 +49,12 @@ export default function ShareResultButton({ data }: { data: OptimizeTableState }
       <button
         onClick={share}
         disabled={busy}
+        aria-busy={busy}
         title="Share this result as a public link"
         className="flex items-center gap-1 rounded px-2 py-1 text-xs text-secondary-foreground hover:bg-neutral-100 disabled:opacity-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
       >
-        <Share2 size={13} /> {busy ? "Sharing…" : "Share"}
+        {busy ? <LoaderCircle size={13} className="animate-spin" /> : <Share2 size={13} />}{" "}
+        {busy ? "Sharing…" : "Share"}
       </button>
 
       {url && (

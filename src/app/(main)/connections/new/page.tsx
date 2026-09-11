@@ -303,6 +303,8 @@ export default function NewConnectionPage() {
                 size="lg"
                 onClick={importConn}
                 disabled={busy || !importSel}
+                loading={busy}
+                loadingLabel="Importing"
               >
                 Import
               </Button>

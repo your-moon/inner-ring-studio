@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageCircle, Send, Trash2 } from "lucide-react";
+import { LoaderCircle, MessageCircle, Send, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 interface RowComment {
@@ -114,10 +114,15 @@ export default function RowComments({
         <button
           onClick={add}
           disabled={busy || !text.trim()}
+          aria-busy={busy}
           className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FFEB02] text-black hover:bg-[#f2df00] disabled:opacity-50"
           title="Send"
         >
-          <Send size={16} />
+          {busy ? (
+            <LoaderCircle size={16} className="animate-spin" />
+          ) : (
+            <Send size={16} />
+          )}
         </button>
       </div>
     </div>

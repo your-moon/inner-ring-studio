@@ -3,7 +3,7 @@
 import { BaseDriver } from "@/drivers/base-driver";
 import { escapeSqlValue } from "@/drivers/sqlite/sql-helper";
 import { parseCsv } from "@/lib/csv";
-import { LucideUpload, LucideX } from "lucide-react";
+import { LoaderCircle, LucideUpload, LucideX } from "lucide-react";
 import { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -187,8 +187,10 @@ export default function ImportCsvDialog({
             <button
               onClick={runImport}
               disabled={busy || mappedCols.length === 0}
-              className="rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50"
+              aria-busy={busy}
+              className="flex items-center justify-center gap-2 rounded-lg bg-[#FFEB02] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f2df00] disabled:opacity-50"
             >
+              {busy && <LoaderCircle size={14} className="animate-spin" />}
               {busy
                 ? "Importing…"
                 : `Import ${csvRows.length.toLocaleString()} rows`}

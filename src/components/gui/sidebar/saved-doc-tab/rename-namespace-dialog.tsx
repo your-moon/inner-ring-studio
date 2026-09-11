@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useStudioContext } from "@/context/driver-provider";
 import { SavedDocNamespace } from "@/drivers/saved-doc/saved-doc-driver";
+import { LoaderCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 
 interface Props {
@@ -68,7 +69,8 @@ export default function RenameNamespaceDialog({
         />
         {error && <div className="-mt-2 text-xs text-red-500">{error}</div>}
         <DialogFooter>
-          <Button onClick={onRenameNamespace} disabled={loading}>
+          <Button onClick={onRenameNamespace} disabled={loading} aria-busy={loading}>
+            {loading && <LoaderCircle size={14} className="animate-spin" />}
             Save
           </Button>
         </DialogFooter>

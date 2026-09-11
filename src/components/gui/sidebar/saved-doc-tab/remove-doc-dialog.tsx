@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { useStudioContext } from "@/context/driver-provider";
 import { SavedDocData } from "@/drivers/saved-doc/saved-doc-driver";
+import { LoaderCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 
 interface Props {
@@ -56,8 +57,10 @@ export default function RemoveDocDialog({ doc, onClose, onComplete }: Props) {
           <Button
             variant="destructive"
             disabled={loading}
+            aria-busy={loading}
             onClick={onDeleteClicked}
           >
+            {loading && <LoaderCircle size={14} className="animate-spin" />}
             Delete
           </Button>
         </DialogFooter>
