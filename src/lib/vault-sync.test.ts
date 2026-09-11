@@ -39,72 +39,72 @@ function fakePorts(opts: {
 }
 
 describe("syncVault orchestration", () => {
-  test("no remote: writes local and pushes (no merge)", () => {
+  test("no remote: writes local and pushes (no merge)", async () => {
     const { ports, state } = fakePorts({
       local: { connections: [conn("a", 1)], tombstones: [] },
       remote: null,
     });
-    const r = syncVault(ports);
+    const r = await syncVault(ports);
     expect(r).toMatchObject({ merged: false, pushed: true, attempts: 1 });
     expect(state.written!.connections.map((c) => c.id)).toEqual(["a"]);
   });
 
-  test("merges the remote in before pushing", () => {
+  test("merges the remote in before pushing", async () => {
     const { ports, state } = fakePorts({
       local: { connections: [conn("a", 1)], tombstones: [] },
       remote: { connections: [conn("b", 1)], tombstones: [] },
     });
-    const r = syncVault(ports);
+    const r = await syncVault(ports);
     expect(r.merged).toBe(true);
     expect(r.pushed).toBe(true);
     expect(state.written!.connections.map((c) => c.id).sort()).toEqual(["a", "b"]);
   });
 
-  test("retries the merge when the push is rejected (remote moved)", () => {
+  test("retries the merge when the push is rejected (remote moved)", async () => {
     const { ports, state } = fakePorts({
       local: { connections: [conn("a", 1)], tombstones: [] },
       remote: { connections: [conn("b", 1)], tombstones: [] },
       pushFailsTimes: 1,
     });
-    const r = syncVault(ports);
+    const r = await syncVault(ports);
     expect(r).toMatchObject({ pushed: true, attempts: 2 });
     expect(state.pushes).toBe(2);
     expect(state.fetches).toBe(2); // re-fetched before the retry
   });
 
-  test("gives up after maxAttempts if the push keeps failing", () => {
+  test("gives up after maxAttempts if the push keeps failing", async () => {
     const { ports, state } = fakePorts({
       local: { connections: [conn("a", 1)], tombstones: [] },
       remote: null,
       pushFailsTimes: 99,
     });
-    const r = syncVault(ports, 3);
+    const r = await syncVault(ports, 3);
     expect(r).toMatchObject({ pushed: false, attempts: 3 });
     expect(state.pushes).toBe(3);
   });
 
-  test("changed=true when the remote brings a new/different connection", () => {
+  test("changed=true when the remote brings a new/different connection", async () => {
     const { ports } = fakePorts({
       local: { connections: [conn("a", 1)], tombstones: [] },
       remote: { connections: [conn("b", 1)], tombstones: [] },
     });
-    expect(syncVault(ports).changed).toBe(true);
+    expect((await syncVault(ports)).changed).toBe(true);
   });
 
-  test("changed=false when the remote matches local (no-op merge)", () => {
+  test("changed=false when the remote matches local (no-op merge)", async () => {
     const { ports } = fakePorts({
       local: { connections: [conn("a", 1)], tombstones: [] },
       remote: { connections: [conn("a", 1)], tombstones: [] },
     });
-    expect(syncVault(ports).changed).toBe(false);
+    expect((await syncVault(ports)).changed).toBe(false);
   });
 
-  test("changed still reflects the original diff across a push retry", () => {
+  test("changed still reflects the original diff across a push retry", async () => {
     const { ports } = fakePorts({
       local: { connections: [conn("a", 1)], tombstones: [] },
       remote: { connections: [conn("b", 1)], tombstones: [] },
       pushFailsTimes: 1,
     });
-    expect(syncVault(ports)).toMatchObject({ pushed: true, attempts: 2, changed: true });
+    expect(await syncVault(ports)).toMatchObject({ pushed: true, attempts: 2, changed: true });
   });
 });

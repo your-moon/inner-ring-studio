@@ -15,15 +15,15 @@ import { decryptVaultFile, readVault, writeVault } from "./vault";
  */
 export interface VaultSyncPorts {
   /** Fetch the remote branch (best-effort). */
-  fetch(): boolean;
+  fetch(): boolean | Promise<boolean>;
   /** The local decrypted vault. */
-  readLocal(): MergeableVault;
+  readLocal(): MergeableVault | Promise<MergeableVault>;
   /** The remote decrypted vault from the fetched ref, or null if none/unreadable. */
-  readRemote(): MergeableVault | null;
+  readRemote(): MergeableVault | null | Promise<MergeableVault | null>;
   /** Write the merged vault locally and commit it. */
-  writeMerged(merged: Required<MergeableVault>): void;
+  writeMerged(merged: Required<MergeableVault>): void | Promise<void>;
   /** Push; false when the remote moved (non-fast-forward) or the push failed. */
-  push(): boolean;
+  push(): boolean | Promise<boolean>;
 }
 
 export interface VaultSyncResult {
@@ -43,27 +43,27 @@ function connSignature(v: MergeableVault): string {
     .join(",");
 }
 
-export function syncVault(
+export async function syncVault(
   ports: VaultSyncPorts,
   maxAttempts = 3
-): VaultSyncResult {
+): Promise<VaultSyncResult> {
   let mergedRemote = false;
   let changed = false;
   // Signature of where we started, so `changed` reflects the whole sync (not just
   // the last retry, whose local was already merged by an earlier attempt).
   let originalSig: string | null = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    ports.fetch();
-    const local = ports.readLocal();
+    await ports.fetch();
+    const local = await ports.readLocal();
     if (originalSig === null) originalSig = connSignature(local);
-    const remote = ports.readRemote();
+    const remote = await ports.readRemote();
     mergedRemote = remote !== null;
     const merged = remote
       ? mergeVaults(local, remote)
       : { connections: local.connections, tombstones: local.tombstones ?? [] };
     changed = mergedRemote && connSignature(merged) !== originalSig;
-    ports.writeMerged(merged);
-    if (ports.push())
+    await ports.writeMerged(merged);
+    if (await ports.push())
       return { merged: mergedRemote, pushed: true, attempts: attempt, changed };
   }
   return { merged: mergedRemote, pushed: false, attempts: maxAttempts, changed };
@@ -150,11 +150,13 @@ export function defaultVaultPorts(branch = "main"): VaultSyncPorts {
 
 /** Run a conflict-free sync now (pull → merge → push). Replaces the old naive
  *  `git pull --rebase`, which conflicts on the re-encrypted vault blob. */
-export function syncVaultNow(branch = "main"): { ok: boolean; message: string } {
+export async function syncVaultNow(
+  branch = "main"
+): Promise<{ ok: boolean; message: string }> {
   if (!isRepo()) return { ok: false, message: "vault is not a git repo" };
   if (!remoteUrl())
     return { ok: false, message: "no 'origin' remote — link a repo first" };
-  const r = syncVault(defaultVaultPorts(branch));
+  const r = await syncVault(defaultVaultPorts(branch));
   if (r.changed) lastRemoteChangeAt = Date.now();
   return {
     ok: r.pushed,
@@ -180,11 +182,11 @@ export function scheduleBackgroundSync(
   if (!isRepo() || !remoteUrl()) return;
   if (syncTimer) return; // a run is already scheduled
   const wait = Math.max(delayMs, minIntervalMs - (Date.now() - lastSyncAt));
-  syncTimer = setTimeout(() => {
+  syncTimer = setTimeout(async () => {
     syncTimer = null;
     lastSyncAt = Date.now();
     try {
-      syncVaultNow();
+      await syncVaultNow();
     } catch {
       /* best-effort; a failed background sync must never crash the app */
     }

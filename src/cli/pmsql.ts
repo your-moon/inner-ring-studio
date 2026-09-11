@@ -262,7 +262,7 @@ function cmdConfig(args: string[]) {
   die(`unknown config action "${action}". Try: link | status`);
 }
 
-function cmdSync() {
+async function cmdSync() {
   // Conflict-free merge sync (fetch -> decrypt both sides -> merge -> push,
   // retrying on a moved remote) — the same engine the app's background sync
   // uses. NOT `git pull --rebase`: the vault re-encrypts with a fresh salt/iv
@@ -270,7 +270,7 @@ function cmdSync() {
   // time two devices have both written since the last sync, and leaves the
   // repo permanently stuck mid-rebase (verified: every subsequent `pull
   // --rebase` then fails immediately with "unresolved conflict").
-  const r = syncVaultNow();
+  const r = await syncVaultNow();
   console.log(r.message);
   if (!r.ok) process.exit(1);
 }

@@ -23,13 +23,13 @@ function git(args: string[], cwd: string) {
 }
 
 /** Run `fn` with the vault env vars pointed at `dir`, restoring them after. */
-function asDevice<T>(dir: string, fn: () => T): T {
+async function asDevice<T>(dir: string, fn: () => T | Promise<T>): Promise<T> {
   const prevConfig = process.env.PMSQL_CONFIG_DIR;
   const prevVault = process.env.PMSQL_VAULT;
   process.env.PMSQL_CONFIG_DIR = dir;
   process.env.PMSQL_VAULT = join(dir, "vault.enc");
   try {
-    return fn();
+    return await fn();
   } finally {
     if (prevConfig === undefined) delete process.env.PMSQL_CONFIG_DIR;
     else process.env.PMSQL_CONFIG_DIR = prevConfig;
@@ -60,45 +60,45 @@ describe("vault-sync real-git integration", () => {
     else process.env.PMSQL_PASSPHRASE = prevPassphrase;
   });
 
-  test("one device's delete and another device's concurrent add both land on both sides", () => {
+  test("one device's delete and another device's concurrent add both land on both sides", async () => {
     // A: seed a connection, link, push.
-    asDevice(devA, () => {
+    await asDevice(devA, async () => {
       addConnection({ name: "zahii-prod", driver: "postgres", host: "h", port: 5432 });
       linkRepo(`file://${bare}`);
-      const r = syncVaultNow();
+      const r = await syncVaultNow();
       expect(r.ok).toBe(true);
     });
 
     // B: link (pulls A's existing vault).
-    asDevice(devB, () => {
+    await asDevice(devB, () => {
       linkRepo(`file://${bare}`);
       expect(readVault().connections.map((c) => c.name)).toEqual(["zahii-prod"]);
     });
 
     // B: delete it, sync (push the delete).
-    asDevice(devB, () => {
+    await asDevice(devB, async () => {
       removeConnection("zahii-prod");
-      const r = syncVaultNow();
+      const r = await syncVaultNow();
       expect(r.ok).toBe(true);
     });
 
     // A: WITHOUT pulling B's delete, independently add a different connection.
-    asDevice(devA, () => {
+    await asDevice(devA, () => {
       addConnection({ name: "powerbank", driver: "postgres", host: "h2", port: 5432 });
     });
 
     // A: sync now has to reconcile a real divergence — this is exactly the
     // case that used to fail with "push failed after 3 attempts".
-    asDevice(devA, () => {
-      const r = syncVaultNow();
+    await asDevice(devA, async () => {
+      const r = await syncVaultNow();
       expect(r.ok).toBe(true);
       const names = readVault().connections.map((c) => c.name).sort();
       expect(names).toEqual(["powerbank"]); // zahii-prod's deletion applied here too
     });
 
     // B: syncing again must pick up A's addition.
-    asDevice(devB, () => {
-      const r = syncVaultNow();
+    await asDevice(devB, async () => {
+      const r = await syncVaultNow();
       expect(r.ok).toBe(true);
       const names = readVault().connections.map((c) => c.name).sort();
       expect(names).toEqual(["powerbank"]);
