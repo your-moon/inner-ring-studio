@@ -47,14 +47,21 @@ const ContextMenuSubContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent>
 >(({ className, ...props }, ref) => (
-  <ContextMenuPrimitive.SubContent
-    ref={ref}
-    className={cn(
-      "bg-surface-overlay [color:var(--content-primary)] origin-[var(--radix-context-menu-content-transform-origin)] data-[state=open]:animate-[orbit-pop-in_var(--motion-fast)_var(--ease-out)_both] data-[state=closed]:animate-[orbit-pop-out_var(--motion-fast)_var(--ease-out)_both] motion-reduce:animate-none z-50 min-w-[8rem] overflow-hidden rounded-[var(--radius-menu)] border border-border-default p-1 shadow-[var(--shadow-menu)]",
-      className
-    )}
-    {...props}
-  />
+  // Portal, like ContextMenuContent below -- without it, SubContent renders
+  // inline inside the parent menu's DOM instead of at the viewport level,
+  // and the parent's own `overflow-hidden` clips it away entirely: state
+  // correctly says open (confirmed live: aria-expanded, the item list, all
+  // present) while nothing is visible on screen at all.
+  <ContextMenuPrimitive.Portal>
+    <ContextMenuPrimitive.SubContent
+      ref={ref}
+      className={cn(
+        "bg-surface-overlay [color:var(--content-primary)] origin-[var(--radix-context-menu-content-transform-origin)] data-[state=open]:animate-[orbit-pop-in_var(--motion-fast)_var(--ease-out)_both] data-[state=closed]:animate-[orbit-pop-out_var(--motion-fast)_var(--ease-out)_both] motion-reduce:animate-none z-50 min-w-[8rem] overflow-hidden rounded-[var(--radius-menu)] border border-border-default p-1 shadow-[var(--shadow-menu)]",
+        className
+      )}
+      {...props}
+    />
+  </ContextMenuPrimitive.Portal>
 ));
 ContextMenuSubContent.displayName = ContextMenuPrimitive.SubContent.displayName;
 
