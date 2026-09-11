@@ -1,10 +1,11 @@
 "use client";
 
-import { ChartColumn, Trash2, Upload, X } from "lucide-react";
+import { ChartColumn, LoaderCircle, Trash2, Upload, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import useSWR from "swr";
+import { Skeleton } from "@/components/orbit";
 import NavigationLayout from "../nav-layout";
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
@@ -23,6 +24,8 @@ export default function BoardsPage() {
   const { data, mutate } = useSWR<{ boards: BoardSummary[] }>("/api/boards", fetcher);
   const [creating, setCreating] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const loading = !data;
   const boards = data?.boards ?? [];
 
   async function createBoard() {
@@ -39,7 +42,9 @@ export default function BoardsPage() {
 
   async function del(id: string, name: string) {
     if (!window.confirm(`Delete board "${name}"?`)) return;
-    await fetch(`/api/boards/${id}`, { method: "DELETE" });
+    setDeleting(id);
+    await fetch(`/api/boards/${id}`, { method: "DELETE" }).catch(() => {});
+    setDeleting(null);
     mutate();
   }
 
@@ -55,7 +60,13 @@ export default function BoardsPage() {
             >
               <Upload size={15} /> Import JSON
             </button>
-            <button className={yellowBtn} disabled={creating} onClick={createBoard}>
+            <button
+              className={yellowBtn + " flex items-center gap-1.5"}
+              disabled={creating}
+              aria-busy={creating}
+              onClick={createBoard}
+            >
+              {creating && <LoaderCircle size={14} className="animate-spin" />}
               {creating ? "Creating…" : "New board"}
             </button>
           </div>
@@ -71,7 +82,20 @@ export default function BoardsPage() {
           are shared across your workspace.
         </p>
 
-        {boards.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-neutral-200 p-5 dark:border-neutral-800"
+              >
+                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="mt-3 h-4 w-2/3" />
+                <Skeleton className="mt-2 h-3 w-1/3" />
+              </div>
+            ))}
+          </div>
+        ) : boards.length === 0 ? (
           <div className="rounded-xl border border-dashed border-neutral-300 p-12 text-center dark:border-neutral-700">
             <ChartColumn size={28} className="mx-auto text-neutral-400" />
             <p className="mt-3 text-sm text-neutral-500">
@@ -99,8 +123,9 @@ export default function BoardsPage() {
                 </Link>
                 <button
                   onClick={() => del(b.id, b.name)}
+                  disabled={deleting === b.id}
                   title="Delete board"
-                  className="absolute top-3 right-3 rounded-md p-1.5 text-neutral-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
+                  className="absolute top-3 right-3 rounded-md p-1.5 text-neutral-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 disabled:!opacity-100 disabled:animate-pulse dark:hover:bg-red-950/30"
                 >
                   <Trash2 size={15} />
                 </button>
@@ -197,8 +222,10 @@ function ImportDialog({
             <button
               onClick={doImport}
               disabled={busy || !text.trim()}
-              className="seed-action-button seed-action-button--variant_brandSolid seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
+              aria-busy={busy}
+              className="flex items-center gap-1.5 seed-action-button seed-action-button--variant_brandSolid seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
             >
+              {busy && <LoaderCircle size={14} className="animate-spin" />}
               {busy ? "Importing…" : "Import"}
             </button>
           </div>

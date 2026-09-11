@@ -9,6 +9,7 @@ import LocalBoardSource from "@/drivers/board-source/local";
 import CloudBoardStorage from "@/drivers/board-storage/cloud";
 import { ChevronLeft, Code } from "lucide-react";
 import Link from "next/link";
+import { Skeleton } from "@/components/orbit";
 import NavigationLayout from "../../nav-layout";
 import BoardJsonDialog from "./board-json-dialog";
 
@@ -78,7 +79,16 @@ export default function BoardEditorPage() {
   if (!value || !conns) {
     return (
       <NavigationLayout>
-        <div className="p-8 text-sm text-neutral-500">Loading board…</div>
+        <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2 dark:border-neutral-800">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-4" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 p-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-48 w-full rounded-[var(--radius-panel)]" />
+          ))}
+        </div>
       </NavigationLayout>
     );
   }

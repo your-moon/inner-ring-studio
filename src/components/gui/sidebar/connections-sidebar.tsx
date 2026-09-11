@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import useSWR from "swr";
 import ConnectionTreeItem from "@/app/(main)/connection-tree-item";
 import type { NavConnection } from "@/app/(main)/nav-connection-item";
+import { Skeleton } from "@/components/orbit";
 import { scopedStore } from "@/lib/scoped-store";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,11 @@ export default function ConnectionsSidebar() {
     { refreshInterval: 5000 }
   );
 
+  // `data` is undefined only until the first response lands (SWR keeps the
+  // last good value across the 5s refresh, so this never flips back to
+  // loading afterwards) -- distinct from an actually-empty vault, which is
+  // `data.connections` resolving to a real empty array.
+  const loading = !data;
   const conns = data?.connections ?? [];
   const folders = new Map<string, NavConnection[]>();
   for (const c of conns) {
@@ -86,12 +92,18 @@ export default function ConnectionsSidebar() {
     async (id: string, name: string) => {
       if (!window.confirm(`Delete connection "${name}"? Removes it from the vault.`))
         return;
+      // Reuse the same busy-tracking the tree node's status dot already
+      // renders a spinner for (see ConnectionTreeItem's `statusDot`) --
+      // otherwise the row gives zero feedback between the confirm and the
+      // list re-fetching.
+      mark(id, true);
       await fetch(`/api/connections?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
       }).catch(() => {});
+      mark(id, false);
       mutate();
     },
-    [mutate]
+    [mutate, mark]
   );
 
   const onOpen = useCallback(
@@ -107,7 +119,17 @@ export default function ConnectionsSidebar() {
       <h1 className="mb-3 px-4 text-[15px] font-semibold text-foreground">
         Databases
       </h1>
-      {conns.length === 0 && (
+      {loading && (
+        <div className="flex flex-col gap-2.5 px-4 pt-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <Skeleton className="size-4 shrink-0 rounded" />
+              <Skeleton className="h-4" style={{ width: `${75 - i * 8}%` }} />
+            </div>
+          ))}
+        </div>
+      )}
+      {!loading && conns.length === 0 && (
         <p className="px-4 text-sm text-muted-foreground">No connections.</p>
       )}
       {keys.map((folder) => {
