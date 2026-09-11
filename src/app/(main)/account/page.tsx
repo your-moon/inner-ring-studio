@@ -1,5 +1,6 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import NavigationLayout from "../nav-layout";
@@ -107,8 +108,10 @@ function ChangePassword() {
         <button
           onClick={submit}
           disabled={busy || !current || next.length < 8}
-          className="seed-action-button seed-action-button--variant_brandSolid seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
+          aria-busy={busy}
+          className="flex items-center gap-1.5 seed-action-button seed-action-button--variant_brandSolid seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50"
         >
+          {busy && <LoaderCircle size={13} className="animate-spin" />}
           {busy ? "Updating…" : "Update password"}
         </button>
       </div>
@@ -168,8 +171,10 @@ function DeleteAccount({ onDeleted }: { onDeleted: () => void }) {
             <button
               onClick={del}
               disabled={busy || !password}
-              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
+              aria-busy={busy}
+              className="flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
             >
+              {busy && <LoaderCircle size={13} className="animate-spin" />}
               {busy ? "Deleting…" : "Permanently delete"}
             </button>
             <button

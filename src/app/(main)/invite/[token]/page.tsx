@@ -1,5 +1,6 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -56,7 +57,11 @@ export default function AcceptInvitePage() {
           <div className="h-3.5 w-3.5 rounded-full bg-neutral-800 dark:bg-neutral-200" />
         </div>
 
-        {!info && <p className="text-sm text-neutral-500">Loading invite…</p>}
+        {!info && (
+          <p className="flex items-center justify-center gap-2 text-sm text-neutral-500">
+            <LoaderCircle size={14} className="animate-spin" /> Loading invite…
+          </p>
+        )}
 
         {info?.error && <p className="text-sm text-red-600">{info.error}</p>}
 
@@ -74,8 +79,10 @@ export default function AcceptInvitePage() {
                 <button
                   onClick={accept}
                   disabled={busy}
-                  className="mt-6 w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:brightness-110 active:brightness-95 disabled:opacity-50"
+                  aria-busy={busy}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:brightness-110 active:brightness-95 disabled:opacity-50"
                 >
+                  {busy && <LoaderCircle size={14} className="animate-spin" />}
                   {busy ? "Joining…" : `Join as ${info.role}`}
                 </button>
                 {error && <p className="mt-3 text-sm text-red-600">{error}</p>}

@@ -1,6 +1,7 @@
 "use client";
 
 import AuthShell, { authButton, authInput } from "@/components/auth-shell";
+import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
@@ -95,8 +96,10 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading || !password || (isCloud && !email)}
-          className={authButton}
+          aria-busy={loading}
+          className={authButton + " flex items-center justify-center gap-2"}
         >
+          {loading && <LoaderCircle size={15} className="animate-spin" />}
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>

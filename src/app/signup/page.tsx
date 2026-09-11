@@ -1,6 +1,7 @@
 "use client";
 
 import AuthShell, { authButton, authInput } from "@/components/auth-shell";
+import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -96,8 +97,10 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading || !email || password.length < 8 || password !== confirm}
-          className={authButton}
+          aria-busy={loading}
+          className={authButton + " flex items-center justify-center gap-2"}
         >
+          {loading && <LoaderCircle size={15} className="animate-spin" />}
           {loading ? "Creating account…" : "Create account"}
         </button>
 
