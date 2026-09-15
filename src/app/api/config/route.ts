@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     if (body.action === "sync") {
       // Conflict-free merge sync (decrypt both sides, merge, push) instead of the
       // old `git pull --rebase`, which conflicts on the re-encrypted vault blob.
-      const res = syncVaultNow();
+      const res = await syncVaultNow();
       return NextResponse.json({ ok: res.ok, message: res.message });
     }
     return NextResponse.json({ error: "unknown action" }, { status: 400 });

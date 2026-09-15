@@ -10,6 +10,8 @@ import "@seed-design/css/recipes/action-button.css";
 import "@seed-design/css/recipes/text-input.css";
 import "@seed-design/css/recipes/menu.css";
 import "@seed-design/css/recipes/menu-item.css";
+// Must load after the action-button recipe above — see the file header.
+import "./split-button.css";
 
 const siteDescription = `${WEBSITE_NAME} is a fast, self-hosted database workspace — connect to your own PostgreSQL, browse and edit data in a grid, and run SQL, with connections stored in an encrypted vault.`;
 

@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -202,6 +203,10 @@ export default function QueryWindow({
   };
 
   const onRunClicked = (all = false, explained = false) => {
+    // A second run while one is in flight would race: whichever settles first
+    // clears isRunning for both, and the loser's result overwrites the winner's.
+    if (isRunning) return;
+
     const editorState = editorRef.current?.view?.state;
     if (!editorState) return;
 
@@ -452,13 +457,14 @@ export default function QueryWindow({
                 }}
               />
 
-              <div className="flex">
+              <div className="split-button">
                 <button
+                  type="button"
                   onClick={() => onRunClicked()}
-                  className={cn(
-                    buttonVariants({ size: "sm" }),
-                    "rounded-r-none"
-                  )}
+                  aria-disabled={isRunning}
+                  data-loading={isRunning || undefined}
+                  title={`Run current statement (${KEY_BINDING.run.toString()})`}
+                  className={cn(buttonVariants({ size: "sm" }))}
                 >
                   <LucidePlay className="mr-2 h-4 w-4" />
                   Run
@@ -466,17 +472,23 @@ export default function QueryWindow({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
+                      type="button"
+                      aria-label="More run options"
+                      title="More run options"
                       className={cn(
                         buttonVariants({ size: "sm" }),
-                        "rounded-l-none border-l"
+                        "split-button__trigger"
                       )}
                     >
-                      <ChevronDown size={12} />
+                      <ChevronDown size={14} />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent>
+                  <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => onRunClicked()}>
                       Run Current Statement
+                      <DropdownMenuShortcut>
+                        {KEY_BINDING.run.toString()}
+                      </DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onRunClicked(true)}>
                       Run All Statements

@@ -224,12 +224,16 @@ export default function PlaygroundEditorBody({
   const onSaveClicked = useCallback(() => {
     if (!nativeDriver) return;
 
+    // sql.js always returns an ArrayBuffer-backed view; the default Uint8Array
+    // type is widened to ArrayBufferLike, which neither sink accepts.
+    const bytes = nativeDriver.export() as Uint8Array<ArrayBuffer>;
+
     if (handler) {
       // If the browser support FileSystemHandler, we save directly back to the file.
       handler
         .createWritable()
         .then((writable) => {
-          writable.write(nativeDriver.export());
+          writable.write(bytes);
           writable.close();
           toast.success(
             <div>
@@ -242,7 +246,7 @@ export default function PlaygroundEditorBody({
     } else {
       // Fallback to file download instead of direct file save.
       saveAs(
-        new Blob([nativeDriver.export()], {
+        new Blob([bytes], {
           type: "application/x-sqlite3",
         }),
         "sqlite-dump.db"

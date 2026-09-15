@@ -1,0 +1,46 @@
+/*
+ * Segmented ("split") action button: a primary action plus a dropdown holding
+ * its variants, rendered as ONE control with a seam instead of two pills.
+ *
+ * This lives in its own stylesheet, not in Tailwind utilities on the call site,
+ * because the crisp action-button recipe is unlayered CSS while every Tailwind
+ * utility sits in `@layer utilities` — unlayered always wins, so `rounded-r-none`
+ * and `px-*` on a `.seed-action-button` silently do nothing. layout.tsx imports
+ * this after the recipe so it wins on source order, with no `!important`.
+ */
+.split-button {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+/* Flatten the inner corners so the two halves read as one control. */
+.split-button > :first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.split-button > :last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  /* The seam. A hairline in the fill's own foreground — the recipe sets
+     `border: none`, so this has to be an inset shadow, not a border. */
+  box-shadow: inset 1px 0 0 color-mix(in srgb, currentColor 28%, transparent);
+}
+
+/* The press animation scales each button independently, which tears a joined
+   control in half. The seam is the affordance; hover already gives feedback. */
+.split-button > :is(:first-child, :last-child):active {
+  scale: 1;
+}
+
+/* Icon-only trigger: drop the with-text side padding the `sm` variant applies. */
+.split-button__trigger {
+  min-width: var(--seed-dimension-x7);
+  --seed-box-padding-left: var(--seed-dimension-x2);
+  --seed-box-padding-right: var(--seed-dimension-x2);
+}
+
+/* Keep the trigger visibly engaged while its menu is open. */
+.split-button__trigger[data-state="open"] {
+  background: var(--seed-color-bg-brand-solid-pressed);
+}

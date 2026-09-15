@@ -3,8 +3,6 @@
 import {
   AssigneePicker,
   AvatarGroup,
-  Badge,
-  Button,
   CommentComposer,
   CommentItem,
   EstimatePicker,
@@ -15,7 +13,6 @@ import {
   ProgressDonut,
   Reactions,
   SegmentedProgress,
-  StatusDot,
   WorkspaceSwitcher,
   type Priority,
   type Reaction,

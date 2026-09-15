@@ -2,7 +2,6 @@
 
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { useState } from "react";
 
 import { CommentComposer, Reactions } from "./comments";
 import { IssueRow } from "./issue-row";

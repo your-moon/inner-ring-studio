@@ -69,12 +69,10 @@ describe("prepareStatements", () => {
       explained: false,
       placeholders: { id: "5" },
     });
-    expect(r.ok).toBe(true);
-    if (r.ok) {
-      expect(r.history).toEqual(["select :id"]);
-      expect(r.run[0]).toContain("5");
-      expect(r.run[0]).not.toContain(":id");
-    }
+    if (!r.ok) throw new Error(r.message);
+    expect(r.history).toEqual(["select :id"]);
+    expect(r.run[0]).toContain("5");
+    expect(r.run[0]).not.toContain(":id");
   });
 
   it("explain-prefixes when explained", () => {

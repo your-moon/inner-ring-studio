@@ -6,7 +6,9 @@ import { escapeSqlValue } from "@/drivers/sqlite/sql-helper";
 import type {
   BaseDriver,
   DatabaseTableColumn,
+  DatabaseTableColumnChange,
   DatabaseTableColumnConstraint,
+  DatabaseTableConstraintChange,
   DatabaseTableSchemaChange,
 } from "@/drivers/base-driver";
 import { generatePostgresSchemaChange } from "@/drivers/postgres/generate-schema";
@@ -37,15 +39,37 @@ const col = (
   constraint: DatabaseTableColumnConstraint = {}
 ): DatabaseTableColumn => ({ name, type, constraint });
 
+const colChange = (
+  oldCol: DatabaseTableColumn | null,
+  newCol: DatabaseTableColumn | null
+): DatabaseTableColumnChange => ({
+  // `key` is a stable UI identity for the row; no generator reads it, so the
+  // column name keeps fixtures readable without affecting golden output.
+  key: (newCol ?? oldCol)?.name ?? "",
+  old: oldCol,
+  new: newCol,
+});
+
+const constraintChange = (
+  id: string,
+  oldConstraint: DatabaseTableColumnConstraint | null,
+  newConstraint: DatabaseTableColumnConstraint | null
+): DatabaseTableConstraintChange => ({
+  // `id` is a stable UI identity for the row; no generator reads it.
+  id,
+  old: oldConstraint,
+  new: newConstraint,
+});
+
 describe("generate table schema DDL — golden output across dialects", () => {
   test("create table: pk+autoincrement, not null, default, unique", () => {
     const change: DatabaseTableSchemaChange = {
-      name: { old: null, new: "users" },
+      name: { old: undefined, new: "users" },
       schemaName: "public",
       columns: [
-        { old: null, new: col("id", "integer", { primaryKey: true, autoIncrement: true }) },
-        { old: null, new: col("email", "text", { notNull: true, unique: true }) },
-        { old: null, new: col("role", "text", { defaultValue: "member" }) },
+        colChange(null, col("id", "integer", { primaryKey: true, autoIncrement: true })),
+        colChange(null, col("email", "text", { notNull: true, unique: true })),
+        colChange(null, col("role", "text", { defaultValue: "member" })),
       ],
       constraints: [],
     };
@@ -56,7 +80,7 @@ describe("generate table schema DDL — golden output across dialects", () => {
     const change: DatabaseTableSchemaChange = {
       name: { old: "users", new: "users" },
       schemaName: "public",
-      columns: [{ old: null, new: col("age", "integer", {}) }],
+      columns: [colChange(null, col("age", "integer", {}))],
       constraints: [],
     };
     expect(all(change)).toMatchSnapshot();
@@ -66,7 +90,7 @@ describe("generate table schema DDL — golden output across dialects", () => {
     const change: DatabaseTableSchemaChange = {
       name: { old: "users", new: "users" },
       schemaName: "public",
-      columns: [{ old: col("age", "integer", {}), new: null }],
+      columns: [colChange(col("age", "integer", {}), null)],
       constraints: [],
     };
     expect(all(change)).toMatchSnapshot();
@@ -77,7 +101,7 @@ describe("generate table schema DDL — golden output across dialects", () => {
       name: { old: "users", new: "users" },
       schemaName: "public",
       columns: [
-        { old: col("email", "text", {}), new: col("email_address", "text", {}) },
+        colChange(col("email", "text", {}), col("email_address", "text", {})),
       ],
       constraints: [],
     };
@@ -89,7 +113,7 @@ describe("generate table schema DDL — golden output across dialects", () => {
       name: { old: "users", new: "users" },
       schemaName: "public",
       columns: [
-        { old: col("age", "integer", {}), new: col("age", "bigint", {}) },
+        colChange(col("age", "integer", {}), col("age", "bigint", {})),
       ],
       constraints: [],
     };
@@ -101,10 +125,10 @@ describe("generate table schema DDL — golden output across dialects", () => {
       name: { old: "users", new: "users" },
       schemaName: "public",
       columns: [
-        {
-          old: col("id", "integer", { primaryKey: true }),
-          new: col("id", "bigint", { primaryKey: true }),
-        },
+        colChange(
+          col("id", "integer", { primaryKey: true }),
+          col("id", "bigint", { primaryKey: true })
+        ),
       ],
       constraints: [],
     };
@@ -116,14 +140,14 @@ describe("generate table schema DDL — golden output across dialects", () => {
       name: { old: "orders", new: "orders" },
       schemaName: "public",
       columns: [
-        {
-          old: col("user_id", "integer", {
+        colChange(
+          col("user_id", "integer", {
             foreignKey: { foreignTableName: "users", foreignColumns: ["id"] },
           }),
-          new: col("user_id", "bigint", {
+          col("user_id", "bigint", {
             foreignKey: { foreignTableName: "users", foreignColumns: ["id"] },
-          }),
-        },
+          })
+        ),
       ],
       constraints: [],
     };
@@ -142,20 +166,20 @@ describe("generate table schema DDL — golden output across dialects", () => {
 
   test("create table: foreign key column + check + collate", () => {
     const change: DatabaseTableSchemaChange = {
-      name: { old: null, new: "orders" },
+      name: { old: undefined, new: "orders" },
       schemaName: "public",
       columns: [
-        { old: null, new: col("id", "integer", { primaryKey: true }) },
-        {
-          old: null,
-          new: col("user_id", "integer", {
+        colChange(null, col("id", "integer", { primaryKey: true })),
+        colChange(
+          null,
+          col("user_id", "integer", {
             foreignKey: {
               foreignTableName: "users",
               foreignColumns: ["id"],
             },
-          }),
-        },
-        { old: null, new: col("code", "text", { collate: "NOCASE", checkExpression: "length(code) > 0" }) },
+          })
+        ),
+        colChange(null, col("code", "text", { collate: "NOCASE", checkExpression: "length(code) > 0" })),
       ],
       constraints: [],
     };
@@ -164,15 +188,15 @@ describe("generate table schema DDL — golden output across dialects", () => {
 
   test("create table: table-level constraints (pk, unique, fk)", () => {
     const change: DatabaseTableSchemaChange = {
-      name: { old: null, new: "membership" },
+      name: { old: undefined, new: "membership" },
       schemaName: "public",
       columns: [
-        { old: null, new: col("user_id", "integer", {}) },
-        { old: null, new: col("team_id", "integer", {}) },
+        colChange(null, col("user_id", "integer", {})),
+        colChange(null, col("team_id", "integer", {})),
       ],
       constraints: [
-        { old: null, new: { primaryKey: true, primaryColumns: ["user_id", "team_id"] } },
-        { old: null, new: { foreignKey: { columns: ["team_id"], foreignTableName: "teams", foreignColumns: ["id"] } } },
+        constraintChange("pk", null, { primaryKey: true, primaryColumns: ["user_id", "team_id"] }),
+        constraintChange("fk", null, { foreignKey: { columns: ["team_id"], foreignTableName: "teams", foreignColumns: ["id"] } }),
       ],
     };
     expect(all(change)).toMatchSnapshot();

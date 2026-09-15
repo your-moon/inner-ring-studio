@@ -1,6 +1,5 @@
 "use client";
 
-import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import NavigationLayout from "../../nav-layout";

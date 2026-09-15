@@ -1,7 +1,6 @@
 "use client";
 
 import { LoaderCircle, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 import NavigationLayout from "../nav-layout";
@@ -28,7 +27,6 @@ const yellowBtn =
   "seed-action-button seed-action-button--variant_brandSolid seed-action-button--size_medium seed-action-button--layout_withText seed-action-button--size_medium-layout_withText disabled:opacity-50";
 
 export default function WorkspacePage() {
-  const router = useRouter();
   const { data: me } = useSWR<Me>("/api/auth/me", fetcher);
   const wsId = me?.workspaceId ?? null;
   const isOwner = me?.role === "owner";
