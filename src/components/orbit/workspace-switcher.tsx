@@ -1,7 +1,6 @@
 "use client";
 
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
-import type { ReactNode } from "react";
 
 import {
   DropdownMenu,

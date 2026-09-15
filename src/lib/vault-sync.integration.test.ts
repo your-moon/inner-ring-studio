@@ -18,10 +18,6 @@ import { syncVaultNow } from "./vault-sync";
 import { linkRepo } from "./config-repo";
 import { addConnection, removeConnection, readVault } from "./vault";
 
-function git(args: string[], cwd: string) {
-  execFileSync("git", args, { cwd, stdio: "ignore" });
-}
-
 /** Run `fn` with the vault env vars pointed at `dir`, restoring them after. */
 async function asDevice<T>(dir: string, fn: () => T | Promise<T>): Promise<T> {
   const prevConfig = process.env.PMSQL_CONFIG_DIR;

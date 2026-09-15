@@ -24,7 +24,7 @@ export function prompt(
       _writeToOutput: (s: string) => void;
     };
     let shown = false;
-    rlAny._writeToOutput = (str: string) => {
+    rlAny._writeToOutput = (_str: string) => {
       if (!shown) {
         rlAny.output.write(question);
         shown = true;

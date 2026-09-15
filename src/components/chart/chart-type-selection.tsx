@@ -1,5 +1,5 @@
 import { produce } from "immer";
-import { ChartBar, ChartColumn, ChartLine, ChartPie, ChartScatter, CircleDot, Filter, Table, Type } from "lucide-react";
+import { ChartColumn, ChartLine, ChartPie, ChartScatter, CircleDot, Filter, Table, Type } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { ChartValue } from "./chart-type";
 import { ChartTypeButton } from "./chart-type-button";

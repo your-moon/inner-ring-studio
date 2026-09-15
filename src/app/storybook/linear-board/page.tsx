@@ -17,7 +17,6 @@ import {
   PriorityPicker,
   RelationRow,
   SlashMenu,
-  StatusDot,
   StatusPicker,
   SubIssueList,
   TeamSwitcher,

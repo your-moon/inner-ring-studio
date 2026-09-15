@@ -10,12 +10,10 @@ describe("decodeQueryRequest", () => {
 
   it("decodes a fetch-more request and clamps the page size", () => {
     const r = decodeQueryRequest({ cursorId: "c1", fetchMore: 5 });
-    expect(r.kind).toBe("fetchMore");
-    if (r.kind === "fetchMore") {
-      expect(r.cursorId).toBe("c1");
-      // clampPageSize floors small values to its minimum (50)
-      expect(r.pageSize).toBeGreaterThanOrEqual(50);
-    }
+    if (r.kind !== "fetchMore") throw new Error(`unexpected kind: ${r.kind}`);
+    expect(r.cursorId).toBe("c1");
+    // clampPageSize floors small values to its minimum (50)
+    expect(r.pageSize).toBeGreaterThanOrEqual(50);
   });
 
   it("decodes a statements (transaction) request", () => {
@@ -34,8 +32,8 @@ describe("decodeQueryRequest", () => {
 
   it("decodes paginate when paginate is present (before single)", () => {
     const r = decodeQueryRequest({ sql: "select 1", paginate: 100 });
-    expect(r.kind).toBe("paginate");
-    if (r.kind === "paginate") expect(r.sql).toBe("select 1");
+    if (r.kind !== "paginate") throw new Error(`unexpected kind: ${r.kind}`);
+    expect(r.sql).toBe("select 1");
   });
 
   it("decodes a single statement", () => {

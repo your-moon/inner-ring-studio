@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, User } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import {
   DropdownMenu,

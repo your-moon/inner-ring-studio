@@ -98,7 +98,7 @@ export default function TableDataWindow({
   const [changeNumber, setChangeNumber] = useState(0);
 
   const [where, setWhere] = useState("");
-  const [whereInput, setWhereInput] = useState("");
+  const [, setWhereInput] = useState("");
 
   // Per-column search → real SERVER-SIDE WHERE (searches the whole table, not
   // just loaded rows). Combined with the manual `where` filter below.
